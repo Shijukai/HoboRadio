@@ -16,7 +16,7 @@ jobs:
     - name: Validate Package Config
       id: config_package
       run: |
-        if [ "${{ vars.PACKAGE_NAME }}" != "" ]; then
+        if [ "com.shijukai.hoboradio" != "" ]; then
           echo "configPackage=true" >> $GITHUB_OUTPUT;
         else
           echo "configPackage=false" >> $GITHUB_OUTPUT;
@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: write
     env:
-      packagePath: Packages/${{ vars.PACKAGE_NAME }}
+      packagePath: Packages/com.shijukai.hoboradio
     if: needs.config.outputs.config_package == 'true'
     steps:
 
