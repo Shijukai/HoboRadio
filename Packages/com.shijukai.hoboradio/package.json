@@ -1,7 +1,11 @@
 {
   "name": "com.shijukai.hoboradio",
   "displayName": "hoboradio_shijukai",
+<<<<<<< HEAD
+  "version": "1.3.3",
+=======
   "version": "1.3.2",
+>>>>>>> 32da0d68ee24f6cf549158e669d557138be84f4d
   "unity": "2022.3",
   "author": {
     "name": "s0b4yu",
