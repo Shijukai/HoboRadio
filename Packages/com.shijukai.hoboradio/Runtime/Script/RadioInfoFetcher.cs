@@ -27,6 +27,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     private float lastRequestTime = -10f;
     private bool isWaitingForRetry = false;
     private int lastClockSecond = -1;
+    private bool isAutoRefreshScheduled = false; //AutoRefreshスケジュール管理用
 
     void Start()
     {
@@ -127,10 +128,19 @@ public class RadioInfoFetcher : UdonSharpBehaviour
             VRCStringDownloader.LoadUrl(infoUrls[currentIndex], (IUdonEventReceiver)this);
         }
 
-        SendCustomEventDelayedSeconds(nameof(AutoRefresh), refreshInterval);
+        //AutoRefreshがスケジュールされていない場合のみスケジュール
+        if (!isAutoRefreshScheduled)
+        {
+            isAutoRefreshScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(AutoRefresh), refreshInterval);
+        }
     }
 
-    public void AutoRefresh() => RequestUpdate();
+    public void AutoRefresh()
+    {
+        isAutoRefreshScheduled = false;
+        RequestUpdate();
+    }
 
     public override void OnStringLoadSuccess(IVRCStringDownload result)
     {
