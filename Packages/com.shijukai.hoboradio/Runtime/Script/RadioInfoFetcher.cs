@@ -154,7 +154,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     {
         if ((bool)radioRoot.GetProgramVariable("radioPowerOn"))
         {
-            if (masterTmp != null) masterTmp.text = " LINK ERROR ... ";
+            if (masterTmp != null) masterTmp.text = " LOADING ERROR ... ";
         }
     }
 }
