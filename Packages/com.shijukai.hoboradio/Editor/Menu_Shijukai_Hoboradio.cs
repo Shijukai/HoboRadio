@@ -102,11 +102,11 @@ public static class Menu_Shijukai_Hoboradio
         {
             if (mono == null) continue;
             SerializedObject so = new SerializedObject(mono);
-            SerializedProperty prop = so.FindProperty("radioRoot");
+            SerializedProperty prop = so.FindProperty("radioController");
 
             if (prop != null)
             {
-                var targetUdon = targetRoot.GetComponent("UdonBehaviour");
+                var targetUdon = targetRoot.GetComponent("HoboRadio_Controller");
                 if (targetUdon != null)
                 {
                     prop.objectReferenceValue = targetUdon;
@@ -132,7 +132,7 @@ public static class Menu_Shijukai_Hoboradio
         {
             foreach (var m in infoMonos)
             {
-                if (m != null && new SerializedObject(m).FindProperty("radioRoot") != null)
+                if (m != null && new SerializedObject(m).FindProperty("radioController") != null)
                 {
                     infoUdon = m;
                     break;
