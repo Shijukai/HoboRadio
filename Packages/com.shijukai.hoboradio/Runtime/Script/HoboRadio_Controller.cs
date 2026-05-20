@@ -35,8 +35,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public UdonBehaviour infoFetcher;
 
     // Internal State
-    private int noiseFadeInStep;
-    private int noiseFadeOutStep;
+    private const int NoiseFadeNone = 0;
+    private const int NoiseFadeInMode = 1;
+    private const int NoiseFadeOutMode = 2;
+    private int noiseFadeMode = NoiseFadeNone;
+    private int noiseFadeStep;
+    private bool isNoiseFadeStepScheduled = false;
+    private float noiseFadeOutDelayRemaining;
+    private bool isNoiseFadeOutDelayActive = false;
+    private bool isNoiseFadeOutDelayStepScheduled = false;
     private int lastServerHour = -1;
     private int lastDisplayedSecond = -1;
     private bool waitingPlay = false;
@@ -98,7 +105,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (radioPowerOn) // OFFにする処理
         {
             videoPlayer.Stop();
-            if (channelNoiseSE != null) channelNoiseSE.Stop();
+            CancelPendingNoiseFadeOut();
+            StopChannelNoise();
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOff");
             if (channelText != null) channelText.text = "";
             radioPowerOn = false;
@@ -169,6 +177,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (!radioPowerOn) return;
 
+        CancelPendingNoiseFadeOut();
+
         // Fetcherへの通知
         if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
@@ -206,11 +216,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (waitingPlay)
             {
                 // OnVideoError不発時のための措置
-                // 15秒経過してもReadyにならなければ強制タイムアウト処理
+                // 20秒経過してもReadyにならなければ強制タイムアウト処理
                 if (Time.timeSinceLevelLoad - videoLoadStartTime > 20f)
                 {
                     waitingPlay = false;
                     videoPlayer.Stop();
+                    CancelPendingNoiseFadeOut();
+                    NoiseFadeOut();
                     if (statusText != null) statusText.text = "LOADING TIMEOUT";
                     return; // ループを終了
                 }
@@ -228,7 +240,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (statusText != null) statusText.text = "";
 
-        SendCustomEventDelayedSeconds(nameof(NoiseFadeOut), 3f);
+        StartNoiseFadeOutDelay(3f);
         SendCustomEventDelayedSeconds(nameof(ReSyncSeek), 30f); // 30秒後に微調整
     }
 
@@ -248,32 +260,112 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void NoiseFadeIn()
     {
         if (channelNoiseSE == null) return;
-        noiseFadeInStep = 0;
+        CancelPendingNoiseFadeOut();
+        noiseFadeMode = NoiseFadeInMode;
+        noiseFadeStep = 0;
         channelNoiseSE.volume = 0f;
         if (!channelNoiseSE.isPlaying) channelNoiseSE.Play();
-        NoiseFadeInStep();
-    }
-
-    public void NoiseFadeInStep()
-    {
-        if (channelNoiseSE == null) return;
-        channelNoiseSE.volume = Mathf.Lerp(0f, 1f, ++noiseFadeInStep / 10f);
-        if (noiseFadeInStep < 10) SendCustomEventDelayedSeconds(nameof(NoiseFadeInStep), 0.1f);
+        ScheduleNoiseFadeStep();
     }
 
     public void NoiseFadeOut()
     {
         if (channelNoiseSE == null) return;
-        noiseFadeOutStep = 0;
-        NoiseFadeOutStep();
+        CancelPendingNoiseFadeOut();
+        noiseFadeMode = NoiseFadeOutMode;
+        noiseFadeStep = 0;
+        ScheduleNoiseFadeStep();
     }
 
-    public void NoiseFadeOutStep()
+    public void NoiseFadeStep()
     {
-        if (channelNoiseSE == null) return;
-        channelNoiseSE.volume = Mathf.Lerp(1f, 0f, ++noiseFadeOutStep / 10f);
-        if (noiseFadeOutStep < 10) SendCustomEventDelayedSeconds(nameof(NoiseFadeOutStep), 0.1f);
-        else channelNoiseSE.Stop();
+        isNoiseFadeStepScheduled = false;
+
+        if (channelNoiseSE == null || noiseFadeMode == NoiseFadeNone) return;
+
+        noiseFadeStep++;
+        float fadeProgress = noiseFadeStep / 10f;
+
+        if (noiseFadeMode == NoiseFadeInMode)
+        {
+            channelNoiseSE.volume = Mathf.Lerp(0f, 1f, fadeProgress);
+
+            if (noiseFadeStep < 10)
+            {
+                ScheduleNoiseFadeStep();
+            }
+            else
+            {
+                noiseFadeMode = NoiseFadeNone;
+            }
+
+            return;
+        }
+
+        if (noiseFadeMode == NoiseFadeOutMode)
+        {
+            channelNoiseSE.volume = Mathf.Lerp(1f, 0f, fadeProgress);
+
+            if (noiseFadeStep < 10)
+            {
+                ScheduleNoiseFadeStep();
+            }
+            else
+            {
+                StopChannelNoise();
+            }
+        }
+    }
+
+    private void ScheduleNoiseFadeStep()
+    {
+        if (isNoiseFadeStepScheduled) return;
+        isNoiseFadeStepScheduled = true;
+        SendCustomEventDelayedSeconds(nameof(NoiseFadeStep), 0.1f);
+    }
+
+    private void StopChannelNoise()
+    {
+        noiseFadeMode = NoiseFadeNone;
+        noiseFadeStep = 0;
+        if (channelNoiseSE != null) channelNoiseSE.Stop();
+    }
+
+    private void StartNoiseFadeOutDelay(float delaySeconds)
+    {
+        noiseFadeOutDelayRemaining = delaySeconds;
+        isNoiseFadeOutDelayActive = true;
+        ScheduleNoiseFadeOutDelayStep();
+    }
+
+    public void NoiseFadeOutDelayStep()
+    {
+        isNoiseFadeOutDelayStepScheduled = false;
+
+        if (!isNoiseFadeOutDelayActive) return;
+
+        noiseFadeOutDelayRemaining -= 0.1f;
+        if (noiseFadeOutDelayRemaining > 0f)
+        {
+            ScheduleNoiseFadeOutDelayStep();
+            return;
+        }
+
+        isNoiseFadeOutDelayActive = false;
+        NoiseFadeOut();
+    }
+
+    private void ScheduleNoiseFadeOutDelayStep()
+    {
+        if (isNoiseFadeOutDelayStepScheduled) return;
+        isNoiseFadeOutDelayStepScheduled = true;
+        SendCustomEventDelayedSeconds(nameof(NoiseFadeOutDelayStep), 0.1f);
+    }
+
+    private void CancelPendingNoiseFadeOut()
+    {
+        isNoiseFadeOutDelayActive = false;
+        noiseFadeOutDelayRemaining = 0f;
     }
 
     #endregion
@@ -282,6 +374,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         // エラー発生時にロックを解除し、次回の操作を許可する
         waitingPlay = false;
+        CancelPendingNoiseFadeOut();
+        NoiseFadeOut();
 
         // ステータス表示にエラーを反映
         if (statusText != null)
