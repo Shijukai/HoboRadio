@@ -35,7 +35,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public UdonBehaviour infoFetcher;
 
     // Internal State
-    private int noiseStep;
+    private int noiseFadeInStep;
+    private int noiseFadeOutStep;
     private int lastServerHour = -1;
     private int lastDisplayedSecond = -1;
     private bool waitingPlay = false;
@@ -233,7 +234,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void NoiseFadeIn()
     {
         if (channelNoiseSE == null) return;
-        noiseStep = 0;
+        noiseFadeInStep = 0;
         channelNoiseSE.volume = 0f;
         if (!channelNoiseSE.isPlaying) channelNoiseSE.Play();
         NoiseFadeInStep();
@@ -242,22 +243,22 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void NoiseFadeInStep()
     {
         if (channelNoiseSE == null) return;
-        channelNoiseSE.volume = Mathf.Lerp(0f, 1f, ++noiseStep / 10f);
-        if (noiseStep < 10) SendCustomEventDelayedSeconds(nameof(NoiseFadeInStep), 0.1f);
+        channelNoiseSE.volume = Mathf.Lerp(0f, 1f, ++noiseFadeInStep / 10f);
+        if (noiseFadeInStep < 10) SendCustomEventDelayedSeconds(nameof(NoiseFadeInStep), 0.1f);
     }
 
     public void NoiseFadeOut()
     {
         if (channelNoiseSE == null) return;
-        noiseStep = 0;
+        noiseFadeOutStep = 0;
         NoiseFadeOutStep();
     }
 
     public void NoiseFadeOutStep()
     {
         if (channelNoiseSE == null) return;
-        channelNoiseSE.volume = Mathf.Lerp(1f, 0f, ++noiseStep / 10f);
-        if (noiseStep < 10) SendCustomEventDelayedSeconds(nameof(NoiseFadeOutStep), 0.1f);
+        channelNoiseSE.volume = Mathf.Lerp(1f, 0f, ++noiseFadeOutStep / 10f);
+        if (noiseFadeOutStep < 10) SendCustomEventDelayedSeconds(nameof(NoiseFadeOutStep), 0.1f);
         else channelNoiseSE.Stop();
     }
 
