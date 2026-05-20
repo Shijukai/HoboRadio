@@ -42,6 +42,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool waitingPlay = false;
     private bool isInteractedLocked = false;
     private bool hasSyncedInitial = false;
+    private float videoLoadStartTime;
 
     private void Start()
     {
@@ -176,6 +177,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             videoPlayer.LoadURL(channels[currentChannelIndex]);
             waitingPlay = true;
+            videoLoadStartTime = Time.timeSinceLevelLoad;
             SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 2f);
         }
 
@@ -201,7 +203,19 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!videoPlayer.IsReady || videoPlayer.IsPlaying)
         {
-            if (waitingPlay) SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 0.2f);
+            if (waitingPlay)
+            {
+                // OnVideoError不発時のための措置
+                // 15秒経過してもReadyにならなければ強制タイムアウト処理
+                if (Time.timeSinceLevelLoad - videoLoadStartTime > 20f)
+                {
+                    waitingPlay = false;
+                    videoPlayer.Stop();
+                    if (statusText != null) statusText.text = "LOADING TIMEOUT";
+                    return; // ループを終了
+                }
+                SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 0.2f);
+            }
             return;
         }
 
