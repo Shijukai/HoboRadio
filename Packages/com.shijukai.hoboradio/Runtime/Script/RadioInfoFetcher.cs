@@ -13,7 +13,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     [Header("Settings")]
     [SerializeField] private VRCUrl[] infoUrls;
     [SerializeField] private TextMeshProUGUI masterTmp;
-    [SerializeField] private UdonBehaviour radioRoot;
+    [SerializeField] private HoboRadio_Controller radioController;
     [SerializeField] private float refreshInterval = 60f;
 
     [Header("Display Control")]
@@ -31,16 +31,16 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     void Start()
     {
-        bool isPowerOn = (bool)radioRoot.GetProgramVariable("radioPowerOn");
+        bool isPowerOn = radioController != null && radioController.radioPowerOn;
         if (isPowerOn) SendCustomEventDelayedSeconds(nameof(RequestUpdate), 2f);
         else ClearDisplay();
     }
 
     void Update()
     {
-        if (radioRoot == null) return;
+        if (radioController == null) return;
 
-        bool isPowerOn = (bool)radioRoot.GetProgramVariable("radioPowerOn");
+        bool isPowerOn = radioController != null && radioController.radioPowerOn;
         if (!isPowerOn && showClockWhenOff && masterTmp != null)
         {
             DateTime jstTime = Networking.GetNetworkDateTime().AddHours(9);
@@ -80,9 +80,9 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     public void RequestUpdate()
     {
-        if (radioRoot == null || masterTmp == null) return;
+        if (radioController == null || masterTmp == null) return;
 
-        bool isPowerOn = (bool)radioRoot.GetProgramVariable("radioPowerOn");
+        bool isPowerOn = radioController != null && radioController.radioPowerOn;
         if (!isPowerOn)
         {
             ClearDisplay();
@@ -122,7 +122,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
         isWaitingForRetry = false;
         lastRequestTime = Time.timeSinceLevelLoad;
 
-        int currentIndex = (int)radioRoot.GetProgramVariable("currentChannelIndex");
+        int currentIndex = radioController != null ? radioController.currentChannelIndex : -1;
         if (currentIndex >= 0 && currentIndex < infoUrls.Length)
         {
             VRCStringDownloader.LoadUrl(infoUrls[currentIndex], (IUdonEventReceiver)this);
@@ -144,7 +144,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     public override void OnStringLoadSuccess(IVRCStringDownload result)
     {
-        if ((bool)radioRoot.GetProgramVariable("radioPowerOn"))
+        if (radioController != null && radioController.radioPowerOn)
         {
             if (masterTmp != null) masterTmp.text = $"[ON AIR ] {result.Result} - Thank you for listening ! -";
         }
@@ -152,7 +152,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     public override void OnStringLoadError(IVRCStringDownload result)
     {
-        if ((bool)radioRoot.GetProgramVariable("radioPowerOn"))
+        if (radioController != null && radioController.radioPowerOn)
         {
             if (masterTmp != null) masterTmp.text = " LOADING ERROR ... ";
         }

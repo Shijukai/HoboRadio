@@ -12,11 +12,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 {
     [Header("--- Settings ---")]
     [SerializeField] bool isGlobal = true; // チェックを入れると全員同期、外すとローカル
-    [SerializeField] bool radioPowerOn = true;
+    [SerializeField] public bool radioPowerOn = true;
 
     [Header("--- Channels (URLs) ---")]
     public VRCUrl[] channels = new VRCUrl[3];
-    [UdonSynced, SerializeField] private int currentChannelIndex = 0;
+    [UdonSynced, SerializeField] public int currentChannelIndex = 0;
     private int loadedChannelIndex = -1;
 
     [Header("--- 3D Model Options (Optional) ---")]
