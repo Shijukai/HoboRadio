@@ -3,10 +3,13 @@
     "rootNamespace": "",
     "references": [
         "VRC.SDK3",
+        "VRC.SDK3.StringLoading",
         "VRC.SDKBase",
         "VRC.Udon",
+        "VRC.Udon.Common",
         "UdonSharp.Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "VRC.Udon.Serialization.OdinSerializer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

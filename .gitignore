@@ -67,3 +67,9 @@ crashlytics-build.properties
 Assets/PackageMakerWindowData.asset*
 .idea
 .vscode
+
+# Files Unity Generated
+.audiolink_pipeline
+/UserSettings
+/ClientSimStorage
+/ProjectSettings
