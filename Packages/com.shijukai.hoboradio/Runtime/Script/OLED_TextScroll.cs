@@ -2,6 +2,7 @@
 using TMPro;
 using UdonSharp;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class OLED_TextScroll : UdonSharpBehaviour
 {
     [Header("Scrolling Objects")]
