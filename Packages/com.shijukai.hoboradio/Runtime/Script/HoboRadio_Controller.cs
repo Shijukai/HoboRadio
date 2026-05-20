@@ -93,7 +93,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (powerSwitchSE != null) powerSwitchSE.Play();
 
-        if (radioPowerOn) // OFFにする
+        if (radioPowerOn) // OFFにする処理
         {
             videoPlayer.Stop();
             if (channelNoiseSE != null) channelNoiseSE.Stop();
@@ -101,13 +101,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (channelText != null) channelText.text = "";
             radioPowerOn = false;
             waitingPlay = false;
+
+            // Fetcherに表示クリアを通知
+            if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
         }
-        else // ONにする
+        else // ONにする処理
         {
             radioPowerOn = true;
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
             lastDisplayedSecond = -1;
-            ApplyChannel();
+            ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
         }
     }
 

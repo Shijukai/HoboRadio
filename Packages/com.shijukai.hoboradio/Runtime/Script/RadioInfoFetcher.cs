@@ -1,4 +1,5 @@
-﻿using UdonSharp;
+﻿using System;
+using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.StringLoading;
 using VRC.SDKBase;
@@ -11,43 +12,108 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 {
     [Header("Settings")]
     [SerializeField] private VRCUrl[] infoUrls;
-    // TMPを配列に変更！ここにスクロール用の2つのTMPを入れる
-    [SerializeField] private TextMeshProUGUI[] displayTmps;
+    [SerializeField] private TextMeshProUGUI masterTmp;
     [SerializeField] private UdonBehaviour radioRoot;
     [SerializeField] private float refreshInterval = 60f;
 
+    [Header("Display Control")]
+    [SerializeField] private GameObject displayRoot;
+    [SerializeField] private GameObject scrollingRoot;
+    [SerializeField] private UdonBehaviour scrollUdon;
+
+    [Header("Options")]
+    [SerializeField] private bool showClockWhenOff = false;
+
     private float lastRequestTime = -10f;
     private bool isWaitingForRetry = false;
+    private int lastClockSecond = -1;
 
     void Start()
     {
-        SendCustomEventDelayedSeconds(nameof(RequestUpdate), 2f);
+        bool isPowerOn = (bool)radioRoot.GetProgramVariable("radioPowerOn");
+        if (isPowerOn) SendCustomEventDelayedSeconds(nameof(RequestUpdate), 2f);
+        else ClearDisplay();
     }
 
-    // 複数のTMPを同時に書き換えるための便利関数
-    private void UpdateAllDisplays(string newText)
+    void Update()
     {
-        if (displayTmps == null) return;
-        for (int i = 0; i < displayTmps.Length; i++)
+        if (radioRoot == null) return;
+
+        bool isPowerOn = (bool)radioRoot.GetProgramVariable("radioPowerOn");
+        if (!isPowerOn && showClockWhenOff && masterTmp != null)
         {
-            if (displayTmps[i] != null)
+            DateTime jstTime = Networking.GetNetworkDateTime().AddHours(9);
+            if (jstTime.Second != lastClockSecond)
             {
-                displayTmps[i].text = newText;
+                lastClockSecond = jstTime.Second;
+                masterTmp.text = $"{jstTime:HH:mm:ss}";
             }
+        }
+    }
+
+    private void SetMasterAlpha(float alpha)
+    {
+        if (masterTmp != null)
+        {
+            Color c = masterTmp.color;
+            c.a = alpha;
+            masterTmp.color = c;
+        }
+    }
+
+    public void ClearDisplay()
+    {
+        if (showClockWhenOff)
+        {
+            if (displayRoot != null) displayRoot.SetActive(true);
+            if (scrollingRoot != null) scrollingRoot.SetActive(false);
+
+            if (masterTmp != null) masterTmp.gameObject.SetActive(true);
+            SetMasterAlpha(1.0f);
+        }
+        else
+        {
+            if (displayRoot != null) displayRoot.SetActive(false);
         }
     }
 
     public void RequestUpdate()
     {
-        if (radioRoot == null || displayTmps == null || infoUrls == null) return;
+        if (radioRoot == null || masterTmp == null) return;
+
+        bool isPowerOn = (bool)radioRoot.GetProgramVariable("radioPowerOn");
+        if (!isPowerOn)
+        {
+            ClearDisplay();
+            return;
+        }
+
+        // 1. まずMasterを透明化（時計表示からの残像を防ぐ）
+        SetMasterAlpha(0.0f);
+
+        bool isWakingUp = (scrollingRoot != null && !scrollingRoot.activeSelf);
+
+        // 2. 透明にした後に文字を更新
+        masterTmp.text = " CONNECTING ... ";
+
+        if (isWakingUp)
+        {
+            // 3. 表示ルートを有効化
+            if (displayRoot != null) displayRoot.SetActive(true);
+            if (scrollingRoot != null) scrollingRoot.SetActive(true);
+
+            // 4. スクロール側にリセット命令（この中で A/B に文字がコピーされる）
+            if (scrollUdon != null) scrollUdon.SendCustomEvent("ResetScroll");
+        }
+
+        if (infoUrls == null) return;
 
         if (Time.timeSinceLevelLoad - lastRequestTime < 5.5f)
         {
             if (!isWaitingForRetry)
             {
                 isWaitingForRetry = true;
-                UpdateAllDisplays("[ON AIR ] Loading... -Thank you for listening !-");
-                SendCustomEventDelayedSeconds(nameof(RequestUpdate), 5.5f - (Time.timeSinceLevelLoad - lastRequestTime));
+                SendCustomEventDelayedSeconds(nameof(RequestUpdate), 6f);
             }
             return;
         }
@@ -58,26 +124,27 @@ public class RadioInfoFetcher : UdonSharpBehaviour
         int currentIndex = (int)radioRoot.GetProgramVariable("currentChannelIndex");
         if (currentIndex >= 0 && currentIndex < infoUrls.Length)
         {
-            UpdateAllDisplays("[ON AIR ] Loading... -Thank you for listening !-");
             VRCStringDownloader.LoadUrl(infoUrls[currentIndex], (IUdonEventReceiver)this);
         }
 
         SendCustomEventDelayedSeconds(nameof(AutoRefresh), refreshInterval);
     }
 
-    public void AutoRefresh()
-    {
-        RequestUpdate();
-    }
+    public void AutoRefresh() => RequestUpdate();
 
     public override void OnStringLoadSuccess(IVRCStringDownload result)
     {
-        UpdateAllDisplays($"[ON AIR ] {result.Result} -Thank you for listening !-");
+        if ((bool)radioRoot.GetProgramVariable("radioPowerOn"))
+        {
+            if (masterTmp != null) masterTmp.text = $"[ON AIR ] {result.Result} - Thank you for listening ! -";
+        }
     }
 
-    // エラー時
     public override void OnStringLoadError(IVRCStringDownload result)
     {
-        UpdateAllDisplays("[ON AIR ] Loading Error... -Thank you for listening !-");
+        if ((bool)radioRoot.GetProgramVariable("radioPowerOn"))
+        {
+            if (masterTmp != null) masterTmp.text = " LINK ERROR ... ";
+        }
     }
 }

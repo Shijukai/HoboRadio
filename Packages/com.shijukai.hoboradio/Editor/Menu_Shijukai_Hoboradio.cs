@@ -3,10 +3,10 @@ using UnityEditor;
 
 public static class Menu_Shijukai_Hoboradio
 {
-    //Prefabのパス定義
+    // Prefabのパス定義
     private const string BASE_PATH = "Packages/com.shijukai.hoboradio/Runtime/Prefab/";
 
-    //Item List Global===========================================
+    // Item List Global===========================================
     [MenuItem("GameObject/HoboRadio/Global/Radio_Global", false, 10)]
     static void Create_Global_Radio(MenuCommand cmd)
         => Create(cmd, BASE_PATH + "Radio_Global.prefab");
@@ -15,11 +15,7 @@ public static class Menu_Shijukai_Hoboradio
     static void Create_Global_Radio_UI(MenuCommand cmd)
         => Create(cmd, BASE_PATH + "Radio_Global_UI.prefab");
 
-    [MenuItem("GameObject/HoboRadio/Global/Radio_Global_UI_Lite", false, 12)]
-    static void Create_Global_Radio_UI_Lite(MenuCommand cmd)
-        => Create(cmd, BASE_PATH + "Radio_Global_UI_Lite.prefab");
-
-    //Item List Local=============================================
+    // Item List Local=============================================
     [MenuItem("GameObject/HoboRadio/Local/Radio_Local", false, 20)]
     static void Create_Local_Radio(MenuCommand cmd)
         => Create(cmd, BASE_PATH + "Radio_Local.prefab");
@@ -28,11 +24,155 @@ public static class Menu_Shijukai_Hoboradio
     static void Create_Local_Radio_UI(MenuCommand cmd)
         => Create(cmd, BASE_PATH + "Radio_Local_UI.prefab");
 
-    [MenuItem("GameObject/HoboRadio/Local/Radio_Local_UI_Lite", false, 22)]
-    static void Create_Local_Radio_UI_Lite(MenuCommand cmd)
-        => Create(cmd, BASE_PATH + "Radio_Local_UI_Lite.prefab");
+    // Item List Information=======================================
+    [MenuItem("GameObject/HoboRadio/Radio_Information", false, 30)]
+    static void Create_Radio_Information(MenuCommand cmd)
+    {
+        // Hierarchyで選択されているオブジェクトを取得
+        GameObject selectedObj = cmd.context as GameObject ?? Selection.activeGameObject;
 
-    //General processing
+        if (selectedObj == null)
+        {
+            EditorUtility.DisplayDialog("HoboRadio", "Hierarchy上でラジオ本体を選択した状態で実行してください。", "OK");
+            return;
+        }
+
+        GameObject radioContainer = null; // 外枠（Radio_Global等）
+        GameObject targetRoot = null;      // Udon（HoboRadio_Controller）があるRoot
+
+        // 選択対象からRadio_Rootを特定
+        if (selectedObj.name.Contains("Root") || selectedObj.GetComponent("UdonBehaviour") != null)
+        {
+            targetRoot = selectedObj;
+            radioContainer = selectedObj.transform.parent != null ? selectedObj.transform.parent.gameObject : selectedObj;
+        }
+        else
+        {
+            radioContainer = selectedObj;
+            Transform rootTrans = selectedObj.transform.Find("Radio_Root");
+            if (rootTrans != null)
+            {
+                targetRoot = rootTrans.gameObject;
+            }
+            else
+            {
+                foreach (Transform child in selectedObj.transform)
+                {
+                    if (child.GetComponent("UdonBehaviour") != null)
+                    {
+                        targetRoot = child.gameObject;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (targetRoot == null)
+        {
+            EditorUtility.DisplayDialog("HoboRadio", "Radio_Rootが見つかりませんでした。対象を正しく選択してください。", "OK");
+            return;
+        }
+
+        // プレハブの生成
+        string path = BASE_PATH + "Radio_Information.prefab";
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null)
+        {
+            Debug.LogError("Prefab not found: " + path);
+            return;
+        }
+
+        var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+
+        // Radio_Globalと同じ階層に配置し、位置と回転を合わせる
+        Transform finalParent = radioContainer.transform.parent;
+        GameObjectUtility.SetParentAndAlign(instance, finalParent != null ? finalParent.gameObject : null);
+        instance.transform.position = radioContainer.transform.position;
+        instance.transform.rotation = radioContainer.transform.rotation;
+
+        Undo.RegisterCreatedObjectUndo(instance, "Create Radio_Information");
+
+        // --- 相互アタッチ処理 ---
+        bool linkedToRadio = false;
+        bool linkedToInfo = false;
+
+        // 1. OLED(InfoFetcher) -> Radio_Root へのアタッチ (Info成功コードを採用)
+        var infoMonos = instance.GetComponentsInChildren<MonoBehaviour>(true);
+        foreach (var mono in infoMonos)
+        {
+            if (mono == null) continue;
+            SerializedObject so = new SerializedObject(mono);
+            SerializedProperty prop = so.FindProperty("radioRoot");
+
+            if (prop != null)
+            {
+                var targetUdon = targetRoot.GetComponent("UdonBehaviour");
+                if (targetUdon != null)
+                {
+                    prop.objectReferenceValue = targetUdon;
+                    so.ApplyModifiedProperties();
+                    linkedToRadio = true;
+                }
+                break;
+            }
+        }
+
+        // 2. Radio_Root(Controller) -> OLED(InfoFetcher) へのアタッチ (Radio成功コードを採用)
+        Component infoUdon = null;
+        Transform fetcherTransform = instance.transform.Find("Script/Root");
+
+        // パスから取得
+        if (fetcherTransform != null)
+        {
+            infoUdon = fetcherTransform.GetComponent("UdonBehaviour");
+        }
+
+        // パスで見つからない場合は予備として全探索
+        if (infoUdon == null)
+        {
+            foreach (var m in infoMonos)
+            {
+                if (m != null && new SerializedObject(m).FindProperty("radioRoot") != null)
+                {
+                    infoUdon = m;
+                    break;
+                }
+            }
+        }
+
+        if (infoUdon != null)
+        {
+            var rootMonos = targetRoot.GetComponents<MonoBehaviour>();
+            foreach (var mono in rootMonos)
+            {
+                if (mono == null) continue;
+                SerializedObject soRadio = new SerializedObject(mono);
+                SerializedProperty propFetcher = soRadio.FindProperty("infoFetcher");
+
+                if (propFetcher != null)
+                {
+                    propFetcher.objectReferenceValue = infoUdon;
+                    soRadio.ApplyModifiedProperties();
+                    linkedToInfo = true;
+                    break;
+                }
+            }
+        }
+
+        // 実行結果のログ出力
+        if (linkedToRadio && linkedToInfo)
+        {
+            Debug.Log($"<color=cyan>[HoboRadio]</color> {radioContainer.name} と {instance.name} の相互アタッチが完了しました。");
+        }
+        else
+        {
+            Debug.LogWarning($"[HoboRadio] アタッチ不完全: Radio->Info({linkedToInfo}), Info->Radio({linkedToRadio})");
+        }
+
+        Selection.activeObject = instance;
+    }
+
+    // 汎用生成処理
     static void Create(MenuCommand cmd, string path)
     {
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -41,9 +181,8 @@ public static class Menu_Shijukai_Hoboradio
             Debug.LogError("Prefab not found: " + path);
             return;
         }
-        
-        var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
 
+        var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
         GameObjectUtility.SetParentAndAlign(instance, cmd.context as GameObject);
         Undo.RegisterCreatedObjectUndo(instance, "Create hoboradio Prefab");
         Selection.activeObject = instance;

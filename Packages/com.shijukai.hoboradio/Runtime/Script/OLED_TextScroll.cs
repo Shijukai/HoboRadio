@@ -11,7 +11,7 @@ public class OLED_TextScroll : UdonSharpBehaviour
     [Header("Settings")]
     [SerializeField] private float scrollSpeed = 30f;
     [SerializeField] private float spacing = 50f;
-    [SerializeField] private TextMeshProUGUI masterTmp; // Fetcherが書き換えるマスターテキスト
+    [SerializeField] private TextMeshProUGUI masterTmp;
 
     private TextMeshProUGUI _tmpA;
     private TextMeshProUGUI _tmpB;
@@ -21,35 +21,51 @@ public class OLED_TextScroll : UdonSharpBehaviour
     private Vector2 _posB;
     private float _startX;
 
-    private string _currentText = "";  // 現在流しているテキスト
-    private string _pendingText = "";  // 次に流す予定のテキスト
+    private string _pendingText = "";
     private bool _isInitialized = false;
+    private bool _isWaitingA = false;
+    private bool _isWaitingB = false;
 
     void Start()
     {
-        _tmpA = textA.GetComponent<TextMeshProUGUI>();
-        _tmpB = textB.GetComponent<TextMeshProUGUI>();
-        _startX = textA.anchoredPosition.x;
-
-        // 初期化：最初はマスターの文字を入れる
-        if (masterTmp != null)
+        if (textA != null)
         {
-            _currentText = masterTmp.text;
-            _pendingText = _currentText;
-            _tmpA.text = _currentText;
-            _tmpB.text = _currentText;
+            _tmpA = textA.GetComponent<TextMeshProUGUI>();
+            _startX = textA.anchoredPosition.x;
         }
-
-        SendCustomEventDelayedFrames(nameof(_ForceLayoutUpdate), 5);
+        if (textB != null)
+        {
+            _tmpB = textB.GetComponent<TextMeshProUGUI>();
+        }
+        ResetScroll();
     }
 
-    public void _ForceLayoutUpdate()
+    public void ResetScroll()
     {
+        if (masterTmp == null || _tmpA == null || _tmpB == null) return;
+        _isInitialized = false;
+        _isWaitingA = false;
+        _isWaitingB = false;
+
+        _pendingText = masterTmp.text;
+        _tmpA.text = _pendingText;
+        _tmpB.text = _pendingText;
+
+        // 文字枠が更新されるのを待ってから初期配置します
+        SendCustomEventDelayedFrames(nameof(_ApplyReset), 2);
+    }
+
+    public void _ApplyReset()
+    {
+        if (textA == null || textB == null) return;
+
         _widthA = textA.rect.width;
         _widthB = textB.rect.width;
 
-        _posA = new Vector2(_startX, 0);
-        _posB = new Vector2(_startX + _widthA + spacing, 0);
+        _posA = new Vector2(_startX, textA.anchoredPosition.y);
+
+        // 中心(Pivot=0.5)を基準に、Aの幅の半分とBの幅の半分を足して完璧に繋げます
+        _posB = new Vector2(_startX + (_widthA / 2f) + (_widthB / 2f) + spacing, textB.anchoredPosition.y);
 
         textA.anchoredPosition = _posA;
         textB.anchoredPosition = _posB;
@@ -60,41 +76,56 @@ public class OLED_TextScroll : UdonSharpBehaviour
     {
         if (!_isInitialized) return;
 
-        // 1. Fetcherの更新を監視（予約を入れる）
         if (masterTmp != null && masterTmp.text != _pendingText)
         {
             _pendingText = masterTmp.text;
         }
 
         float moveAmount = scrollSpeed * Time.deltaTime;
+
+        // 待機中（幅の更新待ち）でなければスクロールを進める
         _posA.x -= moveAmount;
         _posB.x -= moveAmount;
 
-        // 2. Text A が左に消えたとき
-        if (_posA.x <= _startX - _widthA - spacing)
+        // 画面外判定（お嬢様の元のロジックを尊重）
+        float leftBoundaryA = _startX - _widthA - spacing;
+        if (!_isWaitingA && _posA.x <= leftBoundaryA)
         {
-            // ここで内容を最新（Pending）に更新！
             _tmpA.text = _pendingText;
-            // 数フレーム待たずに即座に幅を再計算（文字が変わったので）
-            Canvas.ForceUpdateCanvases();
-            _widthA = textA.rect.width;
-
-            // Bの後ろにピタッとくっつける
-            _posA.x = _posB.x + _widthB + spacing;
+            _isWaitingA = true;
+            // 文字を変えたら、すぐに移動させず2フレーム待つ（ここで空白バグを防ぎます！）
+            SendCustomEventDelayedFrames(nameof(_RepositionA), 2);
         }
 
-        // 3. Text B が左に消えたとき
-        if (_posB.x <= _startX - _widthB - spacing)
+        float leftBoundaryB = _startX - _widthB - spacing;
+        if (!_isWaitingB && _posB.x <= leftBoundaryB)
         {
             _tmpB.text = _pendingText;
-            Canvas.ForceUpdateCanvases();
-            _widthB = textB.rect.width;
-
-            // Aの後ろにピタッとくっつける
-            _posB.x = _posA.x + _widthA + spacing;
+            _isWaitingB = true;
+            SendCustomEventDelayedFrames(nameof(_RepositionB), 2);
         }
 
+        textA.anchoredPosition = _isWaitingA ? new Vector2(_posA.x, 100f) : _posA;
+        textB.anchoredPosition = _isWaitingB ? new Vector2(_posB.x, 100f) : _posB;
+    }
+
+    public void _RepositionA()
+    {
+        if (textA == null) return;
+        _widthA = textA.rect.width; // 2フレーム待ったので、最新の正しい幅が取れます
+        _posA.x = _posB.x + (_widthB / 2f) + (_widthA / 2f) + spacing;
+        _isWaitingA = false;
+
         textA.anchoredPosition = _posA;
+    }
+
+    public void _RepositionB()
+    {
+        if (textB == null) return;
+        _widthB = textB.rect.width;
+        _posB.x = _posA.x + (_widthA / 2f) + (_widthB / 2f) + spacing;
+        _isWaitingB = false;
+
         textB.anchoredPosition = _posB;
     }
 }
