@@ -263,4 +263,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     }
 
     #endregion
+
+    public override void OnVideoError(VideoError videoError)
+    {
+        // エラー発生時にロックを解除し、次回の操作を許可する
+        waitingPlay = false;
+
+        // ステータス表示にエラーを反映
+        if (statusText != null)
+        {
+            statusText.text = "VIDEO PLAYER ERROR";
+        }
+
+    }
 }
