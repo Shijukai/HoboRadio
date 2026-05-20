@@ -41,7 +41,7 @@ public static class Menu_Shijukai_Hoboradio
         GameObject targetRoot = null;      // UdoniHoboRadio_Controllerj‚ª‚ ‚éRoot
 
         // ‘I‘ğ‘ÎÛ‚©‚çRadio_Root‚ğ“Á’è
-        if (selectedObj.name.Contains("Root") || selectedObj.GetComponent("UdonBehaviour") != null)
+        if (selectedObj.name == "Radio_Root" || selectedObj.GetComponent("HoboRadio_Controller") != null)
         {
             targetRoot = selectedObj;
             radioContainer = selectedObj.transform.parent != null ? selectedObj.transform.parent.gameObject : selectedObj;
