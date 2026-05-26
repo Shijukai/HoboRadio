@@ -32,6 +32,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     void Start()
     {
         if (masterTmp != null) masterTmp.text = "";
+        if (scrollUdon != null) scrollUdon.SendCustomEvent("ResetScroll");
 
         bool isPowerOn = radioController != null && radioController.radioPowerOn;
         if (isPowerOn) SendCustomEventDelayedSeconds(nameof(RequestUpdate), 2f);

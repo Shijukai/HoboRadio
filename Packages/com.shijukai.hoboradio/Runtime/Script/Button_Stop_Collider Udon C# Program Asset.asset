@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: Button_Stop_Collider Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: cb9d6cadc7254874fa38c99ea730158a, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 6536a809c06afe441b9c9ff263e48900, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 4d9bd86417ba83e4fb60d42fdf550726, type: 3}
