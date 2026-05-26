@@ -106,8 +106,8 @@ public class OLED_TextScroll : UdonSharpBehaviour
             SendCustomEventDelayedFrames(nameof(_RepositionB), 2);
         }
 
-        textA.anchoredPosition = _isWaitingA ? new Vector2(_posA.x, 100f) : _posA;
-        textB.anchoredPosition = _isWaitingB ? new Vector2(_posB.x, 100f) : _posB;
+        textA.anchoredPosition = _isWaitingA ? new Vector2(_posA.x, 9999f) : _posA;
+        textB.anchoredPosition = _isWaitingB ? new Vector2(_posB.x, 9999f) : _posB;
     }
 
     public void _RepositionA()

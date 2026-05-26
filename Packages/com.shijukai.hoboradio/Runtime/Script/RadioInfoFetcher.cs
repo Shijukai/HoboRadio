@@ -31,6 +31,8 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     void Start()
     {
+        if (masterTmp != null) masterTmp.text = "";
+
         bool isPowerOn = radioController != null && radioController.radioPowerOn;
         if (isPowerOn) SendCustomEventDelayedSeconds(nameof(RequestUpdate), 2f);
         else ClearDisplay();
@@ -146,7 +148,9 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     {
         if (radioController != null && radioController.radioPowerOn)
         {
-            if (masterTmp != null) masterTmp.text = $"[ON AIR ] {result.Result} - Thank you for listening ! -";
+            string safeText = result.Result.Replace("\n", "").Replace("\r", "").Trim();
+
+            if (masterTmp != null) masterTmp.text = $"[ON AIR ] {safeText} - Thank you for listening ! -";
         }
     }
 
