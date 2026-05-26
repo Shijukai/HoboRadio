@@ -38,7 +38,6 @@ public class OLED_TextScroll : UdonSharpBehaviour
         {
             _tmpB = textB.GetComponent<TextMeshProUGUI>();
         }
-        ResetScroll();
     }
 
     public void ResetScroll()
