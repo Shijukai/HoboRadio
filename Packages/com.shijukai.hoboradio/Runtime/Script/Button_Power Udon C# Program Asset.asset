@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: Button_Power Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: a0ccb6604fa0ded4099c6b426034c749, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 190f6e5d4ab047745b36bf34109c369e, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 7d2207ca9ca003441a05c84fe6346b09, type: 3}

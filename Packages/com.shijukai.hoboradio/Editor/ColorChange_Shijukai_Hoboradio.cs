@@ -144,5 +144,28 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
         Undo.RegisterCreatedObjectUndo(instance, "Hoboradio change color");
         Undo.DestroyObjectImmediate(original);
+
+        Animator newAnimator = instance.GetComponent<Animator>();
+        if (newAnimator != null && rootObject != null)
+        {
+            // Root以下のすべてのMonoBehaviour（UdonSharp含む）を取得
+            MonoBehaviour[] monos = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
+            foreach (var mono in monos)
+            {
+                if (mono == null) continue;
+
+                SerializedObject so = new SerializedObject(mono);
+                SerializedProperty prop = so.FindProperty("radioAnimator");
+
+                // radioAnimatorプロパティを持っているスクリプト（HoboRadio_Controller）を見つけたら
+                if (prop != null)
+                {
+                    prop.objectReferenceValue = newAnimator;
+                    so.ApplyModifiedProperties();
+                    Debug.Log($"<color=cyan>[HoboRadio]</color> Animatorを {mono.gameObject.name} に再アタッチしました。");
+                    break;
+                }
+            }
+        }
     }
 }
