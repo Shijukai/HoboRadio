@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: VolumeSlider_ForUI Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3fffcfc1358010c4f99d575c1481587a, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 7e0a9f6c6fa54b149821b33bc4895a2d, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 71dfa6e673b594a47a16533d64b70ba4, type: 3}

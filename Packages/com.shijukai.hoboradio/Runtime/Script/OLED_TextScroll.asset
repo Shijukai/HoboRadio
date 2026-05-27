@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: OLED_TextScroll
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: e699dc3287ab1c14497ef6f166760c11, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1e7aca03f1f3b5d4d94d953bd0e830c6, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 634bd4e29a81a1242acd1bdef6e74e73, type: 3}

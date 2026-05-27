@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: Button_Forward_Collider  Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 88ac76473e12b4547b62a64f6ffd15f6, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: fccdf9a43aadff24b84fdc3bfd0ef34a, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 635e0f167fdf7a24aabf1d39ea7f0c02, type: 3}

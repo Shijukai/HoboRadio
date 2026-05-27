@@ -27,8 +27,17 @@ public class OLED_TextScroll : UdonSharpBehaviour
     private bool _isWaitingA = false;
     private bool _isWaitingB = false;
 
+    private bool _hasGrabbedComponents = false;
+
     void Start()
     {
+        InitializeComponents();
+    }
+
+    private void InitializeComponents()
+    {
+        if (_hasGrabbedComponents) return;
+
         if (textA != null)
         {
             _tmpA = textA.GetComponent<TextMeshProUGUI>();
@@ -38,11 +47,14 @@ public class OLED_TextScroll : UdonSharpBehaviour
         {
             _tmpB = textB.GetComponent<TextMeshProUGUI>();
         }
-        ResetScroll();
+
+        _hasGrabbedComponents = true;
     }
 
     public void ResetScroll()
     {
+        InitializeComponents();
+
         if (masterTmp == null || _tmpA == null || _tmpB == null) return;
         _isInitialized = false;
         _isWaitingA = false;
@@ -106,8 +118,8 @@ public class OLED_TextScroll : UdonSharpBehaviour
             SendCustomEventDelayedFrames(nameof(_RepositionB), 2);
         }
 
-        textA.anchoredPosition = _isWaitingA ? new Vector2(_posA.x, 100f) : _posA;
-        textB.anchoredPosition = _isWaitingB ? new Vector2(_posB.x, 100f) : _posB;
+        textA.anchoredPosition = _isWaitingA ? new Vector2(_posA.x, 9999f) : _posA;
+        textB.anchoredPosition = _isWaitingB ? new Vector2(_posB.x, 9999f) : _posB;
     }
 
     public void _RepositionA()

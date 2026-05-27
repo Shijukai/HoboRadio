@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: Button_Debug_Colider Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: d0d563bbdc0a2524db3a70aca1bcbc7f, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 59ee39ef7cfd1f44594591173f28511d, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 3e20f45c104c43b4b92625705c4ede08, type: 3}
