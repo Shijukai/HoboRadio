@@ -29,13 +29,22 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     private int lastClockSecond = -1;
     private bool isAutoRefreshScheduled = false; //AutoRefreshスケジュール管理用
 
+    private bool _hasInitialized = false;
+
     void Start()
     {
+        InitializeFetcher();
+    }
+
+    private void InitializeFetcher()
+    {
+        if (_hasInitialized) return;
+        _hasInitialized = true;
+
         if (masterTmp != null) masterTmp.text = "";
         if (scrollUdon != null) scrollUdon.SendCustomEvent("ResetScroll");
 
         bool isPowerOn = radioController != null && radioController.radioPowerOn;
-
         if (!isPowerOn) ClearDisplay();
     }
 
@@ -67,6 +76,8 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     public void ClearDisplay()
     {
+        InitializeFetcher();
+
         if (showClockWhenOff)
         {
             if (displayRoot != null) displayRoot.SetActive(true);
@@ -83,6 +94,8 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
     public void RequestUpdate()
     {
+        InitializeFetcher();
+
         if (radioController == null || masterTmp == null) return;
 
         bool isPowerOn = radioController != null && radioController.radioPowerOn;
