@@ -27,8 +27,17 @@ public class OLED_TextScroll : UdonSharpBehaviour
     private bool _isWaitingA = false;
     private bool _isWaitingB = false;
 
+    private bool _hasGrabbedComponents = false;
+
     void Start()
     {
+        InitializeComponents();
+    }
+
+    private void InitializeComponents()
+    {
+        if (_hasGrabbedComponents) return;
+
         if (textA != null)
         {
             _tmpA = textA.GetComponent<TextMeshProUGUI>();
@@ -38,10 +47,17 @@ public class OLED_TextScroll : UdonSharpBehaviour
         {
             _tmpB = textB.GetComponent<TextMeshProUGUI>();
         }
+
+        _hasGrabbedComponents = true;
     }
 
     public void ResetScroll()
     {
+
+    public void ResetScroll()
+    {
+        InitializeComponents();
+
         if (masterTmp == null || _tmpA == null || _tmpB == null) return;
         _isInitialized = false;
         _isWaitingA = false;
