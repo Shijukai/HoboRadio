@@ -53,9 +53,6 @@ public class OLED_TextScroll : UdonSharpBehaviour
 
     public void ResetScroll()
     {
-
-    public void ResetScroll()
-    {
         InitializeComponents();
 
         if (masterTmp == null || _tmpA == null || _tmpB == null) return;
