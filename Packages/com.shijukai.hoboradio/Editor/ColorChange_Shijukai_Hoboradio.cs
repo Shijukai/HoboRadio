@@ -14,7 +14,8 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
     //Manual select Prefab
     private GameObject manualPrefab;
 
-    private const string PRESET_PATH = "Packages/com.shijukai.hoboradio/Runtime/ColorOptions";
+    // --- ƒtƒHƒ‹ƒ_‚ÌGUID ---
+    private const string GUID_PRESET_FOLDER = "328e0b48beab9664c9b4a8f52108e56b";
 
     //main script
     [MenuItem("Tools/Shijukai/Hoboradio_ColorChange")]
@@ -29,7 +30,15 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
     void LoadPresets()
     {
-        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { PRESET_PATH });
+        string currentPresetPath = AssetDatabase.GUIDToAssetPath(GUID_PRESET_FOLDER);
+
+        if (string.IsNullOrEmpty(currentPresetPath))
+        {
+            Debug.LogWarning("[HoboRadio] Preset folder not found via GUID.");
+            return;
+        }
+
+        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { currentPresetPath });
 
         presetPrefabs = guids
             .Select(g => AssetDatabase.GUIDToAssetPath(g))
