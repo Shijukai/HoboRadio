@@ -1,3 +1,6 @@
+VPMパッケージはこちら
+https://shijukai.github.io/HoboRadio/
+
 導入方法
 Hierarchyを右クリックしてHoboRadioから導入したいバージョンを選択してください。
 Radio_Informationは紐づけたいHierarchy上のラジオを右クリックして選択すると導入することができます。
