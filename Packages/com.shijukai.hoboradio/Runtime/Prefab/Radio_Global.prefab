@@ -5095,7 +5095,7 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 1174654190950659549}
-  knob: {fileID: 0}
+  knob: {fileID: 1962880524489540600}
   targetAudio: {fileID: 1760466270750969450}
   minZ: 0.005
   maxZ: 0.12

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: HoboRadio_Controller
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 20555396c46449a44bca1d618556d2b1, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 3fb9254b22928a84e8e0ae02b226fb25, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 62b3774752f91fd47b18c13bb6c3df66, type: 3}

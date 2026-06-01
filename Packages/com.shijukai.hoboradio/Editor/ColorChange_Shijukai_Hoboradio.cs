@@ -152,10 +152,19 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
         t.SetSiblingIndex(siblingIndex);
 
         Undo.RegisterCreatedObjectUndo(instance, "Hoboradio change color");
-        Undo.DestroyObjectImmediate(original);
+
+        Transform newSliderKnob = instance.transform.Find("Armature/Radio_Root/Slider");
+
+        if (newSliderKnob == null)
+        {
+            Debug.LogError($"[HoboRadio] 新しいプレハブ内にスライダーボーンが見つかりません。パスを確認してください: Armature/Radio_Root/Slider");
+        }
 
         Animator newAnimator = instance.GetComponent<Animator>();
-        if (newAnimator != null && rootObject != null)
+
+        Undo.DestroyObjectImmediate(original);
+
+        if (rootObject != null)
         {
             // Root以下のすべてのMonoBehaviour（UdonSharp含む）を取得
             MonoBehaviour[] monos = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
@@ -164,15 +173,33 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
                 if (mono == null) continue;
 
                 SerializedObject so = new SerializedObject(mono);
+
+                bool isModified = false;
+
                 SerializedProperty prop = so.FindProperty("radioAnimator");
 
                 // radioAnimatorプロパティを持っているスクリプト（HoboRadio_Controller）を見つけたら
-                if (prop != null)
+                if (prop != null && newAnimator != null)
                 {
                     prop.objectReferenceValue = newAnimator;
-                    so.ApplyModifiedProperties();
+                    isModified = true;
                     Debug.Log($"<color=cyan>[HoboRadio]</color> Animatorを {mono.gameObject.name} に再アタッチしました。");
-                    break;
+                }
+
+                // knob（スライダーボーン）の参照を更新
+                SerializedProperty knobProp = so.FindProperty("knob");
+                if (knobProp != null && newSliderKnob != null)
+                {
+                    knobProp.objectReferenceValue = newSliderKnob;
+                    isModified = true;
+                    Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.gameObject.name} の knob を再アタッチしました。");
+                }
+
+                if (isModified)
+                {
+                    so.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(mono);
+                    Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.GetType().Name} の参照を更新しました。");
                 }
             }
         }
