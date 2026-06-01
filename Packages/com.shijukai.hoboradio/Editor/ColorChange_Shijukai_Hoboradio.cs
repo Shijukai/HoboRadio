@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using UdonSharp;
+using UdonSharpEditor;
 
 public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow 
 {
@@ -14,7 +16,8 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
     //Manual select Prefab
     private GameObject manualPrefab;
 
-    private const string PRESET_PATH = "Packages/com.shijukai.hoboradio/Runtime/ColorOptions";
+    // --- フォルダのGUID ---
+    private const string GUID_PRESET_FOLDER = "328e0b48beab9664c9b4a8f52108e56b";
 
     //main script
     [MenuItem("Tools/Shijukai/Hoboradio_ColorChange")]
@@ -29,7 +32,15 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
     void LoadPresets()
     {
-        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { PRESET_PATH });
+        string currentPresetPath = AssetDatabase.GUIDToAssetPath(GUID_PRESET_FOLDER);
+
+        if (string.IsNullOrEmpty(currentPresetPath))
+        {
+            Debug.LogWarning("[HoboRadio] Preset folder not found via GUID.");
+            return;
+        }
+
+        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { currentPresetPath });
 
         presetPrefabs = guids
             .Select(g => AssetDatabase.GUIDToAssetPath(g))
@@ -143,10 +154,19 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
         t.SetSiblingIndex(siblingIndex);
 
         Undo.RegisterCreatedObjectUndo(instance, "Hoboradio change color");
-        Undo.DestroyObjectImmediate(original);
+
+        Transform newSliderKnob = instance.transform.Find("Armature/Radio_Root/Slider");
+
+        if (newSliderKnob == null)
+        {
+            Debug.LogError($"[HoboRadio] 新しいプレハブ内にスライダーボーンが見つかりません。パスを確認してください: Armature/Radio_Root/Slider");
+        }
 
         Animator newAnimator = instance.GetComponent<Animator>();
-        if (newAnimator != null && rootObject != null)
+
+        Undo.DestroyObjectImmediate(original);
+
+        if (rootObject != null)
         {
             // Root以下のすべてのMonoBehaviour（UdonSharp含む）を取得
             MonoBehaviour[] monos = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
@@ -155,15 +175,39 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
                 if (mono == null) continue;
 
                 SerializedObject so = new SerializedObject(mono);
+
+                bool isModified = false;
+
                 SerializedProperty prop = so.FindProperty("radioAnimator");
 
                 // radioAnimatorプロパティを持っているスクリプト（HoboRadio_Controller）を見つけたら
-                if (prop != null)
+                if (prop != null && newAnimator != null)
                 {
                     prop.objectReferenceValue = newAnimator;
-                    so.ApplyModifiedProperties();
+                    isModified = true;
                     Debug.Log($"<color=cyan>[HoboRadio]</color> Animatorを {mono.gameObject.name} に再アタッチしました。");
-                    break;
+                }
+
+                // knob（スライダーボーン）の参照を更新
+                SerializedProperty knobProp = so.FindProperty("knob");
+                if (knobProp != null && newSliderKnob != null)
+                {
+                    knobProp.objectReferenceValue = newSliderKnob;
+                    isModified = true;
+                    Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.gameObject.name} の knob を再アタッチしました。");
+                }
+
+                if (isModified)
+                {
+                    so.ApplyModifiedProperties();
+
+                    if (mono is UdonSharpBehaviour usb)
+                    {
+                        UdonSharpEditorUtility.ApplyProxyModifications(usb);
+                    }
+
+                    EditorUtility.SetDirty(mono);
+                    Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.GetType().Name} の参照を更新しました。");
                 }
             }
         }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: VolumeSlider_Collider Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: d0e007c03411762489ad657a883fc601, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: ed0f0eaaec22630499b28f680de29ab9, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: d08a22473be9e5040a2b1048abd9b9ee, type: 3}
