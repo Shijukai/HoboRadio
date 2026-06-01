@@ -3,26 +3,30 @@ using UnityEditor;
 
 public static class Menu_Shijukai_Hoboradio
 {
-    // Prefabのパス定義
-    private const string BASE_PATH = "Packages/com.shijukai.hoboradio/Runtime/Prefab/";
+    // --- GUID定義 ---
+    private const string GUID_GLOBAL = "222e3ff0c0a19b4489da092102f0744b";
+    private const string GUID_GLOBAL_UI = "d944dba58ccf4b34fbff0783c8f57422";
+    private const string GUID_LOCAL = "9ceb1a35aad7f114aa5acc520e50f4f8";
+    private const string GUID_LOCAL_UI = "b6c378c68dde3af4d9f8acfc4dedc578";
+    private const string GUID_INFO = "722f3715e10fc76409088b329bc2ab68";
 
     // Item List Global===========================================
     [MenuItem("GameObject/HoboRadio/Global/Radio_Global", false, 10)]
     static void Create_Global_Radio(MenuCommand cmd)
-        => Create(cmd, BASE_PATH + "Radio_Global.prefab");
+        => Create(cmd, GUID_GLOBAL);
 
     [MenuItem("GameObject/HoboRadio/Global/Radio_Global_UI", false, 11)]
     static void Create_Global_Radio_UI(MenuCommand cmd)
-        => Create(cmd, BASE_PATH + "Radio_Global_UI.prefab");
+        => Create(cmd, GUID_GLOBAL_UI);
 
     // Item List Local=============================================
     [MenuItem("GameObject/HoboRadio/Local/Radio_Local", false, 20)]
     static void Create_Local_Radio(MenuCommand cmd)
-        => Create(cmd, BASE_PATH + "Radio_Local.prefab");
+        => Create(cmd, GUID_LOCAL);
 
     [MenuItem("GameObject/HoboRadio/Local/Radio_Local_UI", false, 21)]
     static void Create_Local_Radio_UI(MenuCommand cmd)
-        => Create(cmd, BASE_PATH + "Radio_Local_UI.prefab");
+        => Create(cmd, GUID_LOCAL_UI);
 
     // Item List Information=======================================
     [MenuItem("GameObject/HoboRadio/Radio_Information", false, 30)]
@@ -74,7 +78,7 @@ public static class Menu_Shijukai_Hoboradio
         }
 
         // プレハブの生成
-        string path = BASE_PATH + "Radio_Information.prefab";
+        string path = AssetDatabase.GUIDToAssetPath(GUID_INFO);
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         if (prefab == null)
         {
@@ -173,12 +177,13 @@ public static class Menu_Shijukai_Hoboradio
     }
 
     // 汎用生成処理
-    static void Create(MenuCommand cmd, string path)
+    static void Create(MenuCommand cmd, string guid)
     {
+        string path = AssetDatabase.GUIDToAssetPath(guid);
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         if (prefab == null)
         {
-            Debug.LogError("Prefab not found: " + path);
+            Debug.LogError($"[HoboRadio] Prefab not found for GUID: {guid}. 名前変更ではなく「削除して作り直し」をしていませんか？");
             return;
         }
 
