@@ -145,7 +145,7 @@ PrefabInstance:
       objectReference: {fileID: 1718120421224408349, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
     - target: {fileID: 3983094770680221625, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3983094770680221625, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -188,6 +188,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4083069696727931674, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
     - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+      propertyPath: infoFetcher
+      value: 
+      objectReference: {fileID: 1214388818}
+    - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
@@ -220,6 +228,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+--- !u!114 &136086600 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_PrefabInstance: {fileID: 136086599}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b3774752f91fd47b18c13bb6c3df66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &343499879
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -258,7 +277,7 @@ PrefabInstance:
       objectReference: {fileID: 4710192551367245331, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
     - target: {fileID: 5834473201997116915, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5834473201997116915, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -300,6 +319,10 @@ PrefabInstance:
       propertyPath: infoFetcher
       value: 
       objectReference: {fileID: 882789559}
+    - target: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -457,6 +480,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2815444158879912488, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2815444158879912488, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 2815444158879912488, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
@@ -507,7 +534,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2638740762739406545, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
       propertyPath: m_Name
-      value: Radio_Information
+      value: Radio_Information1
       objectReference: {fileID: 0}
     - target: {fileID: 3150747379398047865, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
       propertyPath: radioController
@@ -523,7 +550,7 @@ PrefabInstance:
       objectReference: {fileID: 4404588012207905454, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
     - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.5
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
       propertyPath: m_LocalPosition.y
@@ -669,6 +696,86 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1214388817
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2638740762739406545, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_Name
+      value: Radio_Information2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3150747379398047865, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: radioController
+      value: 
+      objectReference: {fileID: 136086600}
+    - target: {fileID: 3150747379398047865, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 3150747379398047865, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+    - target: {fileID: 4404588012207905454, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 4404588012207905454, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0627
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8975973776526228127, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+--- !u!114 &1214388818 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3878794830537112655, guid: 722f3715e10fc76409088b329bc2ab68, type: 3}
+  m_PrefabInstance: {fileID: 1214388817}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45115577ef41a5b4ca741ed302693907, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1469682559
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -757,6 +864,10 @@ PrefabInstance:
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 8503231232370011223, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+    - target: {fileID: 8926188241337688801, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8926188241337688801, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -1182,6 +1293,7 @@ SceneRoots:
   - {fileID: 358170790}
   - {fileID: 343499879}
   - {fileID: 1469682559}
+  - {fileID: 882789558}
   - {fileID: 136086599}
   - {fileID: 411387839}
-  - {fileID: 882789558}
+  - {fileID: 1214388817}
