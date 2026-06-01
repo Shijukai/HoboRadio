@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using UdonSharp;
+using UdonSharpEditor;
 
 public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow 
 {
@@ -198,6 +200,12 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
                 if (isModified)
                 {
                     so.ApplyModifiedProperties();
+
+                    if (mono is UdonSharpBehaviour usb)
+                    {
+                        UdonSharpEditorUtility.ApplyProxyModifications(usb);
+                    }
+
                     EditorUtility.SetDirty(mono);
                     Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.GetType().Name} の参照を更新しました。");
                 }
