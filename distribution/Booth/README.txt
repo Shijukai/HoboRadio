@@ -1,5 +1,5 @@
 同梱のunitypackageをインポート後、
-Assets/com.shijukai.hoboradio/ にREADMEおよびLICENSEが展開されます。
+Packages/com.shijukai.hoboradio/ にREADMEおよびLICENSEが展開されます。
 詳細はそちらをご確認ください。
 
 また、最新の仕様やアップデート情報については、以下リンクのGitHubリポジトリをご確認ください。
