@@ -200,6 +200,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4083069696727931674, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
     - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
@@ -272,42 +276,42 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086602 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 1502633271642999459, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7015377375369215422, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086603 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 5324172765857795777, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1502633271642999459, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086604 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 3566889460389214546, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 5324172765857795777, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086605 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 1624481504586828528, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 3566889460389214546, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086606 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 6749176869875971137, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1624481504586828528, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086607 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 7811755294316283306, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6749176869875971137, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086608 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 7449020280437108891, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7811755294316283306, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &136086609 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 7015377375369215422, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7449020280437108891, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
   m_PrefabInstance: {fileID: 136086599}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &343499879
@@ -415,6 +419,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 882789559}
     - target: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
@@ -456,7 +464,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 343499881}
+  m_GameObject: {fileID: 343499890}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62b3774752f91fd47b18c13bb6c3df66, type: 3}
@@ -464,52 +472,52 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
 --- !u!1 &343499881 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 7040432781845379012, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7438876584904013078, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499882 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 7438876584904013078, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 162332551618683966, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499883 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 162332551618683966, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7392621974904340091, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499884 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 7392621974904340091, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8619320619059566157, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499885 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 8619320619059566157, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6601750398435103632, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499886 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 6601750398435103632, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1255927640319231138, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499887 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 1255927640319231138, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8541873328640488227, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499888 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 8541873328640488227, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2314762454855668834, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499889 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 2314762454855668834, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 846048502585955028, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &343499890 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 846048502585955028, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7040432781845379012, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
   m_PrefabInstance: {fileID: 343499879}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &358170787
@@ -649,6 +657,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2815444158879912488, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2815444158879912488, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 2815444158879912488, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
@@ -700,6 +712,10 @@ PrefabInstance:
       propertyPath: serializedProgramAsset
       value: 
       objectReference: {fileID: 11400000, guid: 55a6b04596cd4334ca3e9abc88b4214e, type: 2}
+    - target: {fileID: 7939702498421039141, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 35630e38b4e5ffb40b44ec5348b4333f, type: 2}
     - target: {fileID: 8894830696175058643, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
       propertyPath: serializedProgramAsset
       value: 
@@ -1007,6 +1023,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Radio_Global_UI
       objectReference: {fileID: 0}
+    - target: {fileID: 3803529264107990986, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 35630e38b4e5ffb40b44ec5348b4333f, type: 2}
     - target: {fileID: 4589959450809346561, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializedProgramAsset
       value: 
@@ -1059,6 +1079,10 @@ PrefabInstance:
       propertyPath: serializedProgramAsset
       value: 
       objectReference: {fileID: 11400000, guid: b96406870ca7f6a42a6e9f27ee06aff1, type: 2}
+    - target: {fileID: 8926188241337688801, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: radioPowerOn
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8926188241337688801, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -1329,14 +1353,14 @@ MonoBehaviour:
   interactThruLayers: 0
   autoSpatializeAudioSources: 0
   gravity: {x: 0, y: -9.81, z: 0}
-  layerCollisionArr: 01010101010001010101010100010001010101010101010101010101010101010101010101000101010101010001000101010101010101010101010101010101010101010100010101010101000100010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000101010101010001000101010101010101010101010101010101000000010000010100000000000000000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100010101010101000100010101010101010101010101010101010101010101010001010100000100000000000001010101010101010101010101010101010101000101010000010000000000000101010101010101010101010101010101010100010101010101000100010101010101010101010101010101010100000001000001010000000000000000000000000000010101010101010101010101010101000101010000010001010101010000000001010101010101010101000000010000010100000000000100000000000000000101010101010101010101010101010001010100000100010001010101010101010101010101010101010101010101000101010000010001000101010101010101010101010101010101010101010100010101000001000100010101010101010101010101010101010101010101010001010101010100000001010101010101010101010101010101010101010101000101010101010000000101010101010101010101010101010101010101010100010101010101000000010101010101010101010101010101010101010101010001010101010100000001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101
+  layerCollisionArr: 01010100010001010101010100010001010101000101010101010101010101010101010001000101010101010001000101010100010101010101010101010101010101000100010101010101000100010101010001010101010101010101010100000001000000000000000000000000000000000000010101010101010101010101010001000101010101010001000101010100010101010101010101010101000000000000010100000000000000000000000000000101010101010101010101010100010101010101010101010101010101010101010101010101010101010101010001010101010101010101010101010101010101010101010101010101010101000100010101010101000100010101010001010101010101010101010101010100010001010100000100000000000001000101010101010101010101010101010001000101010000010000000000000100010101010101010101010101010101000100010101010101000100010101010001010101010101010101010100000000000001010000000000000000000000000000010101010101010101010101010001000101010000010001010101010000000001010101010101010101000000000000010100000000000100000000000000000101010101010101010101010100010001010100000100010001010101000101010101010101010101010101010001000101010000010001000101010100010101010101010101010101010101000100010101000001000100010101010001010101010101010101010101010100010001010101010100000001010101000101010101010101010101010000000000000101000000000000000000000000000001010101010101010101010101000100010101010101000000010101010001010101010101010101010101010100010001010101010100000001010101000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101
   capacity: 0
   contentSex: 0
   contentViolence: 0
   contentGore: 0
   contentOther: 0
   releasePublic: 0
-  unityVersion: 2019.4.31f1
+  unityVersion: 2022.3.22f1
   udonProducts: []
   Name: 
   NSFW: 0
@@ -1346,10 +1370,14 @@ MonoBehaviour:
   useAssignedLayers: 0
   DynamicPrefabs: []
   DynamicMaterials:
-  - {fileID: 2100000, guid: d1edda5459be0eb4887f55b35e81945e, type: 2}
-  - {fileID: 2100000, guid: 503f1b29e6d13084c8f1b1bd33eaf73a, type: 2}
-  - {fileID: 2100000, guid: b761c872f2181ae439f76c5c64a3d6fb, type: 2}
+  - {fileID: 2100000, guid: 208a6c36c42e0344e86d959773bf311d, type: 2}
+  - {fileID: 2100000, guid: 6b64806972d8feb469c0a3e8f943b0e6, type: 2}
+  - {fileID: 2100000, guid: 4559037c8037a3240ba0555ec07a295d, type: 2}
+  - {fileID: 2100000, guid: b24880da413704c45aaf2255092d3b65, type: 2}
+  - {fileID: 2100000, guid: a212227b465e4074080ea6af36bdc40c, type: 2}
   - {fileID: 2100000, guid: ae2771c3760b7f340bfdf8caccd75f75, type: 2}
+  - {fileID: 2100000, guid: 56296738798ef084eb0a765bfc9a0817, type: 2}
+  - {fileID: 2100000, guid: f768f3b4aab195a47a2280d0b94af113, type: 2}
   LightMapsNear: []
   LightMapsFar: []
   LightMode: 0
@@ -1403,31 +1431,31 @@ MonoBehaviour:
   RenderReflectionIntensity: 0
   RenderSkybox: {fileID: 0}
   NetworkIDs:
-  - gameObject: {fileID: 343499884}
+  - gameObject: {fileID: 343499883}
     ID: 10
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499887}
+  - gameObject: {fileID: 343499886}
     ID: 11
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499888}
+  - gameObject: {fileID: 343499887}
     ID: 12
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499885}
+  - gameObject: {fileID: 343499884}
     ID: 13
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499890}
+  - gameObject: {fileID: 343499889}
     ID: 14
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499886}
+  - gameObject: {fileID: 343499885}
     ID: 15
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499889}
+  - gameObject: {fileID: 343499888}
     ID: 16
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
@@ -1439,7 +1467,7 @@ MonoBehaviour:
     ID: 18
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 343499883}
+  - gameObject: {fileID: 343499890}
     ID: 19
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
@@ -1483,43 +1511,43 @@ MonoBehaviour:
     ID: 29
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086602}
+  - gameObject: {fileID: 136086603}
     ID: 30
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086605}
+  - gameObject: {fileID: 136086606}
     ID: 31
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086606}
+  - gameObject: {fileID: 136086607}
     ID: 32
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086603}
+  - gameObject: {fileID: 136086604}
     ID: 33
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086608}
+  - gameObject: {fileID: 136086609}
     ID: 34
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086604}
+  - gameObject: {fileID: 136086605}
     ID: 35
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086607}
+  - gameObject: {fileID: 136086608}
     ID: 36
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086609}
+  - gameObject: {fileID: 136086600}
     ID: 37
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086600}
+  - gameObject: {fileID: 136086601}
     ID: 38
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 136086601}
+  - gameObject: {fileID: 136086602}
     ID: 39
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
