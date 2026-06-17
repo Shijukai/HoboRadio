@@ -20,6 +20,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     [Header("--- デフォルトチャンネル設定 ---")]
     [Tooltip("電源を入れた時に最初に流れるチャンネルを設定できます")]
+    [Range(0, 2)]
     [UdonSynced, SerializeField] public int currentChannelIndex = 0;
 
     //ChannelSettings
