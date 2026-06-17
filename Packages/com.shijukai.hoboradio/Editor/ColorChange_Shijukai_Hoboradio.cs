@@ -203,7 +203,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
                     if (mono is UdonSharpBehaviour usb)
                     {
-                        UdonSharpEditorUtility.ApplyProxyModifications(usb);
+                        UdonSharpEditorUtility.CopyProxyToUdon(usb);
                     }
 
                     EditorUtility.SetDirty(mono);
