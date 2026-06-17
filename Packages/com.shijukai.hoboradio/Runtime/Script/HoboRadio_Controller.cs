@@ -29,7 +29,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     //AnimationSettings
     [HideInInspector] public Animator radioAnimator;
-    [HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f };
+    [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f };
 
     //UISettings
     [HideInInspector] public TextMeshProUGUI channelText;
