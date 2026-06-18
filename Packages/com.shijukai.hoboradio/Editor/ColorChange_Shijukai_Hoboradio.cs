@@ -52,7 +52,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
             defaultLibrary.Add(folderName, mats);
         }
 
-        // UI�p�̖��O���X�g���X�V
+        // UI用の名前リストを更新
         defaultNames = defaultLibrary.Keys.ToArray();
 
     }
@@ -70,7 +70,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
             string setName = mainMat.name.Replace("Shijukai_Radio_Main_", "");
 
-            // �f�t�H���g�Ɋ��Ɋ܂܂�Ă�����́A�܂��͒��o���s�������̂̓X�L�b�v
+            // デフォルトに既に含まれているもの、または抽出失敗したものはスキップ
             if (string.IsNullOrEmpty(setName) || defaultLibrary.ContainsKey(setName)) continue;
 
             string folderPath = System.IO.Path.GetDirectoryName(path);
@@ -105,7 +105,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
         //プリセット選択
         GUILayout.Label("プリセット選択", EditorStyles.boldLabel);
 
-        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "�ʏ�J���[", "���胂�f��" });
+        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "通常カラー", "限定版カラー" });
         GUILayout.Space(5);
 
         if (selectedTab == 0)
@@ -116,7 +116,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
             }
             else
             {
-                EditorGUILayout.HelpBox("�f�t�H���g�̃v���Z�b�g��������܂���B", MessageType.Warning);
+                EditorGUILayout.HelpBox("デフォルトのプリセットが見つかりません。", MessageType.Warning);
             }
         }
         else
@@ -127,19 +127,19 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
             }
             else
             {
-                EditorGUILayout.HelpBox("����ł̃}�e���A����������܂���B\n�v���W�F�N�g�ɒǉ��p�b�P�[�W���C���|�[�g����Ă��邩�m�F���Ă��������B", MessageType.Info);
+                EditorGUILayout.HelpBox("限定版のマテリアルが見つかりません。\nプロジェクトに追加パッケージがインポートされているか確認してください。", MessageType.Info);
             }
         }
 
         GUILayout.Space(10);
 
-        // ���s�\�ȏ�ԁi���X�g�ɒ��g������j���̂݃{�^����������悤�ɔz��
+        // 実行可能な状態（リストに中身がある）時のみボタンを押せるように配慮
         bool canExecute = (selectedTab == 0 && defaultNames != null && defaultNames.Length > 0) ||
                           (selectedTab == 1 && specialNames != null && specialNames.Length > 0);
 
         using (new EditorGUI.DisabledScope(!canExecute))
         {
-            if (GUILayout.Button("�u���������s"))
+            if (GUILayout.Button("置き換え実行"))
             {
                 Execute();
             }
@@ -150,24 +150,24 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
     {
         if (rootObject == null)
         {
-            Debug.LogError("[HoboRadio] Radio Root ���ݒ肳��Ă��܂���B");
+            Debug.LogError("[HoboRadio] 対象オブジェクトが設定されていません。");
             return;
         }
 
-        // 1. Radio Root�ȉ��� "�S��" ��Renderer�iSkinnedMeshRenderer�܂ށj���擾
+        // 1. Radio Root以下の "全て" のRenderer（SkinnedMeshRenderer含む）を取得
         var targetRenderers = rootObject.GetComponentsInChildren<Renderer>(true);
         if (targetRenderers.Length == 0)
         {
-            Debug.LogError("[HoboRadio] �w�肳�ꂽ�I�u�W�F�N�g����Renderer�����������܂���B");
+            Debug.LogError("[HoboRadio] 指定されたオブジェクト内にRendererが一つも見つかりません。");
             return;
         }
 
         string selectedPrefix = (selectedTab == 0) ? defaultNames[defaultIndex] : specialNames[specialIndex];
         var targetSet = (selectedTab == 0) ? defaultLibrary[selectedPrefix] : specialLibrary[selectedPrefix];
 
-        bool isChangedAny = false; // 1�ł��ύX���ꂽ���ǂ����̃t���O
+        bool isChangedAny = false;
 
-        // 2. ���������S�Ă�Renderer���`�F�b�N����
+        // 2. 見つかった全てのRendererをチェックする
         foreach (var renderer in targetRenderers)
         {
             Material[] newMats = (Material[])renderer.sharedMaterials.Clone();
@@ -185,7 +185,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
                 if (string.IsNullOrEmpty(part)) continue;
 
-                // �Y���p�[�c�����܂ރ}�e���A�����v���Z�b�g���猟��
+                // 該当パーツ名を含むマテリアルをプリセットから検索
                 var foundMat = targetSet.FirstOrDefault(m => m.name.Contains(part));
 
                 if (foundMat != null && newMats[i] != foundMat)
@@ -195,24 +195,24 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
                 }
             }
 
-            // �ύX��������Renderer�̂ݓK�p����
+            // 変更があったRendererのみ適用する
             if (isModified)
             {
                 Undo.RecordObject(renderer, "Hoboradio change material");
                 renderer.sharedMaterials = newMats;
-                EditorUtility.SetDirty(renderer); // Unity�ɕύX���m���ɂ��m�点
+                EditorUtility.SetDirty(renderer);
                 isChangedAny = true;
             }
         }
 
-        // 3. ���ʂ̃��O�o��
+        // 3. 結果のログ出力
         if (isChangedAny)
         {
-            Debug.Log($"<color=cyan>[HoboRadio]</color> �v���Z�b�g '{selectedPrefix}' �Ƀ}�e���A�����X�V���܂����I");
+            Debug.Log($"<color=cyan>[HoboRadio]</color> プリセット '{selectedPrefix}' にマテリアルを更新しました！");
         }
         else
         {
-            Debug.LogWarning($"<color=yellow>[HoboRadio]</color> �u�������ΏہiMain, Cover, Metal���܂ރ}�e���A���j��������Ȃ��������A���łɓ����}�e���A���ł��B");
+            Debug.LogWarning($"<color=yellow>[HoboRadio]</color> 置き換え対象（Main, Cover, Metalを含むマテリアル）が見つからなかったか、すでに同じマテリアルです。");
         }
     }
 
