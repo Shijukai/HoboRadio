@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using UdonSharp;
@@ -52,7 +52,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
             defaultLibrary.Add(folderName, mats);
         }
 
-        // UI—p‚Ì–¼‘OƒŠƒXƒg‚ğXV
+        // UIï¿½pï¿½Ì–ï¿½ï¿½Oï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½Xï¿½V
         defaultNames = defaultLibrary.Keys.ToArray();
 
     }
@@ -70,7 +70,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
             string setName = mainMat.name.Replace("Shijukai_Radio_Main_", "");
 
-            // ƒfƒtƒHƒ‹ƒg‚ÉŠù‚ÉŠÜ‚Ü‚ê‚Ä‚¢‚é‚à‚ÌA‚Ü‚½‚Í’Šo¸”s‚µ‚½‚à‚Ì‚ÍƒXƒLƒbƒv
+            // ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½gï¿½ÉŠï¿½ï¿½ÉŠÜ‚Ü‚ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ÌAï¿½Ü‚ï¿½ï¿½Í’ï¿½ï¿½oï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÍƒXï¿½Lï¿½bï¿½v
             if (string.IsNullOrEmpty(setName) || defaultLibrary.ContainsKey(setName)) continue;
 
             string folderPath = System.IO.Path.GetDirectoryName(path);
@@ -91,7 +91,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Label("‚Ù‚Ú‚ç‚¶‚¨ ƒJƒ‰[•ÏXƒc[ƒ‹",EditorStyles.boldLabel);
+        GUILayout.Label("ã»ã¼ã‚‰ã˜ãŠ ã‚«ãƒ©ãƒ¼å¤‰æ›´ãƒ„ãƒ¼ãƒ«",EditorStyles.boldLabel);
 
         rootObject = (GameObject)EditorGUILayout.ObjectField(
             "Radio_Local/Radio_Global",
@@ -102,10 +102,10 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
         GUILayout.Space(10);
 
-        //ƒvƒŠƒZƒbƒg‘I‘ğ
-        GUILayout.Label("ƒvƒŠƒZƒbƒg‘I‘ğ", EditorStyles.boldLabel);
+        //ãƒ—ãƒªã‚»ãƒƒãƒˆé¸æŠ
+        GUILayout.Label("ãƒ—ãƒªã‚»ãƒƒãƒˆé¸æŠ", EditorStyles.boldLabel);
 
-        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "’ÊíƒJƒ‰[", "ŒÀ’èƒ‚ƒfƒ‹" });
+        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "ï¿½Êï¿½Jï¿½ï¿½ï¿½[", "ï¿½ï¿½ï¿½èƒ‚ï¿½fï¿½ï¿½" });
         GUILayout.Space(5);
 
         if (selectedTab == 0)
@@ -116,7 +116,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
             }
             else
             {
-                EditorGUILayout.HelpBox("ƒfƒtƒHƒ‹ƒg‚ÌƒvƒŠƒZƒbƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB", MessageType.Warning);
+                EditorGUILayout.HelpBox("ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½gï¿½Ìƒvï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B", MessageType.Warning);
             }
         }
         else
@@ -127,19 +127,19 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
             }
             else
             {
-                EditorGUILayout.HelpBox("ŒÀ’è”Å‚Ìƒ}ƒeƒŠƒAƒ‹‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB\nƒvƒƒWƒFƒNƒg‚É’Ç‰ÁƒpƒbƒP[ƒW‚ªƒCƒ“ƒ|[ƒg‚³‚ê‚Ä‚¢‚é‚©Šm”F‚µ‚Ä‚­‚¾‚³‚¢B", MessageType.Info);
+                EditorGUILayout.HelpBox("ï¿½ï¿½ï¿½ï¿½Å‚Ìƒ}ï¿½eï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B\nï¿½vï¿½ï¿½ï¿½Wï¿½Fï¿½Nï¿½gï¿½É’Ç‰ï¿½ï¿½pï¿½bï¿½Pï¿½[ï¿½Wï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½|ï¿½[ï¿½gï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B", MessageType.Info);
             }
         }
 
         GUILayout.Space(10);
 
-        // Às‰Â”\‚Èó‘ÔiƒŠƒXƒg‚É’†g‚ª‚ ‚éj‚Ì‚İƒ{ƒ^ƒ“‚ğ‰Ÿ‚¹‚é‚æ‚¤‚É”z—¶
+        // ï¿½ï¿½ï¿½sï¿½Â”\ï¿½Èï¿½Ôiï¿½ï¿½ï¿½Xï¿½gï¿½É’ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½jï¿½ï¿½ï¿½Ì‚İƒ{ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ‚¤ï¿½É”zï¿½ï¿½
         bool canExecute = (selectedTab == 0 && defaultNames != null && defaultNames.Length > 0) ||
                           (selectedTab == 1 && specialNames != null && specialNames.Length > 0);
 
         using (new EditorGUI.DisabledScope(!canExecute))
         {
-            if (GUILayout.Button("’u‚«Š·‚¦Às"))
+            if (GUILayout.Button("ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½s"))
             {
                 Execute();
             }
@@ -150,24 +150,24 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
     {
         if (rootObject == null)
         {
-            Debug.LogError("[HoboRadio] Radio Root ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+            Debug.LogError("[HoboRadio] Radio Root ï¿½ï¿½ï¿½İ’è‚³ï¿½ï¿½Ä‚ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B");
             return;
         }
 
-        // 1. Radio RootˆÈ‰º‚Ì "‘S‚Ä" ‚ÌRendereriSkinnedMeshRendererŠÜ‚Şj‚ğæ“¾
+        // 1. Radio Rootï¿½È‰ï¿½ï¿½ï¿½ "ï¿½Sï¿½ï¿½" ï¿½ï¿½Rendererï¿½iSkinnedMeshRendererï¿½Ü‚Şjï¿½ï¿½ï¿½æ“¾
         var targetRenderers = rootObject.GetComponentsInChildren<Renderer>(true);
         if (targetRenderers.Length == 0)
         {
-            Debug.LogError("[HoboRadio] w’è‚³‚ê‚½ƒIƒuƒWƒFƒNƒg“à‚ÉRenderer‚ªˆê‚Â‚àŒ©‚Â‚©‚è‚Ü‚¹‚ñB");
+            Debug.LogError("[HoboRadio] ï¿½wï¿½è‚³ï¿½ê‚½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½Rendererï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B");
             return;
         }
 
         string selectedPrefix = (selectedTab == 0) ? defaultNames[defaultIndex] : specialNames[specialIndex];
         var targetSet = (selectedTab == 0) ? defaultLibrary[selectedPrefix] : specialLibrary[selectedPrefix];
 
-        bool isChangedAny = false; // 1‚Â‚Å‚à•ÏX‚³‚ê‚½‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+        bool isChangedAny = false; // 1ï¿½Â‚Å‚ï¿½ï¿½ÏXï¿½ï¿½ï¿½ê‚½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½Ìƒtï¿½ï¿½ï¿½O
 
-        // 2. Œ©‚Â‚©‚Á‚½‘S‚Ä‚ÌRenderer‚ğƒ`ƒFƒbƒN‚·‚é
+        // 2. ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Sï¿½Ä‚ï¿½Rendererï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½
         foreach (var renderer in targetRenderers)
         {
             Material[] newMats = (Material[])renderer.sharedMaterials.Clone();
@@ -185,7 +185,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
 
                 if (string.IsNullOrEmpty(part)) continue;
 
-                // ŠY“–ƒp[ƒc–¼‚ğŠÜ‚Şƒ}ƒeƒŠƒAƒ‹‚ğƒvƒŠƒZƒbƒg‚©‚çŒŸõ
+                // ï¿½Yï¿½ï¿½ï¿½pï¿½[ï¿½cï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Şƒ}ï¿½eï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½çŒŸï¿½ï¿½
                 var foundMat = targetSet.FirstOrDefault(m => m.name.Contains(part));
 
                 if (foundMat != null && newMats[i] != foundMat)
@@ -195,24 +195,24 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
                 }
             }
 
-            // •ÏX‚ª‚ ‚Á‚½Renderer‚Ì‚İ“K—p‚·‚é
+            // ï¿½ÏXï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Rendererï¿½Ì‚İ“Kï¿½pï¿½ï¿½ï¿½ï¿½
             if (isModified)
             {
                 Undo.RecordObject(renderer, "Hoboradio change material");
                 renderer.sharedMaterials = newMats;
-                EditorUtility.SetDirty(renderer); // Unity‚É•ÏX‚ğŠmÀ‚É‚¨’m‚ç‚¹
+                EditorUtility.SetDirty(renderer); // Unityï¿½É•ÏXï¿½ï¿½ï¿½mï¿½ï¿½ï¿½É‚ï¿½ï¿½mï¿½ç‚¹
                 isChangedAny = true;
             }
         }
 
-        // 3. Œ‹‰Ê‚ÌƒƒOo—Í
+        // 3. ï¿½ï¿½ï¿½Ê‚Ìƒï¿½ï¿½Oï¿½oï¿½ï¿½
         if (isChangedAny)
         {
-            Debug.Log($"<color=cyan>[HoboRadio]</color> ƒvƒŠƒZƒbƒg '{selectedPrefix}' ‚Éƒ}ƒeƒŠƒAƒ‹‚ğXV‚µ‚Ü‚µ‚½I");
+            Debug.Log($"<color=cyan>[HoboRadio]</color> ï¿½vï¿½ï¿½ï¿½Zï¿½bï¿½g '{selectedPrefix}' ï¿½Éƒ}ï¿½eï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½I");
         }
         else
         {
-            Debug.LogWarning($"<color=yellow>[HoboRadio]</color> ’u‚«Š·‚¦‘ÎÛiMain, Cover, Metal‚ğŠÜ‚Şƒ}ƒeƒŠƒAƒ‹j‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½‚©A‚·‚Å‚É“¯‚¶ƒ}ƒeƒŠƒAƒ‹‚Å‚·B");
+            Debug.LogWarning($"<color=yellow>[HoboRadio]</color> ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎÛiMain, Cover, Metalï¿½ï¿½ï¿½Ü‚Şƒ}ï¿½eï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½Å‚É“ï¿½ï¿½ï¿½ï¿½}ï¿½eï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½Å‚ï¿½ï¿½B");
         }
     }
 
