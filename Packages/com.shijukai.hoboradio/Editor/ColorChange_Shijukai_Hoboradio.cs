@@ -105,7 +105,7 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
         //プリセット選択
         GUILayout.Label("プリセット選択", EditorStyles.boldLabel);
 
-        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "通常カラー", "限定版カラー(追加パッケージ)" });
+        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "通常カラー", "限定モデル" });
         GUILayout.Space(5);
 
         if (selectedTab == 0)
