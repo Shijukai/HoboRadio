@@ -3,21 +3,23 @@ using UnityEditor;
 using System.Linq;
 using UdonSharp;
 using UdonSharpEditor;
+using System.Collections.Generic;
 
 public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow 
 {
     private GameObject rootObject;
 
     //Preset
-    private GameObject[] presetPrefabs;
-    private string[] presetNames;
-    private int selectedIndex = 0;
+    private Dictionary<string, List<Material>> defaultLibrary = new Dictionary<string, List<Material>>();
+    private string[] defaultNames;
+    private int defaultIndex = 0;
+    private const string GUID_PRESET_FOLDER = "930d03a908037094d8800ab4e77a4c40";
 
-    //Manual select Prefab
-    private GameObject manualPrefab;
+    private Dictionary<string, List<Material>> specialLibrary = new Dictionary<string, List<Material>>();
+    private string[] specialNames;
+    private int specialIndex = 0;
 
-    // --- フォルダのGUID ---
-    private const string GUID_PRESET_FOLDER = "328e0b48beab9664c9b4a8f52108e56b";
+    private int selectedTab = 0;
 
     //main script
     [MenuItem("Tools/Shijukai/Hoboradio_ColorChange")]
@@ -27,38 +29,72 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
     }
     void OnEnable()
     {
-        LoadPresets();
+        LoadDefaultPresets();
+        LoadSpecialPresets();
     }
 
-    void LoadPresets()
+    void LoadDefaultPresets()
     {
         string currentPresetPath = AssetDatabase.GUIDToAssetPath(GUID_PRESET_FOLDER);
+        string[] subFolders = System.IO.Directory.GetDirectories(currentPresetPath);
 
-        if (string.IsNullOrEmpty(currentPresetPath))
+        defaultLibrary.Clear();
+
+        foreach (var folder in subFolders)
         {
-            Debug.LogWarning("[HoboRadio] Preset folder not found via GUID.");
-            return;
+            string folderName = System.IO.Path.GetFileName(folder);
+            var guids = AssetDatabase.FindAssets("t:Material", new[] { folder });
+
+            var mats = guids
+                .Select(g => AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(g)))
+                .ToList();
+
+            defaultLibrary.Add(folderName, mats);
         }
 
-        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { currentPresetPath });
-
-        presetPrefabs = guids
-            .Select(g => AssetDatabase.GUIDToAssetPath(g))
-            .Select(path => AssetDatabase.LoadAssetAtPath<GameObject>(path))
-            .Where(p  => p != null)
-            .ToArray();
-
-        presetNames = presetPrefabs
-            .Select(p => p.name)
-            .ToArray();
+        // UI用の名前リストを更新
+        defaultNames = defaultLibrary.Keys.ToArray();
 
     }
+
+    void LoadSpecialPresets()
+    {
+        specialLibrary.Clear();
+        string[] mainGuids = AssetDatabase.FindAssets("t:Material Shijukai_Radio_Main", new[] { "Assets" });
+
+        foreach (string guid in mainGuids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            Material mainMat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mainMat == null) continue;
+
+            string setName = mainMat.name.Replace("Shijukai_Radio_Main_", "");
+
+            // デフォルトに既に含まれているもの、または抽出失敗したものはスキップ
+            if (string.IsNullOrEmpty(setName) || defaultLibrary.ContainsKey(setName)) continue;
+
+            string folderPath = System.IO.Path.GetDirectoryName(path);
+            string[] folderGuids = AssetDatabase.FindAssets("t:Material", new[] { folderPath });
+
+            List<Material> setMaterials = folderGuids
+                .Select(g => AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(g)))
+                .Where(m => m != null && (m.name.Contains("Main") || m.name.Contains("Cover") || m.name.Contains("Metal")))
+                .ToList();
+
+            if (!specialLibrary.ContainsKey(setName))
+            {
+                specialLibrary.Add(setName, setMaterials);
+            }
+        }
+        specialNames = specialLibrary.Keys.ToArray();
+    }
+
     private void OnGUI()
     {
         GUILayout.Label("ほぼらじお カラー変更ツール",EditorStyles.boldLabel);
 
         rootObject = (GameObject)EditorGUILayout.ObjectField(
-            "Radio Root",
+            "Radio_Local/Radio_Global",
             rootObject,
             typeof(GameObject),
             true
@@ -69,32 +105,44 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
         //プリセット選択
         GUILayout.Label("プリセット選択", EditorStyles.boldLabel);
 
-        if(presetNames != null && presetNames.Length > 0)
+        selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "通常カラー", "限定版カラー(追加パッケージ)" });
+        GUILayout.Space(5);
+
+        if (selectedTab == 0)
         {
-            selectedIndex = EditorGUILayout.Popup("Preset",selectedIndex, presetNames);
+            if (defaultNames != null && defaultNames.Length > 0)
+            {
+                defaultIndex = EditorGUILayout.Popup("Preset", defaultIndex, defaultNames);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("デフォルトのプリセットが見つかりません。", MessageType.Warning);
+            }
         }
         else
         {
-            EditorGUILayout.HelpBox("プリセットが見つかりません", MessageType.Warning);
+            if (specialNames != null && specialNames.Length > 0)
+            {
+                specialIndex = EditorGUILayout.Popup("Special Preset", specialIndex, specialNames);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("限定版のマテリアルが見つかりません。\nプロジェクトに追加パッケージがインポートされているか確認してください。", MessageType.Info);
+            }
         }
 
         GUILayout.Space(10);
 
-        //限定アセット指定
-        GUILayout.Label("または手動指定", EditorStyles.boldLabel);
+        // 実行可能な状態（リストに中身がある）時のみボタンを押せるように配慮
+        bool canExecute = (selectedTab == 0 && defaultNames != null && defaultNames.Length > 0) ||
+                          (selectedTab == 1 && specialNames != null && specialNames.Length > 0);
 
-        manualPrefab = (GameObject)EditorGUILayout.ObjectField(
-            "Prefab",
-            manualPrefab,
-            typeof(GameObject),
-            false
-        );
-
-        GUILayout.Space(10);
-
-        if(GUILayout.Button("置き換え実行"))
+        using (new EditorGUI.DisabledScope(!canExecute))
         {
-            Execute();
+            if (GUILayout.Button("置き換え実行"))
+            {
+                Execute();
+            }
         }
     }
 
@@ -102,114 +150,71 @@ public class Window_Shijukai_Hoboradio_ColorChange : EditorWindow
     {
         if (rootObject == null)
         {
-            EditorGUILayout.HelpBox("対象を指定してください", MessageType.Warning);
-            Debug.LogError("対象（Radio Root）が未指定です");
-            return;
-        }
-        
-        GameObject prefabToUse = null;
-
-        //アセット指定を優先
-        if (manualPrefab != null)
-        {
-            prefabToUse = manualPrefab;
-        }
-        else if (presetPrefabs != null && presetPrefabs.Length > 0)
-        {
-            prefabToUse = presetPrefabs[selectedIndex];
-        }
-
-        if (prefabToUse == null)
-        {
-            EditorGUILayout.HelpBox("Prefabが選択されていません", MessageType.Warning);
-            Debug.LogError("Prefabが選択されていません");
+            Debug.LogError("[HoboRadio] Radio Root が設定されていません。");
             return;
         }
 
-        Transform target = rootObject.transform.Find("Radio_Root/Radio_Mesh");
-
-        if(target == null)
+        // 1. Radio Root以下の "全て" のRenderer（SkinnedMeshRenderer含む）を取得
+        var targetRenderers = rootObject.GetComponentsInChildren<Renderer>(true);
+        if (targetRenderers.Length == 0)
         {
-            EditorGUILayout.HelpBox("Radio_Root/Radio_Mesh が見つかりません", MessageType.Error);
-            Debug.LogError("Radio_Root/Radio_Mesh が見つかりません");
+            Debug.LogError("[HoboRadio] 指定されたオブジェクト内にRendererが一つも見つかりません。");
             return;
         }
 
-        Replace(target.gameObject, prefabToUse);
-    }
+        string selectedPrefix = (selectedTab == 0) ? defaultNames[defaultIndex] : specialNames[specialIndex];
+        var targetSet = (selectedTab == 0) ? defaultLibrary[selectedPrefix] : specialLibrary[selectedPrefix];
 
-    void Replace(GameObject original, GameObject prefab)
-    {
-        Transform parent = original.transform.parent;
-        int siblingIndex = original.transform.GetSiblingIndex();
+        bool isChangedAny = false; // 1つでも変更されたかどうかのフラグ
 
-        GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-        instance.name = "Radio_Mesh";
-
-        Transform t = instance.transform;
-        t.SetParent(parent);
-        t.localPosition = original.transform.localPosition;
-        t.localRotation = original.transform.localRotation;
-        t.localScale = original.transform.localScale;
-        t.SetSiblingIndex(siblingIndex);
-
-        Undo.RegisterCreatedObjectUndo(instance, "Hoboradio change color");
-
-        Transform newSliderKnob = instance.transform.Find("Armature/Radio_Root/Slider");
-
-        if (newSliderKnob == null)
+        // 2. 見つかった全てのRendererをチェックする
+        foreach (var renderer in targetRenderers)
         {
-            Debug.LogError($"[HoboRadio] 新しいプレハブ内にスライダーボーンが見つかりません。パスを確認してください: Armature/Radio_Root/Slider");
-        }
+            Material[] newMats = (Material[])renderer.sharedMaterials.Clone();
+            bool isModified = false;
 
-        Animator newAnimator = instance.GetComponent<Animator>();
-
-        Undo.DestroyObjectImmediate(original);
-
-        if (rootObject != null)
-        {
-            // Root以下のすべてのMonoBehaviour（UdonSharp含む）を取得
-            MonoBehaviour[] monos = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
-            foreach (var mono in monos)
+            for (int i = 0; i < newMats.Length; i++)
             {
-                if (mono == null) continue;
+                if (newMats[i] == null) continue;
+                string matName = newMats[i].name;
 
-                SerializedObject so = new SerializedObject(mono);
+                string part = "";
+                if (matName.Contains("Main")) part = "Main";
+                else if (matName.Contains("Cover")) part = "Cover";
+                else if (matName.Contains("Metal")) part = "Metal";
 
-                bool isModified = false;
+                if (string.IsNullOrEmpty(part)) continue;
 
-                SerializedProperty prop = so.FindProperty("radioAnimator");
+                // 該当パーツ名を含むマテリアルをプリセットから検索
+                var foundMat = targetSet.FirstOrDefault(m => m.name.Contains(part));
 
-                // radioAnimatorプロパティを持っているスクリプト（HoboRadio_Controller）を見つけたら
-                if (prop != null && newAnimator != null)
+                if (foundMat != null && newMats[i] != foundMat)
                 {
-                    prop.objectReferenceValue = newAnimator;
+                    newMats[i] = foundMat;
                     isModified = true;
-                    Debug.Log($"<color=cyan>[HoboRadio]</color> Animatorを {mono.gameObject.name} に再アタッチしました。");
-                }
-
-                // knob（スライダーボーン）の参照を更新
-                SerializedProperty knobProp = so.FindProperty("knob");
-                if (knobProp != null && newSliderKnob != null)
-                {
-                    knobProp.objectReferenceValue = newSliderKnob;
-                    isModified = true;
-                    Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.gameObject.name} の knob を再アタッチしました。");
-                }
-
-                if (isModified)
-                {
-                    so.ApplyModifiedProperties();
-
-                    if (mono is UdonSharpBehaviour usb)
-                    {
-                        UdonSharpEditorUtility.CopyProxyToUdon(usb);
-                    }
-
-                    EditorUtility.SetDirty(mono);
-                    Debug.Log($"<color=cyan>[HoboRadio]</color> {mono.GetType().Name} の参照を更新しました。");
                 }
             }
+
+            // 変更があったRendererのみ適用する
+            if (isModified)
+            {
+                Undo.RecordObject(renderer, "Hoboradio change material");
+                renderer.sharedMaterials = newMats;
+                EditorUtility.SetDirty(renderer); // Unityに変更を確実にお知らせ
+                isChangedAny = true;
+            }
+        }
+
+        // 3. 結果のログ出力
+        if (isChangedAny)
+        {
+            Debug.Log($"<color=cyan>[HoboRadio]</color> プリセット '{selectedPrefix}' にマテリアルを更新しました！");
+        }
+        else
+        {
+            Debug.LogWarning($"<color=yellow>[HoboRadio]</color> 置き換え対象（Main, Cover, Metalを含むマテリアル）が見つからなかったか、すでに同じマテリアルです。");
         }
     }
+
+
 }
