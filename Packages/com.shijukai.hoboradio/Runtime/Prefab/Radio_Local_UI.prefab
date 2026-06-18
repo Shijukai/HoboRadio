@@ -1973,7 +1973,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 35630e38b4e5ffb40b44ec5348b4333f, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -4375,13 +4375,17 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 8894830696175058643}
   isGlobal: 0
-  radioPowerOn: 1
+  radioPowerOn: 0
   currentChannelIndex: 0
+  radioAnimator: {fileID: 0}
   channels:
   - url: https://media.shijukairadio.com/stream/ch1
   - url: https://media.shijukairadio.com/stream/ch2
   - url: https://media.shijukairadio.com/stream/ch3
-  radioAnimator: {fileID: 0}
+  channelDialValues:
+  - 0.416
+  - 0.43
+  - 0.45
   channelText: {fileID: 390038702691922033}
   statusText: {fileID: 7661789378524359243}
   debugCanvas: {fileID: 7786361528694860895}

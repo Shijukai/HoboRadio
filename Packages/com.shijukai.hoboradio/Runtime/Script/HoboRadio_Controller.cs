@@ -23,12 +23,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [Range(0, 2)]
     [UdonSynced, SerializeField] public int currentChannelIndex = 0;
 
+
+    [Header("--- 開発用（設定不要） ---")]
+    [Tooltip("開発の際に使用する設定欄です。不具合の原因になりますのでお手を触れないようにお願いします")]
+    [SerializeField] public Animator radioAnimator;
+
     //ChannelSettings
     [HideInInspector] public VRCUrl[] channels = new VRCUrl[3];
     [HideInInspector] private int loadedChannelIndex = -1;
 
     //AnimationSettings
-    [HideInInspector] public Animator radioAnimator;
+    
     [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f };
 
     //UISettings
