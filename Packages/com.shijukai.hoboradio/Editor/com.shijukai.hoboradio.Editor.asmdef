@@ -6,9 +6,9 @@
         "VRC.SDK3.Editor",
         "VRC.SDKBase",
         "VRC.SDKBase.Editor",
+        "com.shijukai.hoboradio",
         "UdonSharp.Runtime",
-        "UdonSharp.Editor",
-        "com.shijukai.hoboradio"
+        "UdonSharp.Editor"
     ],
     "includePlatforms": [
         "Editor"

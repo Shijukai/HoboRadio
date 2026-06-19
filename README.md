@@ -13,6 +13,8 @@ Radio_Informationは紐づけたいHierarchy上のラジオを右クリックし
 **TMPについて**  
 - このアセットはTextMeshProを使用しています。インポート後にTMPをインポートするか尋ねるウィンドウが出ますので必ずインポートしてください。
 
+**グローバル版について**
+- グローバル版はチャンネル切り替えのみ同期します、電源のON/OFFや音量は同期しませんのでご注意ください。
 
 **ラジオの複数設置について**  
 - ワールドに複数配置すると初期電源ONや時間による番組の切り替わり等のタイミングで一斉にURLを読もうとしてしまい
@@ -42,13 +44,12 @@ CurrentChannelIndexの数値を0-2の間で変更すると、
 
 **カラーリングの変更/限定モデルの導入**  
 - 1.上部ツールバーのToolsの中にある HoboRadio/Hoboradio_ColorChange をクリックしてください。
-- 2.専用のウィンドウが開きますので、RadioRootにHierarchyから色を変更したいラジオをD&Dしてください。
-- 3.プリセットを選択するか、Assetから限定モデルのPrefabを選択して置き換え実行を押すと指定したカラーリングになります。
+- 2.専用のウィンドウが開きますので、Radio_Local/Radio_GlobalにHierarchyから色を変更したいラジオをD&Dしてください。
+- 3.通常カラーもしくは限定モデルのタブからカラーリングを選択して置き換え実行を押すと指定したカラーリングになります。
 
 **UI版の背景について**  
 - 以下のマテリアルを編集することでカラー等の変更ができます。  
-VPM版 : `Packages/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
-UnityPackage版 : `Asset/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
+`Packages/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
 また、RenderingModeをCutoutに変更して、メインカラーのAlpha（不透明度）を0にすることで透明にすることも可能です。
 
 
