@@ -1210,7 +1210,7 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 5583005175778691530}
   isGlobal: 0
-  radioPowerOn: 0
+  radioPowerOn: 1
   currentChannelIndex: 0
   radioAnimator: {fileID: 3809216453332347454}
   channels:
