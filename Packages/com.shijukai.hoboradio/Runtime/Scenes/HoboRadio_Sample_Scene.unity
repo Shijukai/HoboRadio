@@ -182,7 +182,7 @@ PrefabInstance:
     - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
       propertyPath: infoFetcher
       value: 
-      objectReference: {fileID: 1214388818}
+      objectReference: {fileID: 0}
     - target: {fileID: 4158612762051940949, guid: 9ceb1a35aad7f114aa5acc520e50f4f8, type: 3}
       propertyPath: radioPowerOn
       value: 0
@@ -248,11 +248,11 @@ PrefabInstance:
     - target: {fileID: 532272605459850722, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: f170a0eada9be34469b15fc72090d4ce, type: 2}
+      objectReference: {fileID: 2100000, guid: 6b64806972d8feb469c0a3e8f943b0e6, type: 2}
     - target: {fileID: 532272605459850722, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: m_Materials.Array.data[1]
       value: 
-      objectReference: {fileID: 2100000, guid: dd954058236767742b5e42a1c954ad96, type: 2}
+      objectReference: {fileID: 2100000, guid: 208a6c36c42e0344e86d959773bf311d, type: 2}
     - target: {fileID: 2911867487170913503, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: m_Name
       value: Radio_Global
@@ -324,7 +324,7 @@ PrefabInstance:
     - target: {fileID: 8920839384854029378, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: dde79d9558a00ac41b5dd48c9e35d675, type: 2}
+      objectReference: {fileID: 2100000, guid: b24880da413704c45aaf2255092d3b65, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -890,46 +890,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
---- !u!1 &1469682560 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 326741908525612056, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682561 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5932273198826845747, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682562 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1045683864202989372, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682563 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4890717848022699338, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682564 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5898367000928068519, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682565 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4377312723711132266, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682566 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 634548404101704674, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1469682567 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5163177314769490291, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
-  m_PrefabInstance: {fileID: 1469682559}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1787983409
 GameObject:
   m_ObjectHideFlags: 0
@@ -1252,35 +1212,35 @@ MonoBehaviour:
     ID: 19
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682567}
+  - gameObject: {fileID: 0}
     ID: 20
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682566}
+  - gameObject: {fileID: 0}
     ID: 21
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682564}
+  - gameObject: {fileID: 0}
     ID: 22
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682563}
+  - gameObject: {fileID: 0}
     ID: 23
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682562}
+  - gameObject: {fileID: 0}
     ID: 24
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682560}
+  - gameObject: {fileID: 0}
     ID: 25
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682565}
+  - gameObject: {fileID: 0}
     ID: 26
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 1469682561}
+  - gameObject: {fileID: 0}
     ID: 27
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
@@ -1469,7 +1429,6 @@ SceneRoots:
   - {fileID: 7606902903243430487}
   - {fileID: 358170790}
   - {fileID: 343499879}
-  - {fileID: 1469682559}
   - {fileID: 882789558}
   - {fileID: 136086599}
   - {fileID: 411387839}

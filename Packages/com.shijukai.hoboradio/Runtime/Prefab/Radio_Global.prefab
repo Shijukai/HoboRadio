@@ -823,7 +823,7 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 4941716975931656374}
   isGlobal: 1
-  radioPowerOn: 0
+  radioPowerOn: 1
   currentChannelIndex: 0
   radioAnimator: {fileID: 432963143562909032}
   channels:
@@ -1601,7 +1601,7 @@ PrefabInstance:
     - target: {fileID: -2851262506406034902, guid: abdca935ea834b44d8a7f197b541cbcf, type: 3}
       propertyPath: m_Materials.Array.data[1]
       value: 
-      objectReference: {fileID: 2100000, guid: 208a6c36c42e0344e86d959773bf311d, type: 2}
+      objectReference: {fileID: 2100000, guid: dd954058236767742b5e42a1c954ad96, type: 2}
     - target: {fileID: -908237582589665548, guid: abdca935ea834b44d8a7f197b541cbcf, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.2588191
