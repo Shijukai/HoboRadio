@@ -20,7 +20,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     [Header("--- デフォルトチャンネル設定 ---")]
     [Tooltip("電源を入れた時に最初に流れるチャンネルを設定できます")]
-    [Range(0, 3)]
+    private const int ChannelCount = 4;
+    [Range(0, ChannelCount - 1)]
     [UdonSynced, SerializeField] public int currentChannelIndex = 0;
 
 
@@ -29,7 +30,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [SerializeField] public Animator radioAnimator;
 
     //ChannelSettings
-    [HideInInspector] public VRCUrl[] channels = new VRCUrl[4];
+    [HideInInspector] public VRCUrl[] channels = new VRCUrl[ChannelCount];
     [HideInInspector] private int loadedChannelIndex = -1;
 
     //AnimationSettings
