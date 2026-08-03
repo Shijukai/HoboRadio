@@ -18,9 +18,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [Tooltip("チェックを入れるとワールドに入った時に電源が自動でONになります")]
     [SerializeField] public bool radioPowerOn = true;
 
+    private const int ChannelCount = 4;
+
     [Header("--- デフォルトチャンネル設定 ---")]
     [Tooltip("電源を入れた時に最初に流れるチャンネルを設定できます")]
-    private const int ChannelCount = 4;
     [Range(0, ChannelCount - 1)]
     [UdonSynced, SerializeField] public int currentChannelIndex = 0;
 
