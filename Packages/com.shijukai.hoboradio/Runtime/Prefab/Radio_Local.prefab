@@ -1217,6 +1217,7 @@ MonoBehaviour:
   - url: https://media.shijukairadio.com/stream/ch1
   - url: https://media.shijukairadio.com/stream/ch2
   - url: https://media.shijukairadio.com/stream/ch3
+  - url: https://media.shijukairadio.com/stream/ch4
   channelDialValues:
   - 0.416
   - 0.43

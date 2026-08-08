@@ -2731,6 +2731,7 @@ MonoBehaviour:
   - url: https://media.shijukairadio.com/info/ch1
   - url: https://media.shijukairadio.com/info/ch2
   - url: https://media.shijukairadio.com/info/ch3
+  - url: https://media.shijukairadio.com/info/ch4
   masterTmp: {fileID: 2625098803777540019}
   radioController: {fileID: 8926188241337688801}
   refreshInterval: 3600
@@ -3111,6 +3112,7 @@ MonoBehaviour:
   - url: https://media.shijukairadio.com/stream/ch1
   - url: https://media.shijukairadio.com/stream/ch2
   - url: https://media.shijukairadio.com/stream/ch3
+  - url: https://media.shijukairadio.com/stream/ch4
   channelDialValues:
   - 0.416
   - 0.43

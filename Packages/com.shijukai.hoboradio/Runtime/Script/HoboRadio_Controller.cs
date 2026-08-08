@@ -18,9 +18,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [Tooltip("チェックを入れるとワールドに入った時に電源が自動でONになります")]
     [SerializeField] public bool radioPowerOn = true;
 
+    private const int ChannelCount = 4;
+
     [Header("--- デフォルトチャンネル設定 ---")]
     [Tooltip("電源を入れた時に最初に流れるチャンネルを設定できます")]
-    [Range(0, 2)]
+    [Range(0, ChannelCount - 1)]
     [UdonSynced, SerializeField] public int currentChannelIndex = 0;
 
 
@@ -29,12 +31,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [SerializeField] public Animator radioAnimator;
 
     //ChannelSettings
-    [HideInInspector] public VRCUrl[] channels = new VRCUrl[3];
+    [HideInInspector] public VRCUrl[] channels = new VRCUrl[ChannelCount];
     [HideInInspector] private int loadedChannelIndex = -1;
 
     //AnimationSettings
     
-    [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f };
+    [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f, 0.47f };
 
     //UISettings
     [HideInInspector] public TextMeshProUGUI channelText;
