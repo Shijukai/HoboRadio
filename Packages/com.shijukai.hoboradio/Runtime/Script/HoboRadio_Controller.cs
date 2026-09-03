@@ -84,6 +84,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (!isGlobal || Networking.IsOwner(gameObject))
             {
                 hasSyncedInitial = true;
+                RequestSerialization();
                 SendCustomEventDelayedSeconds(nameof(ApplyChannel), 2f);
             }
         }
