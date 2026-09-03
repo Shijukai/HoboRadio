@@ -68,7 +68,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private int retryCount = 0;
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 5f;
-    private const float LoadingTimeout = 20f;
+    private const float LoadingTimeout = 45f;
 
     private void Start()
     {
