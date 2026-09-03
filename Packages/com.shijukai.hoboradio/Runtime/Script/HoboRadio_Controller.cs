@@ -100,7 +100,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // 再生時間の表示更新
-        if (videoPlayer.IsPlaying && statusText != null)
+        if (videoPlayer != null && videoPlayer.IsPlaying && statusText != null)
         {
             int totalSec = (int)videoPlayer.GetTime();
             if (totalSec != lastDisplayedSecond)
@@ -202,6 +202,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (!radioPowerOn) return;
 
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+        }
+        waitingPlay = false;
+
         CancelPendingNoiseFadeOut();
 
         // Fetcherへの通知
@@ -214,7 +220,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             videoPlayer.LoadURL(channels[currentChannelIndex]);
             waitingPlay = true;
             videoLoadStartTime = Time.timeSinceLevelLoad;
-            SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 2f);
         }
 
         NoiseFadeIn();
@@ -235,7 +240,26 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
-    public void WaitUntilReady()
+    public override void OnVideoReady()
+    {
+        if (!waitingPlay) return;
+        waitingPlay = false;
+
+        Debug.Log($"[HoboRadio] OnVideoReady: ready={videoPlayer.IsReady} dur={videoPlayer.GetDuration()}");
+
+        // 再生開始
+        float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
+        videoPlayer.SetTime(syncTime);
+        videoPlayer.Play();
+
+        if (statusText != null) statusText.text = "";
+
+        StartNoiseFadeOutDelay(3f);
+        SendCustomEventDelayedSeconds(nameof(ReSyncSeek), 30f); // 30秒後に微調整
+    }
+
+
+    /* public void WaitUntilReady()
     {
         if (!videoPlayer.IsReady || videoPlayer.IsPlaying)
         {
@@ -271,6 +295,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         StartNoiseFadeOutDelay(3f);
         SendCustomEventDelayedSeconds(nameof(ReSyncSeek), 30f); // 30秒後に微調整
     }
+    */
 
     public void ReSyncSeek()
     {
