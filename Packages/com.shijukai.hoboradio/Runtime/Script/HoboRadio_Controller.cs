@@ -96,6 +96,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         int currentHr = serverTime.Minute; // テスト用に「分」を取得（変数名はそのまま）
         float currentSec = serverTime.Minute * 60f + serverTime.Second;
 
+        if (lastServerHour == -1)
+        {
+            lastServerHour = currentHr;
+        }
+
         // 1時間ごとの自動更新（電源ON時のみ）
         if (radioPowerOn && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
@@ -324,6 +329,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void CheckLoadingTimeout()
     {
         if (!waitingPlay) return;
+
+        if (Time.timeSinceLevelLoad - videoLoadStartTime < LoadingTimeout - 0.5f) return;
 
         Debug.LogWarning($"[HoboRadio] Loading Timeout Detected (Attempt {retryCount + 1})");
         HandleRetry();
