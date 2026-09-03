@@ -183,8 +183,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public override void OnDeserialization()
     {
         if (!isGlobal) return;
+        bool isFirstSync = !hasSyncedInitial;
         hasSyncedInitial = true;
-        if (loadedChannelIndex != currentChannelIndex) ApplyChannel();
+
+        if (isFirstSync || loadedChannelIndex != currentChannelIndex)
+        {
+            ApplyChannel();
+        }
     }
 
     private void ApplyChannel()
