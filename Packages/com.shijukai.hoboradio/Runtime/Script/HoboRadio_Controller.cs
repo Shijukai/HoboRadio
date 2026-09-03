@@ -248,6 +248,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         waitingPlay = false;
 
+        Debug.Log($"[HoboRadio] ready={videoPlayer.IsReady} playing={videoPlayer.IsPlaying} dur={videoPlayer.GetDuration()} time={videoPlayer.GetTime()}");
+
         // 再生開始
         float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
         videoPlayer.SetTime(syncTime);
