@@ -65,6 +65,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool isInteractedLocked = false;
     private bool hasSyncedInitial = false;
     private float videoLoadStartTime;
+    private int retryCount = 0;
+    private const int MaxRetryCount = 3;
+    private const float RetryDelay = 5f;
+    private const float LoadingTimeout = 20f;
 
     private void Start()
     {
@@ -217,13 +221,22 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // ビデオロード
         if (!waitingPlay)
         {
-            Debug.Log($"[HoboRadio] LoadURL Executed: {channels[currentChannelIndex]}");
-            videoPlayer.LoadURL(channels[currentChannelIndex]);
-            waitingPlay = true;
-            videoLoadStartTime = Time.timeSinceLevelLoad;
+            retryCount = 0;
+            ExecuteLoad();
         }
 
         NoiseFadeIn();
+    }
+
+    public void ExecuteLoad()
+    {
+        if (!radioPowerOn) return;
+
+        Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
+        videoPlayer.LoadURL(channels[currentChannelIndex]);
+        waitingPlay = true;
+        videoLoadStartTime = Time.timeSinceLevelLoad;
+        SendCustomEventDelayedSeconds(nameof(CheckLoadingTimeout), LoadingTimeout);
     }
 
     private void UpdateVisuals()
@@ -304,6 +317,38 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
+        }
+    }
+
+    public void CheckLoadingTimeout()
+    {
+        if (!waitingPlay) return;
+
+        Debug.LogWarning($"[HoboRadio] Loading Timeout Detected (Attempt {retryCount + 1})");
+        HandleRetry();
+    }
+
+    private void HandleRetry()
+    {
+        if (!waitingPlay) return;
+
+        if (retryCount < MaxRetryCount)
+        {
+            retryCount++;
+            Debug.Log($"[HoboRadio] Retrying load in {RetryDelay}s ({retryCount}/{MaxRetryCount})...");
+            if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
+
+            videoPlayer.Stop();
+            SendCustomEventDelayedSeconds(nameof(ExecuteLoad), RetryDelay);
+        }
+        else
+        {
+            Debug.LogError("[HoboRadio] Load Failed: Max retry limit reached.");
+            waitingPlay = false;
+            videoPlayer.Stop();
+            CancelPendingNoiseFadeOut();
+            NoiseFadeOut();
+            if (statusText != null) statusText.text = "LOAD ERROR";
         }
     }
 
@@ -426,16 +471,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public override void OnVideoError(VideoError videoError)
     {
-        // エラー発生時にロックを解除し、次回の操作を許可する
-        waitingPlay = false;
-        CancelPendingNoiseFadeOut();
-        NoiseFadeOut();
+        if (!waitingPlay) return;
 
-        // ステータス表示にエラーを反映
-        if (statusText != null)
-        {
-            statusText.text = "VIDEO PLAYER ERROR";
-        }
+        Debug.LogWarning($"[HoboRadio] OnVideoError Received: {videoError}");
+        HandleRetry();
 
     }
 }
