@@ -74,6 +74,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         Debug.Log("[HoboRadio] Controller Started");
 
+        if (!isGlobal || Networking.IsOwner(gameObject))
+        {
+            hasSyncedInitial = true;
+        }
+
         // 初期化
         if (radioPowerOn)
         {
@@ -83,7 +88,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             // Global設定かつオーナーなら初期ロード実行
             if (!isGlobal || Networking.IsOwner(gameObject))
             {
-                hasSyncedInitial = true;
                 RequestSerialization();
                 SendCustomEventDelayedSeconds(nameof(ApplyChannel), 2f);
             }
@@ -147,6 +151,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         else // ONにする処理
         {
             radioPowerOn = true;
+            hasSyncedInitial = true;
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
             lastDisplayedSecond = -1;
             ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
