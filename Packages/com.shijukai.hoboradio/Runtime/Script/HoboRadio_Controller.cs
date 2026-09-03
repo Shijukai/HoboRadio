@@ -68,6 +68,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void Start()
     {
+        Debug.Log("[HoboRadio] Controller Started");
+
         // 初期化
         if (radioPowerOn)
         {
@@ -86,7 +88,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private void Update()
     {
         DateTime serverTime = Networking.GetNetworkDateTime();
-        int currentHr = serverTime.Hour;
+        int currentHr = serverTime.Minute; // テスト用に「分」を取得（変数名はそのまま）
         float currentSec = serverTime.Minute * 60f + serverTime.Second;
 
         // 1時間ごとの自動更新（電源ON時のみ）
