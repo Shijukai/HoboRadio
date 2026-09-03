@@ -95,6 +95,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (radioPowerOn && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
             lastServerHour = currentHr;
+            Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
             ApplyChannel();
         }
 
@@ -192,10 +193,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
-    private void ApplyChannel()
+    public void ApplyChannel()
     {
         loadedChannelIndex = currentChannelIndex;
         UpdateVisuals();
+
+        Debug.Log($"[HoboRadio] ApplyChannel: powerOn={radioPowerOn}, waitingPlay={waitingPlay}, currentCh={currentChannelIndex}, isOwner={Networking.IsOwner(gameObject)}");
 
         if (!radioPowerOn) return;
 
@@ -207,6 +210,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // ビデオロード
         if (!waitingPlay)
         {
+            Debug.Log($"[HoboRadio] LoadURL Executed: {channels[currentChannelIndex]}");
             videoPlayer.LoadURL(channels[currentChannelIndex]);
             waitingPlay = true;
             videoLoadStartTime = Time.timeSinceLevelLoad;
