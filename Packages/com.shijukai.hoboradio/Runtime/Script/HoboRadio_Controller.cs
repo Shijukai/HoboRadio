@@ -93,7 +93,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private void Update()
     {
         DateTime serverTime = Networking.GetNetworkDateTime();
-        int currentHr = serverTime.Minute; // テスト用に「分」を取得（変数名はそのまま）
+        int currentHr = serverTime.Hour;
         float currentSec = serverTime.Minute * 60f + serverTime.Second;
 
         if (lastServerHour == -1)
