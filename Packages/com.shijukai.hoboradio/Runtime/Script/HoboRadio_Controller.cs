@@ -95,8 +95,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (radioPowerOn && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
             lastServerHour = currentHr;
+            float jitterDelay = UnityEngine.Random.Range(0f, 5f);
             Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
-            ApplyChannel();
+            SendCustomEventDelayedSeconds(nameof(ApplyChannel), jitterDelay);
         }
 
         // 再生時間の表示更新
