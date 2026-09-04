@@ -66,6 +66,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool hasSyncedInitial = false;
     private float videoLoadStartTime;
     private int retryCount = 0;
+    private bool isRetryScheduled = false;
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
@@ -233,6 +234,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (!waitingPlay)
         {
             retryCount = 0;
+            isRetryScheduled = false;
             _ExecuteLoad();
         }
 
@@ -246,6 +248,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
         videoPlayer.LoadURL(channels[currentChannelIndex]);
         waitingPlay = true;
+        isRetryScheduled = false;
         videoLoadStartTime = Time.timeSinceLevelLoad;
         SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
     }
@@ -269,6 +272,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!waitingPlay) return;
         waitingPlay = false;
+        isRetryScheduled = false;
 
         Debug.Log($"[HoboRadio] OnVideoReady: ready={videoPlayer.IsReady} dur={videoPlayer.GetDuration()}");
 
@@ -304,11 +308,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void HandleRetry()
     {
-        if (!waitingPlay) return;
+        if (!waitingPlay || isRetryScheduled) return;
 
         if (retryCount < MaxRetryCount)
         {
             retryCount++;
+            isRetryScheduled = true;
             Debug.Log($"[HoboRadio] Retrying load in {RetryDelay}s ({retryCount}/{MaxRetryCount})...");
             if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
 
@@ -319,6 +324,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             Debug.LogError("[HoboRadio] Load Failed: Max retry limit reached.");
             waitingPlay = false;
+            isRetryScheduled = false;
             videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             NoiseFadeOut();
