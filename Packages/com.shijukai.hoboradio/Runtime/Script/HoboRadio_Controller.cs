@@ -99,7 +99,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         DateTime serverTime = Networking.GetNetworkDateTime();
         int currentHr = serverTime.Hour;
-        float currentSec = serverTime.Minute * 60f + serverTime.Second;
+        int currentMin = serverTime.Minute;
 
         if (lastServerHour == -1)
         {
@@ -107,7 +107,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // 1時間ごとの自動更新（電源ON時のみ）
-        if (radioPowerOn && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
+        if (radioPowerOn && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
             lastServerHour = currentHr;
             float jitterDelay = UnityEngine.Random.Range(0f, 5f);
@@ -138,7 +138,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (radioPowerOn) // OFFにする処理
         {
-            videoPlayer.Stop();
+            if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOff");
@@ -153,6 +153,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             radioPowerOn = true;
             hasSyncedInitial = true;
+            isRetryScheduled = false;
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
             lastDisplayedSecond = -1;
             _ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
@@ -245,6 +246,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!radioPowerOn) return;
 
+        if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null) return;
+
         Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
         videoPlayer.LoadURL(channels[currentChannelIndex]);
         waitingPlay = true;
@@ -274,6 +277,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         waitingPlay = false;
         isRetryScheduled = false;
 
+        if (videoPlayer == null) return;
+
         Debug.Log($"[HoboRadio] OnVideoReady: ready={videoPlayer.IsReady} dur={videoPlayer.GetDuration()}");
 
         // 再生開始
@@ -289,7 +294,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _ReSyncSeek()
     {
-        if (videoPlayer.IsPlaying)
+        if (videoPlayer != null && videoPlayer.IsPlaying)
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
@@ -317,7 +322,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Debug.Log($"[HoboRadio] Retrying load in {RetryDelay}s ({retryCount}/{MaxRetryCount})...");
             if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
 
-            videoPlayer.Stop();
+            if (videoPlayer != null) videoPlayer.Stop();
             SendCustomEventDelayedSeconds(nameof(_ExecuteLoad), RetryDelay);
         }
         else
@@ -325,7 +330,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Debug.LogError("[HoboRadio] Load Failed: Max retry limit reached.");
             waitingPlay = false;
             isRetryScheduled = false;
-            videoPlayer.Stop();
+            if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             NoiseFadeOut();
             if (statusText != null) statusText.text = "LOAD ERROR";
