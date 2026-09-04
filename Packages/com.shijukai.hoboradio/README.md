@@ -39,8 +39,8 @@ Inspectorを確認していただくと項目が並んでいると思います�
 
 **初期チャンネルの設定**  
 -  導入後、Hierarchy上でRadio_〇〇/Radio_Rootをクリック、
-CurrentChannelIndexの数値を0-2の間で変更すると、
-0でCH1、1でCH2、2でCH3が初期チャンネルになります。 
+CurrentChannelIndexの数値を0-3の間で変更すると、
+0でCH1、1でCH2、2でCH3、3でCH4が初期チャンネルになります。 
 
 **カラーリングの変更/限定モデルの導入**  
 - 1.上部ツールバーのToolsの中にある HoboRadio/Hoboradio_ColorChange をクリックしてください。
@@ -51,5 +51,3 @@ CurrentChannelIndexの数値を0-2の間で変更すると、
 - 以下のマテリアルを編集することでカラー等の変更ができます。  
 `Packages/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
 また、RenderingModeをCutoutに変更して、メインカラーのAlpha（不透明度）を0にすることで透明にすることも可能です。
-
-
