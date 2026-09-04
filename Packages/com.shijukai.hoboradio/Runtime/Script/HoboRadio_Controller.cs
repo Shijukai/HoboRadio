@@ -283,45 +283,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
     }
 
-
-    /* public void WaitUntilReady()
-    {
-        if (!videoPlayer.IsReady || videoPlayer.IsPlaying)
-        {
-            if (waitingPlay)
-            {
-                // OnVideoError不発時のための措置
-                // 20秒経過してもReadyにならなければ強制タイムアウト処理
-                if (Time.timeSinceLevelLoad - videoLoadStartTime > 20f)
-                {
-                    waitingPlay = false;
-                    videoPlayer.Stop();
-                    CancelPendingNoiseFadeOut();
-                    NoiseFadeOut();
-                    if (statusText != null) statusText.text = "LOADING TIMEOUT";
-                    return; // ループを終了
-                }
-                SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 0.2f);
-            }
-            return;
-        }
-
-        waitingPlay = false;
-
-        Debug.Log($"[HoboRadio] ready={videoPlayer.IsReady} playing={videoPlayer.IsPlaying} dur={videoPlayer.GetDuration()} time={videoPlayer.GetTime()}");
-
-        // 再生開始
-        float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
-        videoPlayer.SetTime(syncTime);
-        videoPlayer.Play();
-
-        if (statusText != null) statusText.text = "";
-
-        StartNoiseFadeOutDelay(3f);
-        SendCustomEventDelayedSeconds(nameof(ReSyncSeek), 30f); // 30秒後に微調整
-    }
-    */
-
     public void _ReSyncSeek()
     {
         if (videoPlayer.IsPlaying)
