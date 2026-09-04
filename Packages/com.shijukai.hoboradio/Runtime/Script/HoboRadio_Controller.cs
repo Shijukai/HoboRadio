@@ -188,10 +188,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!isGlobal) return;
         isInteractedLocked = true;
-        SendCustomEventDelayedSeconds(nameof(UnlockInteraction), 3f);
+        SendCustomEventDelayedSeconds(nameof(_UnlockInteraction), 3f);
     }
 
-    public void UnlockInteraction() => isInteractedLocked = false;
+    public void _UnlockInteraction() => isInteractedLocked = false;
 
     #endregion
 
@@ -280,7 +280,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (statusText != null) statusText.text = "";
 
         StartNoiseFadeOutDelay(3f);
-        SendCustomEventDelayedSeconds(nameof(ReSyncSeek), 30f); // 30秒後に微調整
+        SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
     }
 
 
@@ -322,7 +322,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     }
     */
 
-    public void ReSyncSeek()
+    public void _ReSyncSeek()
     {
         if (videoPlayer.IsPlaying)
         {
@@ -389,7 +389,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         ScheduleNoiseFadeStep();
     }
 
-    public void NoiseFadeStep()
+    public void _NoiseFadeStep()
     {
         isNoiseFadeStepScheduled = false;
 
@@ -433,7 +433,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isNoiseFadeStepScheduled) return;
         isNoiseFadeStepScheduled = true;
-        SendCustomEventDelayedSeconds(nameof(NoiseFadeStep), 0.1f);
+        SendCustomEventDelayedSeconds(nameof(_NoiseFadeStep), 0.1f);
     }
 
     private void StopChannelNoise()
@@ -450,7 +450,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         ScheduleNoiseFadeOutDelayStep();
     }
 
-    public void NoiseFadeOutDelayStep()
+    public void _NoiseFadeOutDelayStep()
     {
         isNoiseFadeOutDelayStepScheduled = false;
 
@@ -471,7 +471,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isNoiseFadeOutDelayStepScheduled) return;
         isNoiseFadeOutDelayStepScheduled = true;
-        SendCustomEventDelayedSeconds(nameof(NoiseFadeOutDelayStep), 0.1f);
+        SendCustomEventDelayedSeconds(nameof(_NoiseFadeOutDelayStep), 0.1f);
     }
 
     private void CancelPendingNoiseFadeOut()
