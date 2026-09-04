@@ -65,9 +65,21 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool isInteractedLocked = false;
     private bool hasSyncedInitial = false;
     private float videoLoadStartTime;
+    private int retryCount = 0;
+    private bool isRetryScheduled = false;
+    private const int MaxRetryCount = 3;
+    private const float RetryDelay = 5f;
+    private const float LoadingTimeout = 45f;
 
     private void Start()
     {
+        Debug.Log("[HoboRadio] Controller Started");
+
+        if (!isGlobal || Networking.IsOwner(gameObject))
+        {
+            hasSyncedInitial = true;
+        }
+
         // 初期化
         if (radioPowerOn)
         {
@@ -77,8 +89,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             // Global設定かつオーナーなら初期ロード実行
             if (!isGlobal || Networking.IsOwner(gameObject))
             {
-                hasSyncedInitial = true;
-                SendCustomEventDelayedSeconds(nameof(ApplyChannel), 2f);
+                RequestSerialization();
+                SendCustomEventDelayedSeconds(nameof(_ApplyChannel), 2f);
             }
         }
     }
@@ -87,17 +99,24 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         DateTime serverTime = Networking.GetNetworkDateTime();
         int currentHr = serverTime.Hour;
-        float currentSec = serverTime.Minute * 60f + serverTime.Second;
+        int currentMin = serverTime.Minute;
 
-        // 1時間ごとの自動更新（電源ON時のみ）
-        if (radioPowerOn && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
+        if (lastServerHour == -1)
         {
             lastServerHour = currentHr;
-            ApplyChannel();
+        }
+
+        // 1時間ごとの自動更新（電源ON時のみ）
+        if (radioPowerOn && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
+        {
+            lastServerHour = currentHr;
+            float jitterDelay = UnityEngine.Random.Range(0f, 5f);
+            Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
+            SendCustomEventDelayedSeconds(nameof(_ApplyChannel), jitterDelay);
         }
 
         // 再生時間の表示更新
-        if (videoPlayer.IsPlaying && statusText != null)
+        if (videoPlayer != null && videoPlayer.IsPlaying && statusText != null)
         {
             int totalSec = (int)videoPlayer.GetTime();
             if (totalSec != lastDisplayedSecond)
@@ -119,7 +138,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (radioPowerOn) // OFFにする処理
         {
-            videoPlayer.Stop();
+            if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOff");
@@ -133,9 +152,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         else // ONにする処理
         {
             radioPowerOn = true;
+            hasSyncedInitial = true;
+            isRetryScheduled = false;
             if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
             lastDisplayedSecond = -1;
-            ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
+            _ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
         }
     }
 
@@ -151,12 +172,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             currentChannelIndex = (currentChannelIndex + 1) % channels.Length;
             RequestSerialization();
-            ApplyChannel(); // オーナー自身も即時適用
+            _ApplyChannel(); // オーナー自身も即時適用
         }
         else
         {
             currentChannelIndex = (currentChannelIndex + 1) % channels.Length;
-            ApplyChannel();
+            _ApplyChannel();
         }
     }
 
@@ -169,10 +190,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!isGlobal) return;
         isInteractedLocked = true;
-        SendCustomEventDelayedSeconds(nameof(UnlockInteraction), 3f);
+        SendCustomEventDelayedSeconds(nameof(_UnlockInteraction), 3f);
     }
 
-    public void UnlockInteraction() => isInteractedLocked = false;
+    public void _UnlockInteraction() => isInteractedLocked = false;
 
     #endregion
 
@@ -181,16 +202,29 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public override void OnDeserialization()
     {
         if (!isGlobal) return;
+        bool isFirstSync = !hasSyncedInitial;
         hasSyncedInitial = true;
-        if (loadedChannelIndex != currentChannelIndex) ApplyChannel();
+
+        if (isFirstSync || loadedChannelIndex != currentChannelIndex)
+        {
+            _ApplyChannel();
+        }
     }
 
-    private void ApplyChannel()
+    public void _ApplyChannel()
     {
         loadedChannelIndex = currentChannelIndex;
         UpdateVisuals();
 
+        Debug.Log($"[HoboRadio] ApplyChannel: powerOn={radioPowerOn}, waitingPlay={waitingPlay}, currentCh={currentChannelIndex}, isOwner={Networking.IsOwner(gameObject)}");
+
         if (!radioPowerOn) return;
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+        }
+        waitingPlay = false;
 
         CancelPendingNoiseFadeOut();
 
@@ -200,13 +234,26 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // ビデオロード
         if (!waitingPlay)
         {
-            videoPlayer.LoadURL(channels[currentChannelIndex]);
-            waitingPlay = true;
-            videoLoadStartTime = Time.timeSinceLevelLoad;
-            SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 2f);
+            retryCount = 0;
+            isRetryScheduled = false;
+            _ExecuteLoad();
         }
 
         NoiseFadeIn();
+    }
+
+    public void _ExecuteLoad()
+    {
+        if (!radioPowerOn) return;
+
+        if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null) return;
+
+        Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
+        videoPlayer.LoadURL(channels[currentChannelIndex]);
+        waitingPlay = true;
+        isRetryScheduled = false;
+        videoLoadStartTime = Time.timeSinceLevelLoad;
+        SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
     }
 
     private void UpdateVisuals()
@@ -224,29 +271,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
-    public void WaitUntilReady()
+    public override void OnVideoReady()
     {
-        if (!videoPlayer.IsReady || videoPlayer.IsPlaying)
-        {
-            if (waitingPlay)
-            {
-                // OnVideoError不発時のための措置
-                // 20秒経過してもReadyにならなければ強制タイムアウト処理
-                if (Time.timeSinceLevelLoad - videoLoadStartTime > 20f)
-                {
-                    waitingPlay = false;
-                    videoPlayer.Stop();
-                    CancelPendingNoiseFadeOut();
-                    NoiseFadeOut();
-                    if (statusText != null) statusText.text = "LOADING TIMEOUT";
-                    return; // ループを終了
-                }
-                SendCustomEventDelayedSeconds(nameof(WaitUntilReady), 0.2f);
-            }
-            return;
-        }
-
+        if (!waitingPlay) return;
         waitingPlay = false;
+        isRetryScheduled = false;
+
+        if (videoPlayer == null) return;
+
+        Debug.Log($"[HoboRadio] OnVideoReady: ready={videoPlayer.IsReady} dur={videoPlayer.GetDuration()}");
 
         // 再生開始
         float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
@@ -256,15 +289,51 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (statusText != null) statusText.text = "";
 
         StartNoiseFadeOutDelay(3f);
-        SendCustomEventDelayedSeconds(nameof(ReSyncSeek), 30f); // 30秒後に微調整
+        SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
     }
 
-    public void ReSyncSeek()
+    public void _ReSyncSeek()
     {
-        if (videoPlayer.IsPlaying)
+        if (videoPlayer != null && videoPlayer.IsPlaying)
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
+        }
+    }
+
+    public void _CheckLoadingTimeout()
+    {
+        if (!waitingPlay) return;
+
+        if (Time.timeSinceLevelLoad - videoLoadStartTime < LoadingTimeout - 0.5f) return;
+
+        Debug.LogWarning($"[HoboRadio] Loading Timeout Detected (Attempt {retryCount + 1})");
+        HandleRetry();
+    }
+
+    private void HandleRetry()
+    {
+        if (!waitingPlay || isRetryScheduled) return;
+
+        if (retryCount < MaxRetryCount)
+        {
+            retryCount++;
+            isRetryScheduled = true;
+            Debug.Log($"[HoboRadio] Retrying load in {RetryDelay}s ({retryCount}/{MaxRetryCount})...");
+            if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
+
+            if (videoPlayer != null) videoPlayer.Stop();
+            SendCustomEventDelayedSeconds(nameof(_ExecuteLoad), RetryDelay);
+        }
+        else
+        {
+            Debug.LogError("[HoboRadio] Load Failed: Max retry limit reached.");
+            waitingPlay = false;
+            isRetryScheduled = false;
+            if (videoPlayer != null) videoPlayer.Stop();
+            CancelPendingNoiseFadeOut();
+            NoiseFadeOut();
+            if (statusText != null) statusText.text = "LOAD ERROR";
         }
     }
 
@@ -292,7 +361,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         ScheduleNoiseFadeStep();
     }
 
-    public void NoiseFadeStep()
+    public void _NoiseFadeStep()
     {
         isNoiseFadeStepScheduled = false;
 
@@ -336,7 +405,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isNoiseFadeStepScheduled) return;
         isNoiseFadeStepScheduled = true;
-        SendCustomEventDelayedSeconds(nameof(NoiseFadeStep), 0.1f);
+        SendCustomEventDelayedSeconds(nameof(_NoiseFadeStep), 0.1f);
     }
 
     private void StopChannelNoise()
@@ -353,7 +422,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         ScheduleNoiseFadeOutDelayStep();
     }
 
-    public void NoiseFadeOutDelayStep()
+    public void _NoiseFadeOutDelayStep()
     {
         isNoiseFadeOutDelayStepScheduled = false;
 
@@ -374,7 +443,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isNoiseFadeOutDelayStepScheduled) return;
         isNoiseFadeOutDelayStepScheduled = true;
-        SendCustomEventDelayedSeconds(nameof(NoiseFadeOutDelayStep), 0.1f);
+        SendCustomEventDelayedSeconds(nameof(_NoiseFadeOutDelayStep), 0.1f);
     }
 
     private void CancelPendingNoiseFadeOut()
@@ -387,16 +456,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public override void OnVideoError(VideoError videoError)
     {
-        // エラー発生時にロックを解除し、次回の操作を許可する
-        waitingPlay = false;
-        CancelPendingNoiseFadeOut();
-        NoiseFadeOut();
+        if (!waitingPlay) return;
 
-        // ステータス表示にエラーを反映
-        if (statusText != null)
-        {
-            statusText.text = "VIDEO PLAYER ERROR";
-        }
+        Debug.LogWarning($"[HoboRadio] OnVideoError Received: {videoError}");
+        HandleRetry();
 
     }
 }
