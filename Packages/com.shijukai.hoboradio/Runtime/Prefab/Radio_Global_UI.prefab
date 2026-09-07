@@ -2941,7 +2941,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: a035131837c20c44e8f53b98348e7f9c, type: 3}
+  m_audioClip: {fileID: 8300000, guid: f5c73fe0fb3c2a84b89daf5537b1c7a9, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -3120,7 +3120,8 @@ MonoBehaviour:
   channelText: {fileID: 6364378952200213877}
   statusText: {fileID: 8952199345093437878}
   debugCanvas: {fileID: 1612423084022566732}
-  powerSwitchSE: {fileID: 4870072281011853622}
+  powerSwitchSE_On: {fileID: 4870072281011853622}
+  powerSwitchSE_Off: {fileID: 0}
   channelNoiseSE: {fileID: 1839197310909721500}
   videoPlayer: {fileID: 7086502870711976179}
   infoFetcher: {fileID: 8780268492032497952}
@@ -3192,7 +3193,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 3eef0f07dca9d754fb5c54f0d5c36c84, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 5820b8b231f7a9e458f5b70755fe12bd, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
