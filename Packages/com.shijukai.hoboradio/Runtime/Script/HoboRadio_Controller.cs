@@ -563,4 +563,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     }
 
     #endregion
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other == null || isTapeInserted) return;
+
+        HoboTape tape = other.GetComponent<HoboTape>();
+        if (tape != null)
+        {
+            InsertTape(tape);
+        }
+    }
 }
