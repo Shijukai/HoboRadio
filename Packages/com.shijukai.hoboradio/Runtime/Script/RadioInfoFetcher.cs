@@ -105,6 +105,13 @@ public class RadioInfoFetcher : UdonSharpBehaviour
             return;
         }
 
+        // テープモード時の表示切り替え
+        if (radioController.currentMode == 1)
+        {
+            UpdateTapeDisplay();
+            return;
+        }
+
         // 1. まずMasterを透明化（時計表示からの残像を防ぐ）
         SetMasterAlpha(0.0f);
 
@@ -156,6 +163,22 @@ public class RadioInfoFetcher : UdonSharpBehaviour
     {
         isAutoRefreshScheduled = false;
         RequestUpdate();
+    }
+
+    public void UpdateTapeDisplay()
+    {
+        SetMasterAlpha(0.0f);
+
+        HoboTape tape = radioController != null ? radioController.insertedTape : null;
+        string title = (tape != null && !string.IsNullOrEmpty(tape.tapeTitle)) ? tape.tapeTitle : "Unknown Title";
+        string artist = (tape != null && !string.IsNullOrEmpty(tape.tapeArtist)) ? tape.tapeArtist : "Unknown Artist";
+
+        masterTmp.text = $"[TAPE ] {title} - {artist} - Thank you for listening ! -";
+
+        if (displayRoot != null) displayRoot.SetActive(true);
+        if (scrollingRoot != null) scrollingRoot.SetActive(true);
+
+        if (scrollUdon != null) scrollUdon.SendCustomEvent("ResetScroll");
     }
 
     public override void OnStringLoadSuccess(IVRCStringDownload result)
