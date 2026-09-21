@@ -474,4 +474,93 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         HandleRetry();
 
     }
+
+    #region --- Tape Playback Control ---
+
+    public void InsertTape(HoboTape tape)
+    {
+        if (tape == null || isTapeInserted) return;
+
+        if (isGlobal && !Networking.IsOwner(gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+        }
+
+        isTapeInserted = true;
+        currentMode = 1; // 1: Tape
+        currentTapeUrl = tape.tapeUrl;
+
+        // スナップ処理（位置固定およびPickup無効化）
+        if (tape.pickup != null)
+        {
+            tape.pickup.Drop();
+            tape.pickup.pickupable = false;
+        }
+        if (tapeSlot != null)
+        {
+            tape.transform.position = tapeSlot.position;
+            tape.transform.rotation = tapeSlot.rotation;
+        }
+
+        // 挿入SE再生
+        if (tapeMechanicsAudioSource != null && tapeInsertSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(tapeInsertSE);
+        }
+
+        RequestSerialization();
+
+        // ラジオ再生を停止してテープ再生を開始
+        if (videoPlayer != null) videoPlayer.Stop();
+        CancelPendingNoiseFadeOut();
+        StopChannelNoise();
+
+        _PlayTape();
+    }
+
+    public void EjectTape(HoboTape tape)
+    {
+        if (!isTapeInserted) return;
+
+        if (isGlobal && !Networking.IsOwner(gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+        }
+
+        isTapeInserted = false;
+        currentMode = 0; // 0: Radio
+        isTapePlaying = false;
+
+        // Pickupロック解除
+        if (tape != null && tape.pickup != null)
+        {
+            tape.pickup.pickupable = true;
+        }
+
+        // イジェクトSE再生
+        if (tapeMechanicsAudioSource != null && tapeEjectSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(tapeEjectSE);
+        }
+
+        RequestSerialization();
+
+        // ラジオモードへ復帰
+        _ApplyChannel();
+    }
+
+    public void _PlayTape()
+    {
+        if (!radioPowerOn || currentTapeUrl == null) return;
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+            videoPlayer.LoadURL(currentTapeUrl);
+            waitingPlay = true;
+            videoLoadStartTime = Time.timeSinceLevelLoad;
+        }
+    }
+
+    #endregion
 }
