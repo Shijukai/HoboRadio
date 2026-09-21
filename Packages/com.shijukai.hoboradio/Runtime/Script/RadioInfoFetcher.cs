@@ -171,7 +171,7 @@ public class RadioInfoFetcher : UdonSharpBehaviour
 
         HoboTape tape = radioController != null ? radioController.insertedTape : null;
         string title = (tape != null && !string.IsNullOrEmpty(tape.tapeTitle)) ? tape.tapeTitle : "Unknown Title";
-        string artist = (tape != null && !string.IsNullOrEmpty(tape.tapeArtist)) ? tape.tapeArtist : "Unknown Artist";
+        string artist = (tape != null && !string.IsNullOrEmpty(tape.tapeArtist)) ? tape.tapeArtist : "Unknown Group";
 
         masterTmp.text = $"[TAPE ] {title} - {artist} - Thank you for listening ! -";
 
