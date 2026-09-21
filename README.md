@@ -52,4 +52,10 @@ CurrentChannelIndexの数値を0-3の間で変更すると、
 `Packages/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
 また、RenderingModeをCutoutに変更して、メインカラーのAlpha（不透明度）を0にすることで透明にすることも可能です。
 
+---
 
+# ライセンス・使用素材（Credits）
+
+本パッケージに含まれる音声素材には、以下の素材を使用しています。
+
+- **効果音（ボタン操作音・ノイズ）:** OtoLogic (https://otologic.jp) / CC BY 4.0

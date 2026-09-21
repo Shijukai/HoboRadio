@@ -302,6 +302,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 882789559}
     - target: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
+      propertyPath: radioPowerOn
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 6706236974055857166, guid: 222e3ff0c0a19b4489da092102f0744b, type: 3}

@@ -44,7 +44,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [HideInInspector] public GameObject debugCanvas;
 
     //AudioSettings
-    [HideInInspector] public AudioSource powerSwitchSE;
+    [HideInInspector] public AudioSource powerSwitchSE_On;
+    [HideInInspector] public AudioSource powerSwitchSE_Off;
     [HideInInspector] public AudioSource channelNoiseSE;
     [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
     [HideInInspector] public UdonBehaviour infoFetcher;
@@ -149,10 +150,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isInteractedLocked) return;
         LockInteraction();
 
-        if (powerSwitchSE != null) powerSwitchSE.Play();
-
         if (radioPowerOn) // OFFにする処理
         {
+            if (powerSwitchSE_Off != null) powerSwitchSE_Off.Play();
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
@@ -166,6 +166,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
         else // ONにする処理
         {
+            if (powerSwitchSE_On != null) powerSwitchSE_On.Play();
             radioPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
@@ -180,7 +181,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (!radioPowerOn || isInteractedLocked || waitingPlay) return;
         LockInteraction();
 
-        if (powerSwitchSE != null) powerSwitchSE.Play();
+        if (powerSwitchSE_On != null) powerSwitchSE_On.Play();
 
         if (isGlobal)
         {
