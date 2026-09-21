@@ -207,7 +207,23 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeInserted)
         {
-            EjectTape(insertedTape);
+            bool isPlaying = (videoPlayer != null && videoPlayer.IsPlaying) || isTapePlaying;
+            if (isPlaying)
+            {
+                if (videoPlayer != null) videoPlayer.Stop();
+                isTapePlaying = false;
+            }
+            else
+            {
+                EjectTape(insertedTape);
+            }
+        }
+        else
+        {
+            if (videoPlayer != null) videoPlayer.Stop();
+            waitingPlay = false;
+            CancelPendingNoiseFadeOut();
+            StopChannelNoise();
         }
     }
 
