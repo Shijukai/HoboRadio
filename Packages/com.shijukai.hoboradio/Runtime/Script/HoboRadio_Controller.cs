@@ -530,6 +530,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         isTapeInserted = true;
         currentMode = 1; // 1: Tape
         currentTapeUrl = tape.tapeUrl;
+        tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
 
         // スナップ処理（位置固定およびPickup無効化）
         if (tape.pickup != null)

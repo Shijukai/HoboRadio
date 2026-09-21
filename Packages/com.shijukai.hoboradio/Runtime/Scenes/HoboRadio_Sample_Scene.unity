@@ -474,6 +474,10 @@ PrefabInstance:
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 1995151937593955361, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+    - target: {fileID: 2540232564336940458, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2729011409978908967, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -490,6 +494,14 @@ PrefabInstance:
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 2948519322001041001, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+    - target: {fileID: 3036764235525122675, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3625406817756626494, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4672267431431989322, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -510,10 +522,18 @@ PrefabInstance:
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 5240941258569346812, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+    - target: {fileID: 5648340029338442769, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5931870912348048192, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 5931870912348048192, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+    - target: {fileID: 6916354327125735255, guid: b6c378c68dde3af4d9f8acfc4dedc578, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -816,6 +836,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2032233799390859993, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2071359250985599043, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -824,14 +848,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: Radio_Global_UI
       objectReference: {fileID: 0}
+    - target: {fileID: 3899244690871190903, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3964927715652182829, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4065870935799598175, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 4065870935799598175, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+    - target: {fileID: 5206038228505505246, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5393570907724587746, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializationData.Prefab
       value: 
       objectReference: {fileID: 5393570907724587746, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+    - target: {fileID: 5554131434704359094, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6165482556686090120, guid: d944dba58ccf4b34fbff0783c8f57422, type: 3}
       propertyPath: serializationData.Prefab
       value: 
