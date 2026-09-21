@@ -49,6 +49,18 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
     [HideInInspector] public UdonBehaviour infoFetcher;
 
+    [Header("--- テープ再生設定 ---")]
+    [UdonSynced] public int currentMode = 0; // 0: Radio, 1: Tape
+    [UdonSynced] public bool isTapeInserted = false;
+    [UdonSynced] public bool isTapePlaying = false;
+    [UdonSynced] public VRCUrl currentTapeUrl;
+
+    [Header("--- テープ機構設定 ---")]
+    public Transform tapeSlot;
+    public AudioSource tapeMechanicsAudioSource;
+    public AudioClip tapeInsertSE;
+    public AudioClip tapeEjectSE;
+
     // Internal State
     private const int NoiseFadeNone = 0;
     private const int NoiseFadeInMode = 1;
