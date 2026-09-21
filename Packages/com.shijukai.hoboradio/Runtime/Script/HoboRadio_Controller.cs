@@ -62,6 +62,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public AudioClip tapeInsertSE;
     public AudioClip tapeEjectSE;
 
+    private HoboTape insertedTape;
+
     // Internal State
     private const int NoiseFadeNone = 0;
     private const int NoiseFadeInMode = 1;
@@ -498,10 +500,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
 
+        insertedTape = tape;
         isTapeInserted = true;
         currentMode = 1; // 1: Tape
         currentTapeUrl = tape.tapeUrl;
-        tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
 
         // スナップ処理（位置固定およびPickup無効化）
         if (tape.pickup != null)
@@ -540,15 +542,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
 
-        isTapeInserted = false;
-        currentMode = 0; // 0: Radio
-        isTapePlaying = false;
-
         // Pickupロック解除
         if (tape != null && tape.pickup != null)
         {
             tape.pickup.pickupable = true;
         }
+
+        insertedTape = null;
+        isTapeInserted = false;
+        currentMode = 0; // 0: Radio
+        isTapePlaying = false;
 
         // イジェクトSE再生
         if (tapeMechanicsAudioSource != null && tapeEjectSE != null)
@@ -560,6 +563,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         // ラジオモードへ復帰
         _ApplyChannel();
+    }
+
+    public void InteractButtonEject()
+    {
+        if (!isTapeInserted) return;
+        EjectTape(insertedTape);
     }
 
     public void _PlayTape()
