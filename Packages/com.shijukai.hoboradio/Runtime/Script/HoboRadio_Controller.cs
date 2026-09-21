@@ -201,6 +201,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (debugCanvas != null) debugCanvas.SetActive(!debugCanvas.activeSelf);
     }
 
+    public void InteractButtonStop()
+    {
+        if (isInteractedLocked) return;
+
+        if (isTapeInserted)
+        {
+            EjectTape(insertedTape);
+        }
+    }
+
     private void LockInteraction()
     {
         if (!isGlobal) return;
