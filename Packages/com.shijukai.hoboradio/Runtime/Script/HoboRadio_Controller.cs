@@ -54,6 +54,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [UdonSynced] public bool isTapeInserted = false;
     [UdonSynced] public bool isTapePlaying = false;
     [UdonSynced] public VRCUrl currentTapeUrl;
+    [UdonSynced] public double tapeStartTime = 0;
 
     [Header("--- テープ機構設定 ---")]
     public Transform tapeSlot;
@@ -293,15 +294,26 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         Debug.Log($"[HoboRadio] OnVideoReady: ready={videoPlayer.IsReady} dur={videoPlayer.GetDuration()}");
 
-        // 再生開始
-        float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
-        videoPlayer.SetTime(syncTime);
-        videoPlayer.Play();
+        if (currentMode == 1) // Tape Mode
+        {
+            double currentSec = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+            float syncTime = Mathf.Max(0f, (float)(currentSec - tapeStartTime));
+            videoPlayer.SetTime(syncTime);
+            videoPlayer.Play();
+            isTapePlaying = true;
+            if (statusText != null) statusText.text = "";
+        }
+        else // Radio Mode
+        {
+            float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
+            videoPlayer.SetTime(syncTime);
+            videoPlayer.Play();
 
-        if (statusText != null) statusText.text = "";
+            if (statusText != null) statusText.text = "";
 
-        StartNoiseFadeOutDelay(3f);
-        SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
+            StartNoiseFadeOutDelay(3f);
+            SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
+        }
     }
 
     public void _ReSyncSeek()
@@ -489,6 +501,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         isTapeInserted = true;
         currentMode = 1; // 1: Tape
         currentTapeUrl = tape.tapeUrl;
+        tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
 
         // スナップ処理（位置固定およびPickup無効化）
         if (tape.pickup != null)
