@@ -44,8 +44,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [HideInInspector] public GameObject debugCanvas;
 
     //AudioSettings
-    [HideInInspector] public AudioSource powerSwitchSE_On;
-    [HideInInspector] public AudioSource powerSwitchSE_Off;
     [HideInInspector] public AudioSource channelNoiseSE;
     [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
     [HideInInspector] public UdonBehaviour infoFetcher;
@@ -60,6 +58,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [Header("--- テープ機構設定 ---")]
     public Transform tapeSlot;
     public AudioSource tapeMechanicsAudioSource;
+    public AudioClip powerSwitchOnSE;
+    public AudioClip powerSwitchOffSE;
     public AudioClip tapeInsertSE;
     public AudioClip tapeEjectSE;
 
@@ -152,7 +152,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (radioPowerOn) // OFFにする処理
         {
-            if (powerSwitchSE_Off != null) powerSwitchSE_Off.Play();
+            if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
@@ -166,7 +166,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
         else // ONにする処理
         {
-            if (powerSwitchSE_On != null) powerSwitchSE_On.Play();
+            if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
             radioPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
@@ -181,7 +181,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (!radioPowerOn || isInteractedLocked || waitingPlay) return;
         LockInteraction();
 
-        if (powerSwitchSE_On != null) powerSwitchSE_On.Play();
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
 
         if (isGlobal)
         {
