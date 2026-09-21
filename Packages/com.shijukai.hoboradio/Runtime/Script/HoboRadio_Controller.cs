@@ -62,7 +62,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public AudioClip tapeInsertSE;
     public AudioClip tapeEjectSE;
 
-    private HoboTape insertedTape;
+    [HideInInspector] public HoboTape insertedTape;
 
     // Internal State
     private const int NoiseFadeNone = 0;
@@ -555,6 +555,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (videoPlayer != null) videoPlayer.Stop();
         CancelPendingNoiseFadeOut();
         StopChannelNoise();
+
+        // ディスプレイ表示を更新
+        if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
         _PlayTape();
     }
