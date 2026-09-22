@@ -603,8 +603,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         insertedTape = null;
-
-        insertedTape = null;
         isTapeInserted = false;
         currentMode = 0; // 0: Radio
         isTapePlaying = false;
