@@ -206,6 +206,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked) return;
 
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
         if (isTapeInserted)
         {
             bool isPlaying = (videoPlayer != null && videoPlayer.IsPlaying) || isTapePlaying;
@@ -578,9 +583,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
 
-        // Pickupロック解除
+        // Pickupロック解除および押し出し処理
         if (tape != null)
         {
+            Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
+            if (tapeSlot != null)
+            {
+                target.position = tapeSlot.position + tapeSlot.forward * 0.1f;
+            }
+
             if (tape.pickup != null)
             {
                 tape.pickup.pickupable = true;
