@@ -541,8 +541,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
         if (tapeSlot != null)
         {
-            tape.transform.position = tapeSlot.position;
-            tape.transform.rotation = tapeSlot.rotation;
+            Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
+            target.position = tapeSlot.position;
+            target.rotation = tapeSlot.rotation;
         }
 
         // 挿入SE再生
