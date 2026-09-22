@@ -623,6 +623,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (other == null || isTapeInserted) return;
 
         HoboTape tape = other.GetComponent<HoboTape>();
+        if (tape == null && other.transform.root != null)
+        {
+            tape = other.transform.root.GetComponentInChildren<HoboTape>();
+        }
+
         if (tape != null)
         {
             InsertTape(tape);
