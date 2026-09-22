@@ -17,6 +17,7 @@ public class HoboTape : UdonSharpBehaviour
     public Transform targetTransform;
     public VRC_Pickup pickup;
     public Collider tapeCollider;
+    public Rigidbody tapeRigidbody;
 
     private void Start()
     {
@@ -25,5 +26,6 @@ public class HoboTape : UdonSharpBehaviour
 
         if (pickup == null) pickup = (VRC_Pickup)targetTransform.GetComponentInChildren(typeof(VRC_Pickup));
         if (tapeCollider == null) tapeCollider = targetTransform.GetComponentInChildren<Collider>();
+        if (tapeRigidbody == null) tapeRigidbody = targetTransform.GetComponentInChildren<Rigidbody>();
     }
 }
