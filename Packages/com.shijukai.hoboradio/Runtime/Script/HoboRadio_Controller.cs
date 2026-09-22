@@ -539,6 +539,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tape.pickup.Drop();
             tape.pickup.pickupable = false;
         }
+        if (tape.tapeRigidbody != null)
+        {
+            tape.tapeRigidbody.isKinematic = true;
+        }
         if (tapeSlot != null)
         {
             Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
@@ -575,9 +579,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // Pickupロック解除
-        if (tape != null && tape.pickup != null)
+        if (tape != null)
         {
-            tape.pickup.pickupable = true;
+            if (tape.pickup != null)
+            {
+                tape.pickup.pickupable = true;
+            }
+            if (tape.tapeRigidbody != null)
+            {
+                tape.tapeRigidbody.isKinematic = false;
+            }
         }
 
         insertedTape = null;
