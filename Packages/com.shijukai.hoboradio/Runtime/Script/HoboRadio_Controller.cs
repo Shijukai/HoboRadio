@@ -86,6 +86,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
+    private bool isEjectCooldown = false;
 
     private void Start()
     {
@@ -607,6 +608,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         currentMode = 0; // 0: Radio
         isTapePlaying = false;
 
+        isEjectCooldown = true;
+        SendCustomEventDelayedSeconds(nameof(_ResetEjectCooldown), 2.0f);
+
         // イジェクトSE再生
         if (tapeMechanicsAudioSource != null && tapeEjectSE != null)
         {
@@ -640,9 +644,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     #endregion
 
+    public void _ResetEjectCooldown()
+    {
+        isEjectCooldown = false;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other == null || isTapeInserted) return;
+        if (other == null || isTapeInserted || isEjectCooldown) return;
 
         HoboTape tape = other.GetComponent<HoboTape>();
         if (tape == null && other.transform.root != null)
