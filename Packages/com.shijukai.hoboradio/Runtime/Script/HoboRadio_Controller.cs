@@ -124,8 +124,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             lastServerHour = currentHr;
         }
 
-        // 1時間ごとの自動更新（電源ON時のみ）
-        if (radioPowerOn && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
+        // 1時間ごとの自動更新（電源ON時かつラジオモード時のみ）
+        if (radioPowerOn && currentMode == 0 && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
             lastServerHour = currentHr;
             float jitterDelay = UnityEngine.Random.Range(0f, 5f);
@@ -436,6 +436,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _ReSyncSeek()
     {
+        if (currentMode != 0) return;
+
         if (videoPlayer != null && videoPlayer.IsPlaying)
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
