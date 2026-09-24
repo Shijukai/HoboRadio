@@ -234,6 +234,70 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
+    public void InteractButtonPlay()
+    {
+        if (isInteractedLocked || !isTapeInserted) return;
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.Play();
+            isTapePlaying = true;
+        }
+    }
+
+    public void InteractButtonPause()
+    {
+        if (isInteractedLocked || !isTapeInserted) return;
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.Pause();
+            isTapePlaying = false;
+        }
+    }
+
+    public void InteractButtonFastForward()
+    {
+        if (isInteractedLocked || !isTapeInserted) return;
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (videoPlayer != null)
+        {
+            float targetTime = Mathf.Min((float)videoPlayer.GetDuration(), videoPlayer.GetTime() + 10f);
+            videoPlayer.SetTime(targetTime);
+        }
+    }
+
+    public void InteractButtonRewind()
+    {
+        if (isInteractedLocked || !isTapeInserted) return;
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (videoPlayer != null)
+        {
+            float targetTime = Mathf.Max(0f, videoPlayer.GetTime() - 10f);
+            videoPlayer.SetTime(targetTime);
+        }
+    }
+
     private void LockInteraction()
     {
         if (!isGlobal) return;
@@ -331,9 +395,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1) // Tape Mode
         {
-            double currentSec = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
-            float syncTime = Mathf.Max(0f, (float)(currentSec - tapeStartTime));
-            videoPlayer.SetTime(syncTime);
+            videoPlayer.SetTime(0f);
             videoPlayer.Play();
             isTapePlaying = true;
             if (statusText != null) statusText.text = "";
