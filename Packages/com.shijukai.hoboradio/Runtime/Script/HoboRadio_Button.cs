@@ -11,7 +11,6 @@ public enum RadioButtonType
     FastForward,
     Rewind,
     Debug,
-    Eject
 }
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
