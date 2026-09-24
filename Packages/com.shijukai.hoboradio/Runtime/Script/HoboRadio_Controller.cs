@@ -163,6 +163,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             radioPowerOn = false;
             waitingPlay = false;
 
+            if (isTapeInserted)
+            {
+                isTapePlaying = false;
+                isTapeStopped = true;
+            }
+
             // Fetcherに表示クリアを通知
             if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
         }
@@ -180,7 +186,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractSwitchChannel()
     {
-        if (!radioPowerOn || isInteractedLocked || waitingPlay) return;
+        if (!radioPowerOn || isInteractedLocked || waitingPlay || isTapeInserted) return;
         LockInteraction();
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
@@ -238,7 +244,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonPlay()
     {
-        if (isInteractedLocked || !isTapeInserted) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -264,7 +270,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonPause()
     {
-        if (isInteractedLocked || !isTapeInserted) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -290,7 +296,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonFastForward()
     {
-        if (isInteractedLocked || !isTapeInserted) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -305,7 +311,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonRewind()
     {
-        if (isInteractedLocked || !isTapeInserted) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -352,6 +358,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (!radioPowerOn) return;
 
+        // Fetcherへの通知（電源ON時は画面を点灯させる）
+        if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
+
+        if (currentMode == 1) return; // テープモード時はラジオ側の動画ロードとノイズ再生をスキップ
+
         if (videoPlayer != null)
         {
             videoPlayer.Stop();
@@ -359,9 +370,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         waitingPlay = false;
 
         CancelPendingNoiseFadeOut();
-
-        // Fetcherへの通知
-        if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
         // ビデオロード
         if (!waitingPlay)
