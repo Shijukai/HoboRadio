@@ -423,7 +423,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1) // Tape Mode
         {
-            videoPlayer.SetTime(0f);
             videoPlayer.Play();
             isTapePlaying = true;
             isTapeStopped = false;
