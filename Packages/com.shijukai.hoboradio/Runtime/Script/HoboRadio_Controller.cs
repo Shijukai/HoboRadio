@@ -46,6 +46,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     //AudioSettings
     [HideInInspector] public AudioSource channelNoiseSE;
     [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
+    [Tooltip("動画の音声を出力するAudioSource（初期化ノイズ防止用）")]
+    public AudioSource videoAudioSource;
     [HideInInspector] public UdonBehaviour infoFetcher;
 
     [Header("--- テープ再生設定 ---")]
@@ -214,6 +216,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked) return;
 
+        if (videoAudioSource != null) videoAudioSource.mute = false;
+
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
@@ -363,6 +367,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1) return; // テープモード時はラジオ側の動画ロードとノイズ再生をスキップ
 
+        if (videoAudioSource != null) videoAudioSource.mute = false;
+
         if (videoPlayer != null)
         {
             videoPlayer.Stop();
@@ -423,10 +429,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1) // Tape Mode
         {
+            if (videoAudioSource != null) videoAudioSource.mute = true;
             videoPlayer.Play();
             isTapePlaying = true;
             isTapeStopped = false;
             if (statusText != null) statusText.text = "";
+
+            SendCustomEventDelayedSeconds(nameof(_RestoreTapeAudio), 1.0f);
         }
         else // Radio Mode
         {
@@ -449,6 +458,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
+        }
+    }
+
+    public void _RestoreTapeAudio()
+    {
+        if (currentMode == 1 && isTapePlaying && videoAudioSource != null)
+        {
+            videoAudioSource.mute = false;
         }
     }
 
