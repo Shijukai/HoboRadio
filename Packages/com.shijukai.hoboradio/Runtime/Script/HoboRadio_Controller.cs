@@ -87,6 +87,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
     private bool isEjectCooldown = false;
+    private bool isTapeStopped = false;
 
     private void Start()
     {
@@ -214,11 +215,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeInserted)
         {
-            bool isPlaying = (videoPlayer != null && videoPlayer.IsPlaying) || isTapePlaying;
-            if (isPlaying)
+            if (!isTapeStopped)
             {
                 if (videoPlayer != null) videoPlayer.Stop();
                 isTapePlaying = false;
+                isTapeStopped = true;
             }
             else
             {
@@ -245,6 +246,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (videoPlayer != null)
         {
+            if (isTapeStopped)
+            {
+                videoPlayer.SetTime(0f);
+                isTapeStopped = false;
+            }
             videoPlayer.Play();
             isTapePlaying = true;
         }
@@ -261,8 +267,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (videoPlayer != null)
         {
-            videoPlayer.Pause();
-            isTapePlaying = false;
+            if (isTapePlaying)
+            {
+                videoPlayer.Pause();
+                isTapePlaying = false;
+            }
+            else if (!isTapeStopped)
+            {
+                videoPlayer.Play();
+                isTapePlaying = true;
+            }
         }
     }
 
@@ -395,9 +409,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1) // Tape Mode
         {
-            videoPlayer.SetTime(0f);
-            videoPlayer.Play();
-            isTapePlaying = true;
+            isTapeStopped = true;
+            InteractButtonPlay();
             if (statusText != null) statusText.text = "";
         }
         else // Radio Mode
@@ -597,6 +610,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         insertedTape = tape;
         isTapeInserted = true;
+        isTapeStopped = false;
         currentMode = 1; // 1: Tape
         currentTapeUrl = tape.tapeUrl;
         tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
@@ -667,6 +681,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         insertedTape = null;
         isTapeInserted = false;
+        isTapeStopped = false;
         currentMode = 0; // 0: Radio
         isTapePlaying = false;
 
