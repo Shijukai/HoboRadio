@@ -220,6 +220,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (videoPlayer != null) videoPlayer.Stop();
                 isTapePlaying = false;
                 isTapeStopped = true;
+                waitingPlay = false;
             }
             else
             {
@@ -244,15 +245,20 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
-        if (videoPlayer != null)
+        if (isTapeStopped)
         {
-            if (isTapeStopped)
+            // Stop状態からの復帰時は再LoadURLが必要
+            isTapeStopped = false;
+            _PlayTape();
+        }
+        else if (!isTapePlaying)
+        {
+            // Pause状態からの復帰
+            if (videoPlayer != null)
             {
-                videoPlayer.SetTime(0f);
-                isTapeStopped = false;
+                videoPlayer.Play();
+                isTapePlaying = true;
             }
-            videoPlayer.Play();
-            isTapePlaying = true;
         }
     }
 
@@ -265,6 +271,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
+        if (isTapeStopped) return; // 停止中はポーズボタンを無効化
+
         if (videoPlayer != null)
         {
             if (isTapePlaying)
@@ -272,7 +280,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 videoPlayer.Pause();
                 isTapePlaying = false;
             }
-            else if (!isTapeStopped)
+            else
             {
                 videoPlayer.Play();
                 isTapePlaying = true;
@@ -289,11 +297,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
-        if (videoPlayer != null)
-        {
-            float targetTime = Mathf.Min((float)videoPlayer.GetDuration(), videoPlayer.GetTime() + 10f);
-            videoPlayer.SetTime(targetTime);
-        }
+        if (isTapeStopped || videoPlayer == null) return;
+
+        float targetTime = Mathf.Min((float)videoPlayer.GetDuration(), videoPlayer.GetTime() + 10f);
+        videoPlayer.SetTime(targetTime);
     }
 
     public void InteractButtonRewind()
@@ -305,11 +312,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
-        if (videoPlayer != null)
-        {
-            float targetTime = Mathf.Max(0f, videoPlayer.GetTime() - 10f);
-            videoPlayer.SetTime(targetTime);
-        }
+        if (isTapeStopped || videoPlayer == null) return;
+
+        float targetTime = Mathf.Max(0f, videoPlayer.GetTime() - 10f);
+        videoPlayer.SetTime(targetTime);
     }
 
     private void LockInteraction()
@@ -409,8 +415,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1) // Tape Mode
         {
-            isTapeStopped = true;
-            InteractButtonPlay();
+            videoPlayer.SetTime(0f);
+            videoPlayer.Play();
+            isTapePlaying = true;
+            isTapeStopped = false;
             if (statusText != null) statusText.text = "";
         }
         else // Radio Mode
@@ -648,7 +656,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // ディスプレイ表示を更新
         if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
-        _PlayTape();
+        // 自動再生を「再生ボタンが押された」扱いで処理
+        isTapeStopped = true;
+        InteractButtonPlay();
     }
 
     public void EjectTape(HoboTape tape)
