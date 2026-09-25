@@ -301,8 +301,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             isTapeStopped = false;
             RequestSerialization();
-            UpdateVisuals();
             _PlayTape();
+            UpdateVisuals();
         }
         else if (!isTapePlaying)
         {
@@ -514,6 +514,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isTapeStopped = false;
             if (statusText != null) statusText.text = "";
 
+            UpdateVisuals();
             SendCustomEventDelayedSeconds(nameof(_RestoreTapeAudio), 1.0f);
         }
         else // Radio Mode
