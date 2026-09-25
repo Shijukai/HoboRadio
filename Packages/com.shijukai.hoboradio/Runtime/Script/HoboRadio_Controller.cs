@@ -455,8 +455,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         else if (!isSlotOpen && _animSlotOpen) { radioAnimator.SetTrigger("HoboRadio_SlotClose"); _animSlotOpen = false; }
 
         // ボタン沈み込み状態の同期
-        bool shouldPlayDown = isTapeInserted && isTapePlaying;
-        bool shouldPauseDown = isTapeInserted && !isTapePlaying && !isTapeStopped && !isEjecting;
+        bool shouldPlayDown = isTapeInserted && !isTapeStopped && !isEjecting;
+        bool shouldPauseDown = isTapeInserted && !isTapePlaying && !isTapeStopped && !waitingPlay && !isEjecting;
 
         if (shouldPlayDown && !_animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOn"); _animPlayDown = true; }
         else if (!shouldPlayDown && _animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOff"); _animPlayDown = false; }
