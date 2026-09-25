@@ -167,7 +167,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isInteractedLocked) return;
         LockInteraction();
 
-        iif(radioPowerOn) // OFFにする処理
+        if (radioPowerOn) // OFFにする処理
         {
             if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
             if (videoPlayer != null) videoPlayer.Stop();
@@ -812,6 +812,27 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void InteractButtonEject()
     {
         if (!isTapeInserted) return;
+
+        if (insertedTape == null && tapeSlot != null)
+        {
+            Collider[] colliders = Physics.OverlapSphere(tapeSlot.position, 0.2f);
+            foreach (Collider col in colliders)
+            {
+                if (col == null) continue;
+                HoboTape tape = col.GetComponent<HoboTape>();
+                if (tape == null && col.transform.root != null)
+                {
+                    tape = col.transform.root.GetComponentInChildren<HoboTape>();
+                }
+
+                if (tape != null)
+                {
+                    insertedTape = tape;
+                    break;
+                }
+            }
+        }
+
         EjectTape(insertedTape);
     }
 
