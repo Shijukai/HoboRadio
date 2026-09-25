@@ -45,9 +45,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     //AudioSettings
     [HideInInspector] public AudioSource channelNoiseSE;
-    public BaseVRCVideoPlayer videoPlayer;
+    [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
     [Tooltip("動画の音声を出力するAudioSource（初期化ノイズ防止用）")]
     public AudioSource videoAudioSource;
+    [Range(0f, 1f)]
+    public float masterVolume = 1f;
     [HideInInspector] public UdonBehaviour infoFetcher;
 
     [Header("--- テープ再生設定 ---")]
@@ -509,6 +511,21 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     #region --- Audio Effects ---
 
+    public void UpdateMasterVolume(float newVolume)
+    {
+        masterVolume = Mathf.Clamp01(newVolume);
+
+        if (videoAudioSource != null)
+        {
+            videoAudioSource.volume = masterVolume;
+        }
+
+        if (channelNoiseSE != null && channelNoiseSE.isPlaying && noiseFadeMode == NoiseFadeNone)
+        {
+            channelNoiseSE.volume = masterVolume;
+        }
+    }
+
     public void NoiseFadeIn()
     {
         if (channelNoiseSE == null) return;
@@ -540,7 +557,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (noiseFadeMode == NoiseFadeInMode)
         {
-            channelNoiseSE.volume = Mathf.Lerp(0f, 1f, fadeProgress);
+            channelNoiseSE.volume = Mathf.Lerp(0f, 1f, fadeProgress) * masterVolume;
 
             if (noiseFadeStep < 10)
             {
@@ -556,7 +573,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (noiseFadeMode == NoiseFadeOutMode)
         {
-            channelNoiseSE.volume = Mathf.Lerp(1f, 0f, fadeProgress);
+            channelNoiseSE.volume = Mathf.Lerp(1f, 0f, fadeProgress) * masterVolume;
 
             if (noiseFadeStep < 10)
             {
