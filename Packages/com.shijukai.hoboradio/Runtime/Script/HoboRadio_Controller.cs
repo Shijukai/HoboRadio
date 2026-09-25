@@ -99,6 +99,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const float LoadingTimeout = 45f;
     private bool isEjectCooldown = false;
 
+    private bool isEjectAnimating = false;
+    private float ejectAnimTime = 0f;
+    private Vector3 ejectStartPos;
+    private Vector3 ejectEndPos;
+
     // Animation Trackers
     private bool _animPlayDown = false;
     private bool _animPauseDown = false;
@@ -156,6 +161,24 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 lastDisplayedSecond = totalSec;
                 statusText.text = $"{totalSec / 60:00}:{totalSec % 60:00}";
+            }
+        }
+
+        // テープせり出しアニメーション
+        if (isEjectAnimating && insertedTape != null && tapeSlot != null)
+        {
+            ejectAnimTime += Time.deltaTime;
+            float t = Mathf.Clamp01(ejectAnimTime / 0.5f); // 0.5秒かけて移動
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.localPosition = Vector3.Lerp(ejectStartPos, ejectEndPos, t);
+
+            if (t >= 1.0f)
+            {
+                isEjectAnimating = false;
+                if (insertedTape.pickup != null)
+                {
+                    insertedTape.pickup.pickupable = true;
+                }
             }
         }
     }
@@ -797,28 +820,30 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         RequestSerialization();
         UpdateVisuals();
 
-        if (tape != null)
-        {
-            Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
-            if (tapeSlot != null)
-            {
-                target.SetParent(tapeSlot, true);
-                target.localPosition = Vector3.up * 0.05f;
-            }
-
-            if (tape.pickup != null)
-            {
-                tape.pickup.pickupable = true;
-            }
-            if (tape.tapeRigidbody != null)
-            {
-                tape.tapeRigidbody.isKinematic = true;
-            }
-        }
-
         if (tapeMechanicsAudioSource != null && tapeEjectSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(tapeEjectSE);
+        }
+
+        SendCustomEventDelayedSeconds(nameof(_StartEjectAnimation), slotOpenDelay);
+    }
+
+    public void _StartEjectAnimation()
+    {
+        if (insertedTape != null && tapeSlot != null)
+        {
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.SetParent(tapeSlot, true);
+
+            if (insertedTape.tapeRigidbody != null)
+            {
+                insertedTape.tapeRigidbody.isKinematic = true;
+            }
+
+            ejectStartPos = target.localPosition;
+            ejectEndPos = Vector3.up * 0.05f;
+            ejectAnimTime = 0f;
+            isEjectAnimating = true;
         }
     }
 
@@ -873,11 +898,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (other == null || isTapeInserted || isEjectCooldown || pendingInsertTape != null) return;
 
-        HoboTape tape = other.GetComponent<HoboTape>();
-        if (tape == null && other.transform.root != null)
-        {
-            tape = other.transform.root.GetComponentInChildren<HoboTape>();
-        }
+        HoboTape tape = other.GetComponentInParent<HoboTape>();
 
         if (tape != null)
         {
@@ -889,11 +910,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (other == null || !isTapeInserted || !isEjecting || insertedTape == null) return;
 
-        HoboTape tape = other.GetComponent<HoboTape>();
-        if (tape == null && other.transform.root != null)
-        {
-            tape = other.transform.root.GetComponentInChildren<HoboTape>();
-        }
+        HoboTape tape = other.GetComponentInParent<HoboTape>();
 
         if (tape == insertedTape)
         {
@@ -908,6 +925,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             insertedTape = null;
             isTapeInserted = false;
             isEjecting = false;
+            isEjectAnimating = false;
             isTapeStopped = false;
             currentMode = 0;
             isSlotOpen = false;
