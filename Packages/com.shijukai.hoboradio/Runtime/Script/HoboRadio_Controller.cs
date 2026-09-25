@@ -68,6 +68,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public AudioClip powerSwitchOffSE;
     public AudioClip tapeInsertSE;
     public AudioClip tapeEjectSE;
+    [Tooltip("テープ読み込み中の駆動音（ノイズ用AudioSourceで再生）")]
+    public AudioClip tapeLoadingSE;
 
     [HideInInspector] public HoboTape insertedTape;
     private HoboTape pendingInsertTape;
@@ -109,9 +111,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool _animPauseDown = false;
     private bool _animSlotOpen = false;
 
+    private AudioClip defaultRadioNoiseSE;
+
     private void Start()
     {
         Debug.Log("[HoboRadio] Controller Started");
+
+        if (channelNoiseSE != null)
+        {
+            defaultRadioNoiseSE = channelNoiseSE.clip;
+        }
 
         if (!isGlobal || Networking.IsOwner(gameObject))
         {
@@ -516,6 +525,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             UpdateVisuals();
             SendCustomEventDelayedSeconds(nameof(_RestoreTapeAudio), 1.0f);
+            NoiseFadeOut();
         }
         else // Radio Mode
         {
@@ -616,6 +626,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (channelNoiseSE == null) return;
         CancelPendingNoiseFadeOut();
+        if (defaultRadioNoiseSE != null && channelNoiseSE.clip != defaultRadioNoiseSE)
+        {
+            channelNoiseSE.clip = defaultRadioNoiseSE;
+        }
         noiseFadeMode = NoiseFadeInMode;
         noiseFadeStep = 0;
         channelNoiseSE.volume = 0f;
@@ -905,6 +919,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isRetryScheduled = false;
             videoLoadStartTime = Time.timeSinceLevelLoad;
             SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
+
+            if (channelNoiseSE != null && tapeLoadingSE != null)
+            {
+                CancelPendingNoiseFadeOut();
+                channelNoiseSE.clip = tapeLoadingSE;
+                channelNoiseSE.volume = masterVolume;
+                if (!channelNoiseSE.isPlaying) channelNoiseSE.Play();
+                noiseFadeMode = NoiseFadeNone;
+            }
         }
     }
 
