@@ -721,6 +721,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tape.pickup.pickupable = false;
         }
 
+        if (tape.tapeRigidbody != null)
+        {
+            tape.tapeRigidbody.isKinematic = true;
+        }
+
+        Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
+        if (tapeSlot != null)
+        {
+            target.SetParent(tapeSlot, true);
+        }
+
         RequestSerialization();
         UpdateVisuals();
 
@@ -753,8 +764,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (tapeSlot != null)
         {
             Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
-            target.position = tapeSlot.position;
-            target.rotation = tapeSlot.rotation;
+            target.SetParent(tapeSlot, true);
+            target.localPosition = Vector3.zero;
+            target.localRotation = Quaternion.identity;
         }
 
         RequestSerialization();
@@ -790,7 +802,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
             if (tapeSlot != null)
             {
-                target.position = tapeSlot.position + tapeSlot.up * 0.05f;
+                target.SetParent(tapeSlot, true);
+                target.localPosition = Vector3.up * 0.05f;
             }
 
             if (tape.pickup != null)
@@ -884,6 +897,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (tape == insertedTape)
         {
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.SetParent(null, true);
+
             if (insertedTape.tapeRigidbody != null)
             {
                 insertedTape.tapeRigidbody.isKinematic = false;
