@@ -49,7 +49,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [Tooltip("動画の音声を出力するAudioSource（初期化ノイズ防止用）")]
     public AudioSource videoAudioSource;
     [Range(0f, 1f)]
-    public float masterVolume = 1f;
+    public float masterVolume = 0.5f;
     [HideInInspector] public UdonBehaviour infoFetcher;
 
     [Header("--- テープ再生設定 ---")]
