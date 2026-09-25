@@ -71,7 +71,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     [HideInInspector] public HoboTape insertedTape;
     private HoboTape pendingInsertTape;
-    private bool isEjecting = false;
+
+    [UdonSynced] public bool isEjecting = false;
+    [UdonSynced] public bool isTapeStopped = false;
+    [UdonSynced] public bool isSlotOpen = false;
 
     // Internal State
     private const int NoiseFadeNone = 0;
@@ -95,7 +98,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
     private bool isEjectCooldown = false;
-    private bool isTapeStopped = false;
+
+    // Animation Trackers
+    private bool _animPlayDown = false;
+    private bool _animPauseDown = false;
+    private bool _animSlotOpen = false;
 
     private void Start()
     {
@@ -109,7 +116,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // 初期化
         if (radioPowerOn)
         {
-            if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             UpdateVisuals();
 
             // Global設定かつオーナーなら初期ロード実行
@@ -160,13 +167,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isInteractedLocked) return;
         LockInteraction();
 
-        if (radioPowerOn) // OFFにする処理
+        iif(radioPowerOn) // OFFにする処理
         {
             if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
-            if (radioAnimator != null) radioAnimator.SetTrigger("PowerOff");
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOff");
             if (channelText != null) channelText.text = "";
             radioPowerOn = false;
             waitingPlay = false;
@@ -186,7 +193,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             radioPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
-            if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             lastDisplayedSecond = -1;
             _ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
         }
@@ -233,13 +240,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeInserted)
         {
+            TakeOwnership();
             if (!isTapeStopped)
             {
                 if (videoPlayer != null) videoPlayer.Stop();
                 isTapePlaying = false;
                 isTapeStopped = true;
                 waitingPlay = false;
-                ResetButtonStates();
+                RequestSerialization();
+                UpdateVisuals();
             }
             else
             {
@@ -259,20 +268,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
+        TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
-        if (radioAnimator != null)
-        {
-            radioAnimator.SetTrigger("HoboRadio_PlayOn");
-            radioAnimator.SetTrigger("HoboRadio_PauseOff");
-        }
-
         if (isTapeStopped)
         {
             isTapeStopped = false;
+            RequestSerialization();
+            UpdateVisuals();
             _PlayTape();
         }
         else if (!isTapePlaying)
@@ -281,6 +287,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 videoPlayer.Play();
                 isTapePlaying = true;
+                RequestSerialization();
+                UpdateVisuals();
             }
         }
     }
@@ -289,6 +297,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
+        TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
@@ -302,22 +311,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 videoPlayer.Pause();
                 isTapePlaying = false;
-                if (radioAnimator != null)
-                {
-                    radioAnimator.SetTrigger("HoboRadio_PauseOn");
-                    radioAnimator.SetTrigger("HoboRadio_PlayOff");
-                }
             }
             else
             {
                 videoPlayer.Play();
                 isTapePlaying = true;
-                if (radioAnimator != null)
-                {
-                    radioAnimator.SetTrigger("HoboRadio_PlayOn");
-                    radioAnimator.SetTrigger("HoboRadio_PauseOff");
-                }
             }
+            RequestSerialization();
+            UpdateVisuals();
         }
     }
 
@@ -355,15 +356,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         videoPlayer.SetTime(targetTime);
     }
 
-    private void ResetButtonStates()
-    {
-        if (radioAnimator != null)
-        {
-            radioAnimator.SetTrigger("HoboRadio_PlayOff");
-            radioAnimator.SetTrigger("HoboRadio_PauseOff");
-        }
-    }
-
     private void LockInteraction()
     {
         if (!isGlobal) return;
@@ -386,6 +378,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isFirstSync || loadedChannelIndex != currentChannelIndex)
         {
             _ApplyChannel();
+        }
+        else
+        {
+            UpdateVisuals();
         }
     }
 
@@ -443,13 +439,37 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // 3Dモデル：針の移動
         if (radioAnimator != null && currentChannelIndex < channelDialValues.Length)
         {
-            radioAnimator.SetFloat("Float_Needle_Position", channelDialValues[currentChannelIndex]);
+            radioAnimator.SetFloat("HoboRadio_NeedlePosition", channelDialValues[currentChannelIndex]);
         }
 
         // UI：チャンネル番号表示
         if (channelText != null)
         {
             channelText.text = $"CH{(currentChannelIndex + 1):00}";
+        }
+
+        if (radioAnimator == null) return;
+
+        // スロット状態の同期
+        if (isSlotOpen && !_animSlotOpen) { radioAnimator.SetTrigger("HoboRadio_SlotOpen"); _animSlotOpen = true; }
+        else if (!isSlotOpen && _animSlotOpen) { radioAnimator.SetTrigger("HoboRadio_SlotClose"); _animSlotOpen = false; }
+
+        // ボタン沈み込み状態の同期
+        bool shouldPlayDown = isTapeInserted && isTapePlaying;
+        bool shouldPauseDown = isTapeInserted && !isTapePlaying && !isTapeStopped && !isEjecting;
+
+        if (shouldPlayDown && !_animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOn"); _animPlayDown = true; }
+        else if (!shouldPlayDown && _animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOff"); _animPlayDown = false; }
+
+        if (shouldPauseDown && !_animPauseDown) { radioAnimator.SetTrigger("HoboRadio_PauseOn"); _animPauseDown = true; }
+        else if (!shouldPauseDown && _animPauseDown) { radioAnimator.SetTrigger("HoboRadio_PauseOff"); _animPauseDown = false; }
+    }
+
+    private void TakeOwnership()
+    {
+        if (isGlobal && !Networking.IsOwner(gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
     }
 
@@ -688,14 +708,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (tape == null || isTapeInserted || pendingInsertTape != null) return;
 
-        if (isGlobal && !Networking.IsOwner(gameObject))
-        {
-            Networking.SetOwner(Networking.LocalPlayer, gameObject);
-        }
+        TakeOwnership();
 
         pendingInsertTape = tape;
         isTapeInserted = true;
         isEjecting = false;
+        isSlotOpen = true;
 
         if (tape.pickup != null)
         {
@@ -703,7 +721,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tape.pickup.pickupable = false;
         }
 
-        if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_SlotOpen");
+        RequestSerialization();
+        UpdateVisuals();
 
         if (tapeMechanicsAudioSource != null && tapeInsertSE != null)
         {
@@ -724,6 +743,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         currentMode = 1;
         currentTapeUrl = insertedTape.tapeUrl;
         tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+        isSlotOpen = false;
 
         if (insertedTape.tapeRigidbody != null)
         {
@@ -737,9 +757,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             target.rotation = tapeSlot.rotation;
         }
 
-        if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_SlotClose");
-
         RequestSerialization();
+        UpdateVisuals();
 
         if (videoPlayer != null) videoPlayer.Stop();
         CancelPendingNoiseFadeOut();
@@ -755,18 +774,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!isTapeInserted || isEjecting) return;
 
-        if (isGlobal && !Networking.IsOwner(gameObject))
-        {
-            Networking.SetOwner(Networking.LocalPlayer, gameObject);
-        }
+        TakeOwnership();
 
         isEjecting = true;
-        ResetButtonStates();
+        isSlotOpen = true;
 
         if (videoPlayer != null) videoPlayer.Stop();
         isTapePlaying = false;
 
-        if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_SlotOpen");
+        RequestSerialization();
+        UpdateVisuals();
 
         if (tape != null)
         {
@@ -856,13 +873,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isEjecting = false;
             isTapeStopped = false;
             currentMode = 0;
-
-            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_SlotClose");
+            isSlotOpen = false;
 
             isEjectCooldown = true;
             SendCustomEventDelayedSeconds(nameof(_ResetEjectCooldown), 2.0f);
 
+            TakeOwnership();
             RequestSerialization();
+            UpdateVisuals();
             _ApplyChannel();
         }
     }
