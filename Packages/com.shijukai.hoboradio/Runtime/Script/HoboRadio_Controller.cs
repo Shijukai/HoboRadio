@@ -279,6 +279,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 isTapePlaying = false;
                 isTapeStopped = true;
                 waitingPlay = false;
+
+                CancelPendingNoiseFadeOut();
+                StopChannelNoise();
+
                 RequestSerialization();
                 UpdateVisuals();
             }
@@ -437,17 +441,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             videoPlayer.Stop();
         }
-        waitingPlay = false;
+
+        waitingPlay = true;
+        retryCount = 0;
+        isRetryScheduled = false;
 
         CancelPendingNoiseFadeOut();
 
-        // ビデオロード
-        if (!waitingPlay)
-        {
-            retryCount = 0;
-            isRetryScheduled = false;
-            _ExecuteLoad();
-        }
+        SendCustomEventDelayedFrames(nameof(_ExecuteLoad), 2);
 
         NoiseFadeIn();
     }
@@ -903,7 +904,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         retryCount = 0;
         isRetryScheduled = false;
-        _ExecuteTapeLoad();
+
+        if (videoPlayer != null) videoPlayer.Stop();
+        waitingPlay = true;
+
+        SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
     }
 
     public void _ExecuteTapeLoad()
@@ -913,7 +918,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (videoPlayer != null)
         {
             Debug.Log($"[HoboRadio] LoadURL Executed (Tape Attempt {retryCount + 1}): {currentTapeUrl}");
-            videoPlayer.Stop();
             videoPlayer.LoadURL(currentTapeUrl);
             waitingPlay = true;
             isRetryScheduled = false;
