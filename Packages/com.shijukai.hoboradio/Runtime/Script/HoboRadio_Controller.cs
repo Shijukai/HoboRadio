@@ -45,7 +45,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     //AudioSettings
     [HideInInspector] public AudioSource channelNoiseSE;
-    [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
+    public BaseVRCVideoPlayer videoPlayer;
     [Tooltip("動画の音声を出力するAudioSource（初期化ノイズ防止用）")]
     public AudioSource videoAudioSource;
     [HideInInspector] public UdonBehaviour infoFetcher;
