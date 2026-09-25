@@ -898,7 +898,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (other == null || isTapeInserted || isEjectCooldown || pendingInsertTape != null) return;
 
-        HoboTape tape = other.GetComponentInParent<HoboTape>();
+        HoboTape tape = other.GetComponent<HoboTape>();
+        if (tape == null && other.transform.root != null)
+        {
+            tape = other.transform.root.GetComponentInChildren<HoboTape>();
+        }
 
         if (tape != null)
         {
@@ -910,9 +914,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (other == null || !isTapeInserted || !isEjecting || insertedTape == null) return;
 
-        HoboTape tape = other.GetComponentInParent<HoboTape>();
+        bool isTargetCollider = false;
+        if (insertedTape.tapeCollider != null && insertedTape.tapeCollider == other)
+        {
+            isTargetCollider = true;
+        }
+        else if (other.transform.IsChildOf(insertedTape.transform) || insertedTape.transform.IsChildOf(other.transform))
+        {
+            isTargetCollider = true;
+        }
 
-        if (tape == insertedTape)
+        if (isTargetCollider)
         {
             Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
             target.SetParent(null, true);
