@@ -955,7 +955,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTargetCollider)
         {
-            tapeRoot.SetParent(null, true);
+            tapeRoot.SetParent(insertedTape.originalParent, true);
 
             if (insertedTape.tapeRigidbody != null)
             {
