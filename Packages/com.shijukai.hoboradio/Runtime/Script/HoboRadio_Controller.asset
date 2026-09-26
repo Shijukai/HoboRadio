@@ -2912,13 +2912,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: radioHubLeft
+      Data: radioReelLeft
     - Name: $v
       Entry: 7
       Data: 160|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: radioHubLeft
+      Data: radioReelLeft
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 88
@@ -2949,7 +2949,7 @@ MonoBehaviour:
       Data: 162|UnityEngine.HeaderAttribute, UnityEngine.CoreModule
     - Name: header
       Entry: 1
-      Data: "--- \u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u8A2D\u5B9A\uFF08\u30CF\u30D6\uFF09
+      Data: "--- \u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u8A2D\u5B9A\uFF08\u30EA\u30FC\u30EB\uFF09
         ---"
     - Name: 
       Entry: 8
@@ -2971,13 +2971,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: radioHubRight
+      Data: radioReelRight
     - Name: $v
       Entry: 7
       Data: 163|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: radioHubRight
+      Data: radioReelRight
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 88
@@ -3020,13 +3020,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: hubRotationSpeed
+      Data: reelRotationSpeed
     - Name: $v
       Entry: 7
       Data: 165|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: hubRotationSpeed
+      Data: reelRotationSpeed
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 156
@@ -3057,7 +3057,7 @@ MonoBehaviour:
       Data: 167|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: "\u30CF\u30D6\u306E\u56DE\u8EE2\u901F\u5EA6\u3068\u8EF8\uFF08\u30ED\u30FC\u30AB\u30EB\u7A7A\u9593\uFF09"
+      Data: "\u30EA\u30FC\u30EB\u306E\u56DE\u8EE2\u901F\u5EA6\u3068\u8EF8\uFF08\u30ED\u30FC\u30AB\u30EB\u7A7A\u9593\uFF09"
     - Name: 
       Entry: 8
       Data: 

@@ -109,7 +109,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public Transform radioReelLeft;
     public Transform radioReelRight;
     [Tooltip("リールの回転速度と軸（ローカル空間）")]
-    public Vector3 reelRotationSpeed = new Vector3(180f, 0f, 0f);
+    public Vector3 reelRotationSpeed = new Vector3(-180f, 0f, 0f);
 
     // Animation Trackers
     private bool _animPlayDown = false;
@@ -199,13 +199,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // テープとリール・ハブの再生アニメーション
         if (currentMode == 1 && isTapeInserted && isTapePlaying && insertedTape != null && videoPlayer != null && videoPlayer.IsPlaying)
         {
-            Vector3 rot = reelRotationSpeed * Time.deltaTime;
+            Quaternion rotDelta = Quaternion.Euler(reelRotationSpeed * Time.deltaTime);
 
-            if (radioReelLeft != null) radioReelLeft.Rotate(rot, Space.Self);
-            if (radioReelRight != null) radioReelRight.Rotate(rot, Space.Self);
+            if (radioReelLeft != null) radioReelLeft.localRotation = rotDelta * radioReelLeft.localRotation;
+            if (radioReelRight != null) radioReelRight.localRotation = rotDelta * radioReelRight.localRotation;
 
-            if (insertedTape.hubLeft != null) insertedTape.hubLeft.Rotate(rot, Space.Self);
-            if (insertedTape.hubRight != null) insertedTape.hubRight.Rotate(rot, Space.Self);
+            if (insertedTape.hubLeft != null) insertedTape.hubLeft.localRotation = rotDelta * insertedTape.hubLeft.localRotation;
+            if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
 
             float duration = videoPlayer.GetDuration();
             if (duration > 0f && !float.IsInfinity(duration))
