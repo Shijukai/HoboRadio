@@ -104,6 +104,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private float ejectAnimTime = 0f;
     private Vector3 ejectStartPos;
     private Vector3 ejectEndPos;
+    private int lateJoinerRetryCount = 0;
 
     [Header("--- アニメーション設定（リール） ---")]
     public Transform radioReelLeft;
@@ -344,6 +345,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 videoPlayer.Play();
                 isTapePlaying = true;
+                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
                 RequestSerialization();
                 UpdateVisuals();
             }
@@ -444,6 +446,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeInserted && insertedTape == null)
         {
+            lateJoinerRetryCount = 0;
             _RestoreLateJoinerTape();
         }
 
@@ -458,17 +461,38 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1 && isTapeInserted && currentTapeUrl != null && radioPowerOn)
         {
-            if (isFirstSync && !isTapeStopped)
+            if (isTapeStopped || isEjecting)
             {
-                waitingPlay = true;
-                SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+                if (videoPlayer != null && (videoPlayer.IsPlaying || waitingPlay))
+                {
+                    videoPlayer.Stop();
+                    waitingPlay = false;
+                    CancelPendingNoiseFadeOut();
+                    StopChannelNoise();
+                }
             }
-            else if (!isFirstSync && videoPlayer != null && videoPlayer.IsReady)
+            else
             {
-                _SyncTapePosition();
+                if (videoPlayer != null)
+                {
+                    if (!videoPlayer.IsReady && !waitingPlay)
+                    {
+                        waitingPlay = true;
+                        SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+                    }
+                    else if (videoPlayer.IsReady)
+                    {
+                        if (isTapePlaying && !videoPlayer.IsPlaying) videoPlayer.Play();
+                        else if (!isTapePlaying && videoPlayer.IsPlaying) videoPlayer.Pause();
+
+                        _SyncTapePosition();
+                    }
+                }
             }
         }
     }
+
+    public void _SyncTapePosition()
 
     public void _SyncTapePosition()
     {
@@ -508,7 +532,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
         else
         {
-            SendCustomEventDelayedSeconds(nameof(_RestoreLateJoinerTape), 2f);
+            lateJoinerRetryCount++;
+            if (lateJoinerRetryCount < 10)
+            {
+                SendCustomEventDelayedSeconds(nameof(_RestoreLateJoinerTape), 2f);
+            }
         }
     }
 
