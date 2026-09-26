@@ -197,7 +197,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // テープとリール・ハブの再生アニメーション
-        if (currentMode == 1 && isTapeInserted && isTapePlaying && insertedTape != null && videoPlayer != null && videoPlayer.IsPlaying)
+        if (currentMode == 1 && isTapeInserted && insertedTape != null && (isTapePlaying || waitingPlay))
         {
             Quaternion rotDelta = Quaternion.Euler(reelRotationSpeed * Time.deltaTime);
 
@@ -207,11 +207,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (insertedTape.hubLeft != null) insertedTape.hubLeft.localRotation = rotDelta * insertedTape.hubLeft.localRotation;
             if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
 
-            float duration = videoPlayer.GetDuration();
-            if (duration > 0f && !float.IsInfinity(duration))
+            if (isTapePlaying && videoPlayer != null && videoPlayer.IsPlaying)
             {
-                float progress = Mathf.Clamp01(videoPlayer.GetTime() / duration);
-                insertedTape.UpdateTapeProgress(progress);
+                float duration = videoPlayer.GetDuration();
+                if (duration > 0f && !float.IsInfinity(duration))
+                {
+                    float progress = Mathf.Clamp01(videoPlayer.GetTime() / duration);
+                    insertedTape.UpdateTapeProgress(progress);
+                }
             }
         }
     }
@@ -829,6 +832,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             target.localPosition = Vector3.zero;
             target.localRotation = Quaternion.identity;
         }
+
+        insertedTape.UpdateTapeProgress(0f);
 
         RequestSerialization();
         UpdateVisuals();
