@@ -607,8 +607,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             if (tape != null)
             {
-                insertedTape = tape;
-                break;
+                if (currentTapeUrl != null && tape.tapeUrl != null && currentTapeUrl.Get() == tape.tapeUrl.Get())
+                {
+                    insertedTape = tape;
+                    break;
+                }
             }
         }
     }
