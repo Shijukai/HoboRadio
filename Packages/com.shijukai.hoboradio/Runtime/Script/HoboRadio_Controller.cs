@@ -267,6 +267,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             radioPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
+            retryCount = 0;
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             lastDisplayedSecond = -1;
             _ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
