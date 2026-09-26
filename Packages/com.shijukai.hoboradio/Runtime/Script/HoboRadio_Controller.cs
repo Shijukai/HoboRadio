@@ -506,7 +506,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
-    public void _SyncTapePosition()
+    private void _SyncTapePosition()
     {
         if (videoPlayer == null || currentMode != 1) return;
         float targetTime = tapeStartTime < 0 ? (float)(-tapeStartTime) : (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
@@ -552,7 +552,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
-    public void _FindTapeInSlot()
+    private void _FindTapeInSlot()
     {
         if (tapeSlot == null) return;
         Collider[] colliders = Physics.OverlapSphere(tapeSlot.position, 0.2f);
@@ -790,7 +790,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
     }
 
-    public void NoiseFadeIn()
+    private void NoiseFadeIn()
     {
         if (channelNoiseSE == null) return;
         CancelPendingNoiseFadeOut();
@@ -805,7 +805,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         ScheduleNoiseFadeStep();
     }
 
-    public void NoiseFadeOut()
+    private void NoiseFadeOut()
     {
         if (channelNoiseSE == null) return;
         CancelPendingNoiseFadeOut();
@@ -918,7 +918,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     #region --- Tape Playback Control ---
 
-    public void InsertTape(HoboTape tape)
+    private void InsertTape(HoboTape tape)
     {
         if (tape == null || isTapeInserted || pendingInsertTape != null) return;
 
@@ -997,7 +997,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         InteractButtonPlay();
     }
 
-    public void EjectTape(HoboTape tape)
+    private void EjectTape(HoboTape tape)
     {
         if (!isTapeInserted || isEjecting) return;
 
