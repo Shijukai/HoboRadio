@@ -107,6 +107,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private Vector3 ejectStartPos;
     private Vector3 ejectEndPos;
     private int lateJoinerRetryCount = 0;
+    private bool isRestoreLateJoinerScheduled = false;
 
     [Header("--- アニメーション設定（リール） ---")]
     public Transform radioReelLeft;
@@ -167,7 +168,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             lastServerHour = currentHr;
             float jitterDelay = UnityEngine.Random.Range(0f, 5f);
             Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
-            SendCustomEventDelayedSeconds(nameof(_ApplyChannel), jitterDelay);
+            SendCustomEventDelayedSeconds(nameof(_PeriodicApplyChannel), jitterDelay);
         }
 
         // 再生時間の表示更新
@@ -242,6 +243,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (channelText != null) channelText.text = "";
             radioPowerOn = false;
             waitingPlay = false;
+            isRetryScheduled = false;
 
             if (isTapeInserted)
             {
@@ -456,8 +458,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeInserted && insertedTape == null)
         {
-            lateJoinerRetryCount = 0;
-            _RestoreLateJoinerTape();
+            if (!isRestoreLateJoinerScheduled)
+            {
+                lateJoinerRetryCount = 0;
+                _RestoreLateJoinerTape();
+            }
         }
 
         bool modeChanged = loadedMode != currentMode;
@@ -521,6 +526,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _RestoreLateJoinerTape()
     {
+        isRestoreLateJoinerScheduled = false;
+
         if (!isTapeInserted || insertedTape != null) return;
 
         _FindTapeInSlot();
@@ -548,9 +555,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             lateJoinerRetryCount++;
             if (lateJoinerRetryCount < 10)
             {
+                isRestoreLateJoinerScheduled = true;
                 SendCustomEventDelayedSeconds(nameof(_RestoreLateJoinerTape), 2f);
             }
         }
+    }
+
+    public void _PeriodicApplyChannel()
+    {
+        if (!radioPowerOn || currentMode != 0) return;
+        _ApplyChannel();
     }
 
     private void _FindTapeInSlot()
