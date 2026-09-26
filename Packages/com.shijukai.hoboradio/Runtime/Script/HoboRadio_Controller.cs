@@ -99,7 +99,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
-    private bool isEjectCooldown = false;
 
     private bool isEjectAnimating = false;
     private float ejectAnimTime = 0f;
@@ -259,7 +258,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonStop()
     {
-        if (isInteractedLocked) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
 
         if (videoAudioSource != null) videoAudioSource.mute = false;
 
@@ -270,33 +269,23 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
 
-        if (isTapeInserted)
+        TakeOwnership();
+        if (!isTapeStopped)
         {
-            TakeOwnership();
-            if (!isTapeStopped)
-            {
-                if (videoPlayer != null) videoPlayer.Stop();
-                isTapePlaying = false;
-                isTapeStopped = true;
-                waitingPlay = false;
+            if (videoPlayer != null) videoPlayer.Stop();
+            isTapePlaying = false;
+            isTapeStopped = true;
+            waitingPlay = false;
 
-                CancelPendingNoiseFadeOut();
-                StopChannelNoise();
+            CancelPendingNoiseFadeOut();
+            StopChannelNoise();
 
-                RequestSerialization();
-                UpdateVisuals();
-            }
-            else
-            {
-                EjectTape(insertedTape);
-            }
+            RequestSerialization();
+            UpdateVisuals();
         }
         else
         {
-            if (videoPlayer != null) videoPlayer.Stop();
-            waitingPlay = false;
-            CancelPendingNoiseFadeOut();
-            StopChannelNoise();
+            EjectTape(insertedTape);
         }
     }
 
@@ -691,7 +680,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isNoiseFadeStepScheduled) return;
         isNoiseFadeStepScheduled = true;
-        SendCustomEventDelayedSeconds(nameof(_NoiseFadeStep), 0.1f);
+        SendCustomEventDelayedSeconds(nameof(_NoiseFadeStep), 0.12f);
     }
 
     private void StopChannelNoise()
@@ -761,6 +750,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         isTapeInserted = true;
         isEjecting = false;
         isSlotOpen = true;
+        isTapeStopped = true;
 
         if (tape.pickup != null)
         {
@@ -797,7 +787,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         insertedTape = pendingInsertTape;
         pendingInsertTape = null;
 
-        isTapeStopped = false;
         currentMode = 1;
         currentTapeUrl = insertedTape.tapeUrl;
         tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
@@ -825,7 +814,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
-        isTapeStopped = true;
         InteractButtonPlay();
     }
 
@@ -937,14 +925,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     #endregion
 
-    public void _ResetEjectCooldown()
-    {
-        isEjectCooldown = false;
-    }
-
     private void OnTriggerEnter(Collider other)
     {
-        if (other == null || isTapeInserted || isEjectCooldown || pendingInsertTape != null) return;
+        if (other == null || isTapeInserted || pendingInsertTape != null) return;
 
         HoboTape tape = other.GetComponent<HoboTape>();
         if (tape == null && other.transform.root != null)
@@ -989,9 +972,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isTapeStopped = false;
             currentMode = 0;
             isSlotOpen = false;
-
-            isEjectCooldown = true;
-            SendCustomEventDelayedSeconds(nameof(_ResetEjectCooldown), 2.0f);
 
             TakeOwnership();
             RequestSerialization();
