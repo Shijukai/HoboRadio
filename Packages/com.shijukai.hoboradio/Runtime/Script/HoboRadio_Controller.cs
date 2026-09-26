@@ -289,7 +289,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonStop()
     {
-        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
         if (videoAudioSource != null) videoAudioSource.mute = false;
 
@@ -322,7 +322,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonPlay()
     {
-        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
         TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
@@ -351,7 +351,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonPause()
     {
-        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
         TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
@@ -382,7 +382,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonFastForward()
     {
-        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -403,7 +403,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonRewind()
     {
-        if (isInteractedLocked || !isTapeInserted || !radioPowerOn) return;
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -971,7 +971,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonEject()
     {
-        if (!isTapeInserted) return;
+        if (!isTapeInserted || isEjecting) return;
 
         if (insertedTape == null)
         {
