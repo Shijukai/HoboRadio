@@ -455,6 +455,31 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             UpdateVisuals();
         }
+
+        if (currentMode == 1 && isTapeInserted && currentTapeUrl != null && radioPowerOn)
+        {
+            if (isFirstSync && !isTapeStopped)
+            {
+                waitingPlay = true;
+                SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+            }
+            else if (!isFirstSync && videoPlayer != null && videoPlayer.IsReady)
+            {
+                _SyncTapePosition();
+            }
+        }
+    }
+
+    public void _SyncTapePosition()
+    {
+        if (videoPlayer == null || currentMode != 1) return;
+        float targetTime = tapeStartTime < 0 ? (float)(-tapeStartTime) : (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
+        if (targetTime < 0 && tapeStartTime >= 0) targetTime += 86400f; // 日またぎ補正
+
+        if (Mathf.Abs(videoPlayer.GetTime() - targetTime) > 1f)
+        {
+            videoPlayer.SetTime(targetTime);
+        }
     }
 
     public void _RestoreLateJoinerTape()
@@ -520,7 +545,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // Fetcherへの通知（電源ON時は画面を点灯させる）
         if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
-        if (currentMode == 1) return; // テープモード時はラジオ側の動画ロードとノイズ再生をスキップ
+        if (currentMode == 1)
+        {
+            if (isTapeInserted && !isTapeStopped && currentTapeUrl != null)
+            {
+                if (videoPlayer != null) videoPlayer.Stop();
+                waitingPlay = true;
+                SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+            }
+            return;
+        }
 
         if (videoAudioSource != null) videoAudioSource.mute = false;
 
@@ -1074,7 +1108,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             if (insertedTape.tapeRigidbody != null)
             {
-                insertedTape.tapeRigidbody.isKinematic = false;
+                insertedTape.tapeRigidbody.isKinematic = true;
             }
 
             insertedTape = null;
