@@ -967,6 +967,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!waitingPlay) return;
 
+        if (currentMode == 1 && (!isTapeInserted || isEjecting))
+        {
+            return;
+        }
+
         Debug.LogWarning($"[HoboRadio] OnVideoError Received: {videoError}");
         HandleRetry();
 
