@@ -105,6 +105,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private Vector3 ejectStartPos;
     private Vector3 ejectEndPos;
 
+    [Header("--- アニメーション設定（ハブ） ---")]
+    public Transform radioHubLeft;
+    public Transform radioHubRight;
+    [Tooltip("ハブの回転速度と軸（ローカル空間）")]
+    public Vector3 hubRotationSpeed = new Vector3(0f, 0f, 180f);
+
     // Animation Trackers
     private bool _animPlayDown = false;
     private bool _animPauseDown = false;
@@ -187,6 +193,25 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 {
                     insertedTape.pickup.pickupable = true;
                 }
+            }
+        }
+
+        // テープとハブの再生アニメーション
+        if (currentMode == 1 && isTapeInserted && isTapePlaying && insertedTape != null && videoPlayer != null && videoPlayer.IsPlaying)
+        {
+            Vector3 rot = hubRotationSpeed * Time.deltaTime;
+
+            if (radioHubLeft != null) radioHubLeft.Rotate(rot, Space.Self);
+            if (radioHubRight != null) radioHubRight.Rotate(rot, Space.Self);
+
+            if (insertedTape.hubLeft != null) insertedTape.hubLeft.Rotate(rot, Space.Self);
+            if (insertedTape.hubRight != null) insertedTape.hubRight.Rotate(rot, Space.Self);
+
+            float duration = videoPlayer.GetDuration();
+            if (duration > 0f && !float.IsInfinity(duration))
+            {
+                float progress = Mathf.Clamp01(videoPlayer.GetTime() / duration);
+                insertedTape.UpdateTapeProgress(progress);
             }
         }
     }
