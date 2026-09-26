@@ -109,7 +109,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public Transform radioHubLeft;
     public Transform radioHubRight;
     [Tooltip("ハブの回転速度と軸（ローカル空間）")]
-    public Vector3 hubRotationSpeed = new Vector3(0f, 0f, 180f);
+    public Vector3 hubRotationSpeed = new Vector3(180f, 0f, 0f);
 
     // Animation Trackers
     private bool _animPlayDown = false;
