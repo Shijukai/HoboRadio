@@ -20,6 +20,14 @@ public class HoboTape : UdonSharpBehaviour
 
     [HideInInspector] public Transform originalParent;
 
+    [Header("Auto Respawn Settings")]
+    [Tooltip("手放してから初期位置に自動で戻るまでの時間（秒）。0以下の場合は自動で戻りません")]
+    public float autoRespawnDelay = 30f;
+
+    private Vector3 initialLocalPosition;
+    private Quaternion initialLocalRotation;
+    private bool isTimerScheduled = false;
+
     [Header("Animation Settings")]
     public Transform hubLeft;
     public Transform hubRight;
@@ -47,6 +55,42 @@ public class HoboTape : UdonSharpBehaviour
         if (tapeRigidbody == null) tapeRigidbody = targetTransform.GetComponentInChildren<Rigidbody>();
 
         originalParent = targetTransform.parent;
+        initialLocalPosition = targetTransform.localPosition;
+        initialLocalRotation = targetTransform.localRotation;
+    }
+
+    public override void OnPickup()
+    {
+        isTimerScheduled = false;
+    }
+
+    public override void OnDrop()
+    {
+        if (autoRespawnDelay > 0f)
+        {
+            isTimerScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(_ResetToInitialPosition), autoRespawnDelay);
+        }
+    }
+
+    public void _ResetToInitialPosition()
+    {
+        if (!isTimerScheduled) return;
+        isTimerScheduled = false;
+
+        // スロットに挿入されている場合はリセットしない
+        if (targetTransform.parent != originalParent && targetTransform.parent != null) return;
+
+        targetTransform.SetParent(originalParent, true);
+        targetTransform.localPosition = initialLocalPosition;
+        targetTransform.localRotation = initialLocalRotation;
+
+        if (tapeRigidbody != null)
+        {
+            tapeRigidbody.velocity = Vector3.zero;
+            tapeRigidbody.angularVelocity = Vector3.zero;
+            tapeRigidbody.isKinematic = true;
+        }
     }
 
     public void UpdateTapeProgress(float progress)
