@@ -1046,6 +1046,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             target.SetParent(tapeSlot, true);
         }
 
+        currentTapeUrl = tape.tapeUrl;
         RequestSerialization();
         UpdateVisuals();
 
