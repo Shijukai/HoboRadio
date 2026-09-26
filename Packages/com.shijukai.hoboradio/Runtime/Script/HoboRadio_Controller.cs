@@ -1104,6 +1104,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (!isTapeInserted || isEjecting) return;
 
         TakeOwnership();
+        if (tape != null && tape.gameObject != null && !Networking.IsOwner(tape.gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, tape.gameObject);
+        }
 
         isEjecting = true;
         isSlotOpen = true;
