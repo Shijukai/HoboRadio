@@ -1232,6 +1232,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTargetCollider)
         {
+            TakeOwnership();
+
             if (tapeRoot != null)
             {
                 if (insertedTape.originalParent != null)
