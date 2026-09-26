@@ -945,20 +945,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (other == null || !isTapeInserted || !isEjecting || insertedTape == null) return;
 
+        Transform tapeRoot = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+
         bool isTargetCollider = false;
-        if (insertedTape.tapeCollider != null && insertedTape.tapeCollider == other)
-        {
-            isTargetCollider = true;
-        }
-        else if (other.transform.IsChildOf(insertedTape.transform) || insertedTape.transform.IsChildOf(other.transform))
+        if (other.transform == tapeRoot || other.transform.IsChildOf(tapeRoot))
         {
             isTargetCollider = true;
         }
 
         if (isTargetCollider)
         {
-            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
-            target.SetParent(null, true);
+            tapeRoot.SetParent(null, true);
 
             if (insertedTape.tapeRigidbody != null)
             {
