@@ -364,11 +364,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 videoPlayer.Pause();
                 isTapePlaying = false;
+                tapeStartTime = -videoPlayer.GetTime();
             }
             else
             {
                 videoPlayer.Play();
                 isTapePlaying = true;
+                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
             }
             RequestSerialization();
             UpdateVisuals();
@@ -388,8 +390,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeStopped || videoPlayer == null) return;
 
+        TakeOwnership();
         float targetTime = Mathf.Min((float)videoPlayer.GetDuration(), videoPlayer.GetTime() + 10f);
         videoPlayer.SetTime(targetTime);
+
+        tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
+        RequestSerialization();
     }
 
     public void InteractButtonRewind()
@@ -405,8 +411,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeStopped || videoPlayer == null) return;
 
+        TakeOwnership();
         float targetTime = Mathf.Max(0f, videoPlayer.GetTime() - 10f);
         videoPlayer.SetTime(targetTime);
+
+        tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
+        RequestSerialization();
     }
 
     private void LockInteraction()
@@ -592,9 +602,20 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (currentMode == 1) // Tape Mode
         {
             if (videoAudioSource != null) videoAudioSource.mute = true;
-            videoPlayer.Play();
-            isTapePlaying = true;
-            isTapeStopped = false;
+
+            float targetTime = tapeStartTime < 0 ? (float)(-tapeStartTime) : (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
+            if (targetTime < 0 && tapeStartTime >= 0) targetTime += 86400f;
+            videoPlayer.SetTime(targetTime);
+
+            if (isTapePlaying)
+            {
+                videoPlayer.Play();
+            }
+            else
+            {
+                videoPlayer.Pause();
+            }
+
             if (statusText != null) statusText.text = "";
 
             UpdateVisuals();
@@ -968,6 +989,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             insertedTape.UpdateTapeProgress(0f);
         }
+
+        tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
 
         if (videoPlayer != null) videoPlayer.Stop();
         waitingPlay = true;
