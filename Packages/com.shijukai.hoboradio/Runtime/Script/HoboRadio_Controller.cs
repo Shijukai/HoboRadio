@@ -197,17 +197,20 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // テープとリール・ハブの再生アニメーション
-        if (currentMode == 1 && isTapeInserted && insertedTape != null && (isTapePlaying || waitingPlay))
+        if (currentMode == 1 && isTapeInserted && insertedTape != null)
         {
-            Quaternion rotDelta = Quaternion.Euler(reelRotationSpeed * Time.deltaTime);
+            if (isTapePlaying || waitingPlay)
+            {
+                Quaternion rotDelta = Quaternion.Euler(reelRotationSpeed * Time.deltaTime);
 
-            if (radioReelLeft != null) radioReelLeft.localRotation = rotDelta * radioReelLeft.localRotation;
-            if (radioReelRight != null) radioReelRight.localRotation = rotDelta * radioReelRight.localRotation;
+                if (radioReelLeft != null) radioReelLeft.localRotation = rotDelta * radioReelLeft.localRotation;
+                if (radioReelRight != null) radioReelRight.localRotation = rotDelta * radioReelRight.localRotation;
 
-            if (insertedTape.hubLeft != null) insertedTape.hubLeft.localRotation = rotDelta * insertedTape.hubLeft.localRotation;
-            if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
+                if (insertedTape.hubLeft != null) insertedTape.hubLeft.localRotation = rotDelta * insertedTape.hubLeft.localRotation;
+                if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
+            }
 
-            if (isTapePlaying && videoPlayer != null && videoPlayer.IsPlaying)
+            if (!isTapeStopped && videoPlayer != null)
             {
                 float duration = videoPlayer.GetDuration();
                 if (duration > 0f && !float.IsInfinity(duration))
@@ -330,8 +333,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isTapeStopped)
         {
             isTapeStopped = false;
-            RequestSerialization();
             _PlayTape();
+            RequestSerialization();
             UpdateVisuals();
         }
         else if (!isTapePlaying)
