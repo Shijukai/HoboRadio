@@ -358,6 +358,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 videoPlayer.Play();
                 isTapePlaying = true;
+                if (videoAudioSource != null) videoAudioSource.mute = false;
                 tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
                 RequestSerialization();
                 UpdateVisuals();
@@ -503,8 +504,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                     }
                     else if (videoPlayer.IsReady && !waitingPlay)
                     {
-                        if (isTapePlaying && !videoPlayer.IsPlaying) videoPlayer.Play();
-                        else if (!isTapePlaying && videoPlayer.IsPlaying) videoPlayer.Pause();
+                        if (isTapePlaying && !videoPlayer.IsPlaying)
+                        {
+                            videoPlayer.Play();
+                            if (videoAudioSource != null) videoAudioSource.mute = false;
+                        }
+                        else if (!isTapePlaying && videoPlayer.IsPlaying)
+                        {
+                            videoPlayer.Pause();
+                        }
 
                         _SyncTapePosition();
                     }
@@ -739,7 +747,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _RestoreTapeAudio()
     {
-        if (currentMode == 1 && isTapePlaying && videoAudioSource != null)
+        if (currentMode == 1 && videoAudioSource != null)
         {
             videoAudioSource.mute = false;
         }
@@ -932,6 +940,26 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         Debug.LogWarning($"[HoboRadio] OnVideoError Received: {videoError}");
         HandleRetry();
 
+    }
+
+    public override void OnVideoEnd()
+    {
+        if (currentMode == 1 && isTapeInserted && !isTapeStopped)
+        {
+            isTapePlaying = false;
+            isTapeStopped = true;
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
+            if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+            {
+                tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+            }
+            UpdateVisuals();
+
+            if (Networking.IsOwner(gameObject))
+            {
+                RequestSerialization();
+            }
+        }
     }
 
     #region --- Tape Playback Control ---
