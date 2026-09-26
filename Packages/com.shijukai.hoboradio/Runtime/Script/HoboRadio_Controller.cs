@@ -259,6 +259,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             lastDisplayedSecond = -1;
             _ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
+
+            if (currentMode == 1 && isTapeInserted && !isTapeStopped && currentTapeUrl != null)
+            {
+                if (videoPlayer != null) videoPlayer.Stop();
+                waitingPlay = true;
+                SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+            }
         }
     }
 
@@ -575,12 +582,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (currentMode == 1)
         {
-            if (isTapeInserted && !isTapeStopped && currentTapeUrl != null)
-            {
-                if (videoPlayer != null) videoPlayer.Stop();
-                waitingPlay = true;
-                SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
-            }
             return;
         }
 
@@ -1001,6 +1002,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (videoPlayer != null) videoPlayer.Stop();
         isTapePlaying = false;
+        isTapeStopped = true;
 
         RequestSerialization();
         UpdateVisuals();
