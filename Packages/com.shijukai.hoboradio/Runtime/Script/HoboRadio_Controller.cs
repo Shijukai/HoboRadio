@@ -109,6 +109,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private Vector3 ejectEndPos;
     private int lateJoinerRetryCount = 0;
     private bool isRestoreLateJoinerScheduled = false;
+    private bool isPeriodicApplyScheduled = false;
 
     [Header("--- アニメーション設定（リール） ---")]
     public Transform radioReelLeft;
@@ -167,9 +168,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (radioPowerOn && currentMode == 0 && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
             lastServerHour = currentHr;
-            float jitterDelay = UnityEngine.Random.Range(0f, 5f);
-            Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
-            SendCustomEventDelayedSeconds(nameof(_PeriodicApplyChannel), jitterDelay);
+            if (!isPeriodicApplyScheduled)
+            {
+                isPeriodicApplyScheduled = true;
+                float jitterDelay = UnityEngine.Random.Range(0f, 5f);
+                Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
+                SendCustomEventDelayedSeconds(nameof(_PeriodicApplyChannel), jitterDelay);
+            }
         }
 
         // 再生時間の表示更新
@@ -524,8 +529,18 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private void _SyncTapePosition()
     {
         if (videoPlayer == null || currentMode != 1) return;
-        float targetTime = tapeStartTime < 0 ? (float)(-tapeStartTime) : (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
-        if (targetTime < 0 && tapeStartTime >= 0) targetTime += 86400f; // 日またぎ補正
+
+        float targetTime;
+        if (!isTapePlaying)
+        {
+            targetTime = (float)Math.Abs(tapeStartTime);
+        }
+        else
+        {
+            targetTime = (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
+            while (targetTime < 0f) targetTime += 86400f;
+            while (targetTime >= 86400f) targetTime -= 86400f;
+        }
 
         if (Mathf.Abs(videoPlayer.GetTime() - targetTime) > 1f)
         {
@@ -572,6 +587,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _PeriodicApplyChannel()
     {
+        isPeriodicApplyScheduled = false;
         if (!radioPowerOn || currentMode != 0) return;
         _ApplyChannel();
     }
@@ -700,8 +716,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (videoAudioSource != null) videoAudioSource.mute = true;
 
-            float targetTime = tapeStartTime < 0 ? (float)(-tapeStartTime) : (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
-            if (targetTime < 0 && tapeStartTime >= 0) targetTime += 86400f;
+            float targetTime;
+            if (!isTapePlaying)
+            {
+                targetTime = (float)Math.Abs(tapeStartTime);
+            }
+            else
+            {
+                targetTime = (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
+                while (targetTime < 0f) targetTime += 86400f;
+                while (targetTime >= 86400f) targetTime -= 86400f;
+            }
             videoPlayer.SetTime(targetTime);
 
             if (isTapePlaying)
