@@ -709,7 +709,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public override void OnVideoReady()
     {
-        if (!waitingPlay) return;
+        if (!waitingPlay)
+        {
+            if (videoPlayer != null) videoPlayer.Stop();
+            return;
+        }
         waitingPlay = false;
         isRetryScheduled = false;
 
