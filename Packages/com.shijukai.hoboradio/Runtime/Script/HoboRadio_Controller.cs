@@ -428,6 +428,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         bool isFirstSync = !hasSyncedInitial;
         hasSyncedInitial = true;
 
+        if (isTapeInserted && insertedTape == null)
+        {
+            _RestoreLateJoinerTape();
+        }
+
         if (isFirstSync || loadedChannelIndex != currentChannelIndex)
         {
             _ApplyChannel();
@@ -435,6 +440,57 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         else
         {
             UpdateVisuals();
+        }
+    }
+
+    public void _RestoreLateJoinerTape()
+    {
+        if (!isTapeInserted || insertedTape != null) return;
+
+        _FindTapeInSlot();
+
+        if (insertedTape != null)
+        {
+            if (insertedTape.tapeRigidbody != null) insertedTape.tapeRigidbody.isKinematic = true;
+            if (insertedTape.pickup != null)
+            {
+                insertedTape.pickup.Drop();
+                insertedTape.pickup.pickupable = false;
+            }
+
+            if (tapeSlot != null)
+            {
+                Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+                target.SetParent(tapeSlot, true);
+                target.localPosition = Vector3.zero;
+                target.localRotation = Quaternion.identity;
+            }
+            UpdateVisuals();
+        }
+        else
+        {
+            SendCustomEventDelayedSeconds(nameof(_RestoreLateJoinerTape), 2f);
+        }
+    }
+
+    public void _FindTapeInSlot()
+    {
+        if (tapeSlot == null) return;
+        Collider[] colliders = Physics.OverlapSphere(tapeSlot.position, 0.2f);
+        foreach (Collider col in colliders)
+        {
+            if (col == null) continue;
+            HoboTape tape = col.GetComponent<HoboTape>();
+            if (tape == null && col.transform.root != null)
+            {
+                tape = col.transform.root.GetComponentInChildren<HoboTape>();
+            }
+
+            if (tape != null)
+            {
+                insertedTape = tape;
+                break;
+            }
         }
     }
 
@@ -893,24 +949,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!isTapeInserted) return;
 
-        if (insertedTape == null && tapeSlot != null)
+        if (insertedTape == null)
         {
-            Collider[] colliders = Physics.OverlapSphere(tapeSlot.position, 0.2f);
-            foreach (Collider col in colliders)
-            {
-                if (col == null) continue;
-                HoboTape tape = col.GetComponent<HoboTape>();
-                if (tape == null && col.transform.root != null)
-                {
-                    tape = col.transform.root.GetComponentInChildren<HoboTape>();
-                }
-
-                if (tape != null)
-                {
-                    insertedTape = tape;
-                    break;
-                }
-            }
+            _FindTapeInSlot();
         }
 
         EjectTape(insertedTape);
