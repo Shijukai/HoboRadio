@@ -469,14 +469,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (insertedTape.pickup != null)
             {
                 insertedTape.pickup.Drop();
-                insertedTape.pickup.pickupable = false;
+                insertedTape.pickup.pickupable = isEjecting;
             }
 
             if (tapeSlot != null)
             {
                 Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
                 target.SetParent(tapeSlot, true);
-                target.localPosition = Vector3.zero;
+                target.localPosition = isEjecting ? (Vector3.up * 0.05f) : Vector3.zero;
                 target.localRotation = Quaternion.identity;
             }
             UpdateVisuals();
@@ -542,7 +542,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _ExecuteLoad()
     {
-        if (!radioPowerOn) return;
+        if (!radioPowerOn || currentMode != 0) return;
 
         if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null) return;
 
@@ -1006,7 +1006,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _ExecuteTapeLoad()
     {
-        if (!radioPowerOn || currentTapeUrl == null) return;
+        if (!radioPowerOn || currentTapeUrl == null || currentMode != 1 || isTapeStopped || isEjecting) return;
 
         if (videoPlayer != null)
         {
