@@ -346,7 +346,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             RequestSerialization();
             UpdateVisuals();
         }
-        else if (!isTapePlaying)
+        else if (!isTapePlaying && !waitingPlay)
         {
             if (videoPlayer != null)
             {
@@ -369,7 +369,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
-        if (isTapeStopped) return;
+        if (isTapeStopped || waitingPlay) return;
 
         if (videoPlayer != null)
         {
@@ -401,7 +401,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_FF");
 
-        if (isTapeStopped || videoPlayer == null) return;
+        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
 
         TakeOwnership();
         float targetTime = Mathf.Min((float)videoPlayer.GetDuration(), videoPlayer.GetTime() + 10f);
@@ -422,7 +422,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_REW");
 
-        if (isTapeStopped || videoPlayer == null) return;
+        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
 
         TakeOwnership();
         float targetTime = Mathf.Max(0f, videoPlayer.GetTime() - 10f);
@@ -498,8 +498,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             }
         }
     }
-
-    public void _SyncTapePosition()
 
     public void _SyncTapePosition()
     {
@@ -1003,6 +1001,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (videoPlayer != null) videoPlayer.Stop();
         isTapePlaying = false;
         isTapeStopped = true;
+        waitingPlay = false;
+
+        CancelPendingNoiseFadeOut();
+        StopChannelNoise();
 
         RequestSerialization();
         UpdateVisuals();
