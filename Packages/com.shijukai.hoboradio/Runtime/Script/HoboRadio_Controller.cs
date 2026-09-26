@@ -344,6 +344,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isTapeStopped)
         {
             isTapeStopped = false;
+            isTapePlaying = true;
             _PlayTape();
             RequestSerialization();
             UpdateVisuals();
@@ -1156,6 +1157,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isEjecting = false;
             isEjectAnimating = false;
             isTapeStopped = false;
+            isTapePlaying = false;
             currentMode = 0;
             isSlotOpen = false;
 
