@@ -515,7 +515,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             UpdateVisuals();
             SendCustomEventDelayedSeconds(nameof(_RestoreTapeAudio), 1.0f);
-            NoiseFadeOut();
+            StartNoiseFadeOutDelay(0.5f);
         }
         else // Radio Mode
         {
@@ -680,7 +680,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isNoiseFadeStepScheduled) return;
         isNoiseFadeStepScheduled = true;
-        SendCustomEventDelayedSeconds(nameof(_NoiseFadeStep), 0.12f);
+        SendCustomEventDelayedSeconds(nameof(_NoiseFadeStep), 0.1f);
     }
 
     private void StopChannelNoise()
