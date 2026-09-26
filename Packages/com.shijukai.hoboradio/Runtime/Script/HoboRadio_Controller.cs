@@ -101,6 +101,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
+    private float lastVideoReadyTime = 0f;
 
     private bool isEjectAnimating = false;
     private float ejectAnimTime = 0f;
@@ -719,6 +720,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (statusText != null) statusText.text = "";
 
             StartNoiseFadeOutDelay(3f);
+            lastVideoReadyTime = Time.timeSinceLevelLoad;
             SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
         }
     }
@@ -726,6 +728,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void _ReSyncSeek()
     {
         if (currentMode != 0) return;
+        if (Time.timeSinceLevelLoad - lastVideoReadyTime < 29f) return;
 
         if (videoPlayer != null && videoPlayer.IsPlaying)
         {
