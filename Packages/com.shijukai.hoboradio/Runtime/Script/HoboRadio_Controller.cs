@@ -316,7 +316,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
         else
         {
-            EjectTape(insertedTape);
+            if (insertedTape == null) _FindTapeInSlot();
+            if (insertedTape != null) EjectTape(insertedTape);
         }
     }
 
@@ -978,6 +979,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             _FindTapeInSlot();
         }
 
+        if (insertedTape == null) return;
+
         EjectTape(insertedTape);
     }
 
@@ -1057,7 +1060,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTargetCollider)
         {
-            tapeRoot.SetParent(insertedTape.originalParent, true);
+            if (tapeRoot != null)
+            {
+                if (insertedTape.originalParent != null)
+                {
+                    tapeRoot.SetParent(insertedTape.originalParent, true);
+                }
+                else
+                {
+                    tapeRoot.SetParent(null, true);
+                }
+            }
 
             if (insertedTape.tapeRigidbody != null)
             {
