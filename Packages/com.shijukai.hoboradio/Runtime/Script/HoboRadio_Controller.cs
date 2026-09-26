@@ -923,6 +923,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         retryCount = 0;
         isRetryScheduled = false;
 
+        if (insertedTape != null)
+        {
+            insertedTape.UpdateTapeProgress(0f);
+        }
+
         if (videoPlayer != null) videoPlayer.Stop();
         waitingPlay = true;
 
