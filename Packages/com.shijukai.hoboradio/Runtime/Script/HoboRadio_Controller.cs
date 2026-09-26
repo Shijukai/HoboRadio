@@ -247,6 +247,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             StopChannelNoise();
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOff");
             if (channelText != null) channelText.text = "";
+            if (statusText != null) statusText.text = "";
             radioPowerOn = false;
             waitingPlay = false;
             isRetryScheduled = false;
@@ -641,6 +642,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             videoPlayer.Stop();
         }
+
+        if (statusText != null) statusText.text = "";
 
         waitingPlay = true;
         retryCount = 0;
