@@ -502,8 +502,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 if (videoPlayer != null)
                 {
-                    if (modeChanged || tapeChanged || (!videoPlayer.IsReady && !waitingPlay))
+                    if (modeChanged || tapeChanged || (!videoPlayer.IsReady && !waitingPlay && !isRetryScheduled))
                     {
+                        isRetryScheduled = false;
                         loadedTapeUrl = currentTapeUrl;
                         if (videoPlayer.IsPlaying) videoPlayer.Stop();
                         waitingPlay = true;
