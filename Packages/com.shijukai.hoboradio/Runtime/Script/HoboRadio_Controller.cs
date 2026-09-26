@@ -1262,9 +1262,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             UpdateVisuals();
 
-            if (Networking.IsOwner(gameObject))
+            if (!isGlobal || Networking.IsOwner(gameObject))
             {
-                RequestSerialization();
+                if (isGlobal)
+                {
+                    RequestSerialization();
+                }
                 _ApplyChannel();
             }
         }
