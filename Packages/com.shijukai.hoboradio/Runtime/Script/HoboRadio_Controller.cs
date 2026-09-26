@@ -446,7 +446,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void LockInteraction()
     {
-        if (!isGlobal) return;
         isInteractedLocked = true;
         SendCustomEventDelayedSeconds(nameof(_UnlockInteraction), 3f);
     }
