@@ -812,11 +812,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             if (currentMode == 1)
             {
-                SendCustomEventDelayedSeconds(nameof(_ExecuteTapeLoad), RetryDelay);
+                SendCustomEventDelayedSeconds(nameof(_RetryExecuteTapeLoad), RetryDelay);
             }
             else
             {
-                SendCustomEventDelayedSeconds(nameof(_ExecuteLoad), RetryDelay);
+                SendCustomEventDelayedSeconds(nameof(_RetryExecuteLoad), RetryDelay);
             }
         }
         else
@@ -829,6 +829,18 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             NoiseFadeOut();
             if (statusText != null) statusText.text = "LOAD ERROR";
         }
+    }
+
+    public void _RetryExecuteTapeLoad()
+    {
+        if (!isRetryScheduled) return;
+        _ExecuteTapeLoad();
+    }
+
+    public void _RetryExecuteLoad()
+    {
+        if (!isRetryScheduled) return;
+        _ExecuteLoad();
     }
 
     #endregion
