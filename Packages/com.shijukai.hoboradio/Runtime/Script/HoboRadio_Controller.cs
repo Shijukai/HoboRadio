@@ -33,9 +33,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     //ChannelSettings
     [HideInInspector] public VRCUrl[] channels = new VRCUrl[ChannelCount];
     [HideInInspector] private int loadedChannelIndex = -1;
+    private int loadedMode = -1;
+    private VRCUrl loadedTapeUrl;
 
     //AnimationSettings
-    
+
     [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f, 0.47f };
 
     //UISettings
@@ -457,7 +459,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             _RestoreLateJoinerTape();
         }
 
-        if (isFirstSync || loadedChannelIndex != currentChannelIndex)
+        bool modeChanged = loadedMode != currentMode;
+        bool tapeChanged = loadedTapeUrl != currentTapeUrl;
+
+        if (isFirstSync || loadedChannelIndex != currentChannelIndex || modeChanged)
         {
             _ApplyChannel();
         }
@@ -482,12 +487,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 if (videoPlayer != null)
                 {
-                    if (!videoPlayer.IsReady && !waitingPlay)
+                    if (modeChanged || tapeChanged || (!videoPlayer.IsReady && !waitingPlay))
                     {
+                        loadedTapeUrl = currentTapeUrl;
+                        if (videoPlayer.IsPlaying) videoPlayer.Stop();
                         waitingPlay = true;
                         SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
                     }
-                    else if (videoPlayer.IsReady)
+                    else if (videoPlayer.IsReady && !waitingPlay)
                     {
                         if (isTapePlaying && !videoPlayer.IsPlaying) videoPlayer.Play();
                         else if (!isTapePlaying && videoPlayer.IsPlaying) videoPlayer.Pause();
@@ -569,6 +576,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void _ApplyChannel()
     {
         loadedChannelIndex = currentChannelIndex;
+        loadedMode = currentMode;
         UpdateVisuals();
 
         Debug.Log($"[HoboRadio] ApplyChannel: powerOn={radioPowerOn}, waitingPlay={waitingPlay}, currentCh={currentChannelIndex}, isOwner={Networking.IsOwner(gameObject)}");
