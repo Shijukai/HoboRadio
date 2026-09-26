@@ -1117,6 +1117,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (tape != null)
         {
+            if (!Networking.IsOwner(tape.gameObject)) return;
             InsertTape(tape);
         }
     }
@@ -1161,10 +1162,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             currentMode = 0;
             isSlotOpen = false;
 
-            TakeOwnership();
-            RequestSerialization();
             UpdateVisuals();
-            _ApplyChannel();
+
+            if (Networking.IsOwner(gameObject))
+            {
+                RequestSerialization();
+                _ApplyChannel();
+            }
         }
     }
 }
