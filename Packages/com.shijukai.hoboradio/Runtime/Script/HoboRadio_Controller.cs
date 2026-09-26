@@ -473,7 +473,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         bool modeChanged = loadedMode != currentMode;
-        bool tapeChanged = loadedTapeUrl != currentTapeUrl;
+        string loadedUrlStr = loadedTapeUrl != null ? loadedTapeUrl.Get() : "";
+        string currentUrlStr = currentTapeUrl != null ? currentTapeUrl.Get() : "";
+        bool tapeChanged = loadedUrlStr != currentUrlStr;
 
         if (isFirstSync || loadedChannelIndex != currentChannelIndex || modeChanged)
         {
