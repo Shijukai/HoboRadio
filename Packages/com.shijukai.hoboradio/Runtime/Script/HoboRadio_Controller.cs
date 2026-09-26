@@ -662,7 +662,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!radioPowerOn || currentMode != 0) return;
 
-        if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null) return;
+        if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null || string.IsNullOrEmpty(channels[currentChannelIndex].Get()))
+        {
+            waitingPlay = false;
+            isRetryScheduled = false;
+            StopChannelNoise();
+            if (statusText != null) statusText.text = "NO SIGNAL";
+            return;
+        }
 
         Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
         videoPlayer.LoadURL(channels[currentChannelIndex]);
