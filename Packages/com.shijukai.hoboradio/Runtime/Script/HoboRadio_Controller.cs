@@ -252,6 +252,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (channelText != null) channelText.text = "";
             if (statusText != null) statusText.text = "";
             radioPowerOn = false;
+            loadedPowerOn = false;
             waitingPlay = false;
             isRetryScheduled = false;
 
@@ -268,6 +269,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
             radioPowerOn = true;
+            loadedPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
             retryCount = 0;
@@ -1114,7 +1116,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         pendingInsertTape = null;
 
         currentMode = 1;
+        loadedMode = 1;
         currentTapeUrl = insertedTape.tapeUrl;
+        loadedTapeUrl = currentTapeUrl;
         tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
         isSlotOpen = false;
 
