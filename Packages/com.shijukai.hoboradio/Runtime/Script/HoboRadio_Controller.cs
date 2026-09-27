@@ -1430,6 +1430,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             }
 
             insertedTape = null;
+            pendingInsertTape = null;
             isTapeInserted = false;
             isEjecting = false;
             isEjectAnimating = false;
