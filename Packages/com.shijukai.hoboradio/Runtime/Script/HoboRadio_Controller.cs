@@ -1238,7 +1238,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void _ExecuteTapeLoad()
     {
-        if (!radioPowerOn || currentTapeUrl == null || currentMode != 1 || isTapeStopped || isEjecting) return;
+        if (!radioPowerOn || currentMode != 1 || isTapeStopped || isEjecting) return;
+
+        if (currentTapeUrl == null || string.IsNullOrEmpty(currentTapeUrl.Get()))
+        {
+            waitingPlay = false;
+            isRetryScheduled = false;
+            StopChannelNoise();
+            if (statusText != null) statusText.text = "BLANK TAPE";
+            return;
+        }
 
         if (videoPlayer != null)
         {
