@@ -380,7 +380,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
 
-        if (!isTapeStopped && (isTapePlaying || waitingPlay)) return;
+        if (!isTapeStopped) return;
 
         TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
@@ -388,34 +388,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
-        if (isTapeStopped)
+        LockInteraction();
+        isTapeStopped = false;
+        isTapePlaying = true;
+        _PlayTape();
+        if (isGlobal)
         {
-            LockInteraction();
-            isTapeStopped = false;
-            isTapePlaying = true;
-            _PlayTape();
-            if (isGlobal)
-            {
-                RequestSerialization();
-            }
-            UpdateVisuals();
+            RequestSerialization();
         }
-        else if (!isTapePlaying && !waitingPlay)
-        {
-            LockInteraction();
-            if (videoPlayer != null)
-            {
-                videoPlayer.Play();
-                isTapePlaying = true;
-                if (videoAudioSource != null) videoAudioSource.mute = false;
-                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
-                if (isGlobal)
-                {
-                    RequestSerialization();
-                }
-                UpdateVisuals();
-            }
-        }
+        UpdateVisuals();
     }
 
     public void InteractButtonPause()
