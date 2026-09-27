@@ -1392,6 +1392,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isTapeInserted = false;
             isEjecting = false;
             isEjectAnimating = false;
+            _accumulatedSeekTime = 0f;
             isTapeStopped = false;
             isTapePlaying = false;
             currentMode = 0;
