@@ -340,10 +340,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonStop()
     {
-        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
+        if (isInteractedLocked || !isTapeInserted || isEjecting || _accumulatedSeekTime != 0f) return;
         LockInteraction();
-
-        if (videoAudioSource != null) videoAudioSource.mute = false;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -353,8 +351,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
 
         TakeOwnership();
-        if (!isTapeStopped)
+
+        if (!radioPowerOn || isTapeStopped)
         {
+            if (insertedTape == null) _FindTapeInSlot();
+            if (insertedTape != null) EjectTape(insertedTape);
+        }
+        else
+        {
+            if (videoAudioSource != null) videoAudioSource.mute = false;
             if (videoPlayer != null) videoPlayer.Stop();
             isTapePlaying = false;
             isTapeStopped = true;
@@ -368,11 +373,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 RequestSerialization();
             }
             UpdateVisuals();
-        }
-        else
-        {
-            if (insertedTape == null) _FindTapeInSlot();
-            if (insertedTape != null) EjectTape(insertedTape);
         }
     }
 
