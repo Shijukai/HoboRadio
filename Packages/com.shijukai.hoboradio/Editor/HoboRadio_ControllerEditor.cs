@@ -5,8 +5,8 @@ using UnityEngine;
 [CustomEditor(typeof(HoboRadio_Controller))]
 public class HoboRadio_ControllerEditor : Editor
 {
-    // 開発時に内部設定を表示したい場合は true に書き換えます
-    private const bool isDebugMode = false;
+    // 開発時にすべてのエディターで内部設定を表示したい場合は true に書き換えます
+    public static bool isDebugMode = false;
 
     private Texture2D logoTexture;
 
@@ -70,7 +70,7 @@ public class HoboRadio_ControllerEditor : Editor
         EditorGUILayout.EndVertical();
 
         // 開発者モード時のみ内部設定を表示
-        if (isDebugMode)
+        if (HoboEditorSettings.isDebugMode)
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
@@ -84,7 +84,6 @@ public class HoboRadio_ControllerEditor : Editor
 [CustomEditor(typeof(HoboTape))]
 public class HoboTapeEditor : Editor
 {
-    private static bool showDeveloperSettings = false;
     private Texture2D logoTexture;
 
     private void OnEnable()
@@ -145,7 +144,7 @@ public class HoboTapeEditor : Editor
 
         EditorGUILayout.Space(10);
 
-        // 開発者用プルダウン領域
+        // 配布団体用プルダウン領域
         showDeveloperSettings = EditorGUILayout.Foldout(showDeveloperSettings, "Developer Only", true);
         if (showDeveloperSettings)
         {
@@ -153,6 +152,14 @@ public class HoboTapeEditor : Editor
             EditorGUILayout.PropertyField(titleProp, new GUIContent("タイトル"));
             EditorGUILayout.PropertyField(artistProp, new GUIContent("サークル・制作団体"));
             EditorGUI.indentLevel--;
+        }
+
+        // 一括デバッグモード有効時のみ完全隠蔽パラメータを表示
+        if (HoboRadio_ControllerEditor.isDebugMode)
+        {
+            EditorGUILayout.Space(10);
+            EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
+            DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist");
         }
 
         serializedObject.ApplyModifiedProperties();
