@@ -478,6 +478,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (_accumulatedSeekTime == 0f || Time.time - _lastSeekTime < 0.95f) return;
 
+        if (isGlobal && !Networking.IsOwner(gameObject))
+        {
+            _accumulatedSeekTime = 0f;
+            return;
+        }
+
         if (videoPlayer != null)
         {
             float targetTime = Mathf.Clamp((float)videoPlayer.GetTime() + _accumulatedSeekTime, 0f, (float)videoPlayer.GetDuration());
