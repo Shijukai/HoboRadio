@@ -70,7 +70,7 @@ public class HoboRadio_ControllerEditor : Editor
         EditorGUILayout.EndVertical();
 
         // 開発者モード時のみ内部設定を表示
-        if (HoboEditorSettings.isDebugMode)
+        if (isDebugMode)
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
@@ -84,6 +84,7 @@ public class HoboRadio_ControllerEditor : Editor
 [CustomEditor(typeof(HoboTape))]
 public class HoboTapeEditor : Editor
 {
+    private static bool showDeveloperSettings = false;
     private Texture2D logoTexture;
 
     private void OnEnable()
