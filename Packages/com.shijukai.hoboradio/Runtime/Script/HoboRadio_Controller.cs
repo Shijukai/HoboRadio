@@ -35,6 +35,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [HideInInspector] private int loadedChannelIndex = -1;
     private int loadedMode = -1;
     private bool loadedPowerOn = true;
+    private bool loadedIsEjecting = false;
     private VRCUrl loadedTapeUrl;
 
     //AnimationSettings
@@ -506,6 +507,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         bool powerChanged = loadedPowerOn != radioPowerOn;
         loadedPowerOn = radioPowerOn;
 
+        bool ejectChanged = loadedIsEjecting != isEjecting;
+        loadedIsEjecting = isEjecting;
+
         bool modeChanged = loadedMode != currentMode;
         string loadedUrlStr = loadedTapeUrl != null ? loadedTapeUrl.Get() : "";
         string currentUrlStr = currentTapeUrl != null ? currentTapeUrl.Get() : "";
@@ -543,7 +547,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             UpdateVisuals();
         }
 
-        if (isEjecting && !isEjectAnimating)
+        if (ejectChanged && isEjecting)
         {
             _StartEjectAnimation();
         }
