@@ -129,6 +129,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private AudioClip defaultRadioNoiseSE;
 
+    private void OnDisable()
+    {
+        _accumulatedSeekTime = 0f;
+    }
+
     private void Start()
     {
         Debug.Log("[HoboRadio] Controller Started");
