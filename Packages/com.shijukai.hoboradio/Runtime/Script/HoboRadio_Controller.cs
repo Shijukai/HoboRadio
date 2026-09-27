@@ -245,6 +245,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (radioPowerOn) // OFFにする処理
         {
             if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
+
+            if (isTapeInserted && isTapePlaying && videoPlayer != null)
+            {
+                tapeStartTime = -videoPlayer.GetTime();
+                isTapePlaying = false;
+            }
+
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
@@ -255,12 +262,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             loadedPowerOn = false;
             waitingPlay = false;
             isRetryScheduled = false;
-
-            if (isTapeInserted)
-            {
-                isTapePlaying = false;
-                isTapeStopped = true;
-            }
 
             // Fetcherに表示クリアを通知
             if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
