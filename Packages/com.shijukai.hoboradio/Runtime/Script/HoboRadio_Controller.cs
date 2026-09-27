@@ -438,7 +438,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void InteractButtonFastForward()
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
-        LockInteraction();
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -450,14 +449,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isTapeStopped || videoPlayer == null || waitingPlay) return;
 
         TakeOwnership();
-        float targetTime = Mathf.Min((float)videoPlayer.GetDuration(), videoPlayer.GetTime() + 10f);
-        videoPlayer.SetTime(targetTime);
-
-        tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
-        if (isGlobal)
-        {
-            RequestSerialization();
-        }
+        _accumulatedSeekTime += 10f;
+        _lastSeekTime = Time.time;
+        SendCustomEventDelayedSeconds(nameof(_CheckAndExecuteSeek), 1.0f);
     }
 
     public void InteractButtonRewind()
