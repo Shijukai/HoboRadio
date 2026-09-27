@@ -1121,7 +1121,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         currentTapeUrl = tape.tapeUrl;
-        RequestSerialization();
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
         UpdateVisuals();
 
         if (tapeMechanicsAudioSource != null && tapeInsertSE != null)
@@ -1166,7 +1169,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         insertedTape.UpdateTapeProgress(0f);
 
-        RequestSerialization();
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
         UpdateVisuals();
 
         if (videoPlayer != null) videoPlayer.Stop();
@@ -1199,7 +1205,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         CancelPendingNoiseFadeOut();
         StopChannelNoise();
 
-        RequestSerialization();
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
         UpdateVisuals();
 
         if (tapeMechanicsAudioSource != null && tapeEjectSE != null)
