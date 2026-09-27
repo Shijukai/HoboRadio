@@ -84,7 +84,7 @@ public class HoboRadio_ControllerEditor : Editor
 [CustomEditor(typeof(HoboTape))]
 public class HoboTapeEditor : Editor
 {
-    private const bool isDebugMode = false;
+    private static bool showDeveloperSettings = false;
     private Texture2D logoTexture;
 
     private void OnEnable()
@@ -131,20 +131,28 @@ public class HoboTapeEditor : Editor
 
         EditorGUILayout.Space(10);
 
+        SerializedProperty titleProp = serializedObject.FindProperty("tapeTitle");
+        SerializedProperty artistProp = serializedObject.FindProperty("tapeArtist");
+
+        // 通常表示領域（表示専用・URL非表示）
         EditorGUILayout.BeginVertical(GUI.skin.box);
-        EditorGUILayout.LabelField("テープ情報設定 (Tape Info)", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("テープ情報 (Tape Info)", EditorStyles.boldLabel);
         EditorGUILayout.Space(2);
 
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("tapeTitle"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("tapeArtist"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("tapeUrl"));
+        EditorGUILayout.LabelField("タイトル", string.IsNullOrEmpty(titleProp.stringValue) ? "(未設定)" : titleProp.stringValue);
+        EditorGUILayout.LabelField("サークル・制作団体", string.IsNullOrEmpty(artistProp.stringValue) ? "(未設定)" : artistProp.stringValue);
         EditorGUILayout.EndVertical();
 
-        if (isDebugMode)
+        EditorGUILayout.Space(10);
+
+        // 開発者用プルダウン領域
+        showDeveloperSettings = EditorGUILayout.Foldout(showDeveloperSettings, "Developer Only", true);
+        if (showDeveloperSettings)
         {
-            EditorGUILayout.Space(10);
-            EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
-            DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist", "tapeUrl");
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(titleProp, new GUIContent("タイトル"));
+            EditorGUILayout.PropertyField(artistProp, new GUIContent("サークル・制作団体"));
+            EditorGUI.indentLevel--;
         }
 
         serializedObject.ApplyModifiedProperties();
