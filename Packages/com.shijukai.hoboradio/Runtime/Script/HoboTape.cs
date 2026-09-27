@@ -45,6 +45,11 @@ public class HoboTape : UdonSharpBehaviour
     [Tooltip("右テープ量ブレンドシェイプのインデックス")]
     public int blendShapeIndexRight = 1;
 
+    private void OnDisable()
+    {
+        isTimerScheduled = false;
+    }
+
     private void Start()
     {
         if (targetTransform == null && transform.parent != null) targetTransform = transform.parent;
@@ -77,6 +82,9 @@ public class HoboTape : UdonSharpBehaviour
     {
         if (!isTimerScheduled) return;
         isTimerScheduled = false;
+
+        // 対象オブジェクトのオーナー権限がない場合（他人が操作中など）はリセットしない
+        if (!Networking.IsOwner(targetTransform.gameObject)) return;
 
         // スロットに挿入されている場合はリセットしない
         if (targetTransform.parent != originalParent && targetTransform.parent != null) return;
