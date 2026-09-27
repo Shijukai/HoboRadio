@@ -212,13 +212,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // 再生時間の表示更新
-        if (videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsPlaying && statusText != null)
+        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
         {
-            int totalSec = (int)videoPlayer.GetTime();
-            if (totalSec != lastDisplayedSecond)
+            if (videoPlayer.IsPlaying && statusText != null)
             {
-                lastDisplayedSecond = totalSec;
-                statusText.text = $"{totalSec / 60:00}:{totalSec % 60:00}";
+                int totalSec = (int)videoPlayer.GetTime();
+                if (totalSec != lastDisplayedSecond)
+                {
+                    lastDisplayedSecond = totalSec;
+                    statusText.text = $"{totalSec / 60:00}:{totalSec % 60:00}";
+                }
             }
         }
 
@@ -254,13 +257,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
             }
 
-            if (!isTapeStopped && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
+            if (videoLoadStartTime > 0f && !isTapeStopped && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
             {
-                float duration = videoPlayer.GetDuration();
-                if (duration > 0f && !float.IsInfinity(duration))
+                if (videoPlayer.IsPlaying)
                 {
-                    float progress = Mathf.Clamp01(videoPlayer.GetTime() / duration);
-                    insertedTape.UpdateTapeProgress(progress);
+                    float duration = videoPlayer.GetDuration();
+                    if (duration > 0f && !float.IsInfinity(duration))
+                    {
+                        float progress = Mathf.Clamp01(videoPlayer.GetTime() / duration);
+                        insertedTape.UpdateTapeProgress(progress);
+                    }
                 }
             }
         }
@@ -278,9 +284,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
 
-            if (isTapeInserted && isTapePlaying && videoPlayer != null)
+            iif(isTapeInserted && isTapePlaying && videoPlayer != null)
             {
-                tapeStartTime = -videoPlayer.GetTime();
+                if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer.gameObject.activeInHierarchy)
+                {
+                    tapeStartTime = -videoPlayer.GetTime();
+                }
                 isTapePlaying = false;
             }
 
@@ -495,7 +504,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             return;
         }
 
-        if (videoPlayer != null)
+        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
         {
             float duration = videoPlayer.GetDuration();
             float currentTime = videoPlayer.GetTime();
@@ -598,12 +607,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (isTapeStopped || isEjecting)
             {
-                if (videoPlayer != null && (videoPlayer.IsPlaying || waitingPlay))
+                if (videoPlayer != null)
                 {
-                    videoPlayer.Stop();
-                    waitingPlay = false;
-                    CancelPendingNoiseFadeOut();
-                    StopChannelNoise();
+                    if (waitingPlay || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsPlaying))
+                    {
+                        videoPlayer.Stop();
+                        waitingPlay = false;
+                        CancelPendingNoiseFadeOut();
+                        StopChannelNoise();
+                    }
                 }
             }
             else
@@ -618,7 +630,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                         waitingPlay = true;
                         SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
                     }
-                    else if (videoPlayer.IsReady && !waitingPlay)
+                    else if (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && !waitingPlay)
                     {
                         if (isTapePlaying && !videoPlayer.IsPlaying)
                         {
