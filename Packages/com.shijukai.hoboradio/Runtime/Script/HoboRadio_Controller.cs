@@ -363,6 +363,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTapeStopped)
         {
+            LockInteraction();
             isTapeStopped = false;
             isTapePlaying = true;
             _PlayTape();
