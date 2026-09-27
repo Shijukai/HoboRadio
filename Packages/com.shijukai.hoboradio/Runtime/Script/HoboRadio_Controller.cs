@@ -457,7 +457,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void InteractButtonRewind()
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
-        LockInteraction();
+        // 連続入力を可能にするためLockInteraction()は呼ばない
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -469,14 +469,27 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isTapeStopped || videoPlayer == null || waitingPlay) return;
 
         TakeOwnership();
-        float targetTime = Mathf.Max(0f, videoPlayer.GetTime() - 10f);
-        videoPlayer.SetTime(targetTime);
+        _accumulatedSeekTime -= 10f;
+        _lastSeekTime = Time.time;
+        SendCustomEventDelayedSeconds(nameof(_CheckAndExecuteSeek), 1.0f);
+    }
 
-        tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
-        if (isGlobal)
+    public void _CheckAndExecuteSeek()
+    {
+        if (_accumulatedSeekTime == 0f || Time.time - _lastSeekTime < 0.95f) return;
+
+        if (videoPlayer != null)
         {
-            RequestSerialization();
+            float targetTime = Mathf.Clamp((float)videoPlayer.GetTime() + _accumulatedSeekTime, 0f, (float)videoPlayer.GetDuration());
+            videoPlayer.SetTime(targetTime);
+            tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
+
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
         }
+        _accumulatedSeekTime = 0f;
     }
 
     private void LockInteraction()
