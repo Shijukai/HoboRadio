@@ -113,6 +113,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool isRestoreLateJoinerScheduled = false;
     private bool isPeriodicApplyScheduled = false;
 
+    private float _accumulatedSeekTime = 0f;
+    private float _lastSeekTime = 0f;
+
     [Header("--- アニメーション設定（リール） ---")]
     public Transform radioReelLeft;
     public Transform radioReelRight;
