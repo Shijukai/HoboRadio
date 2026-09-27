@@ -342,7 +342,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
 
-            RequestSerialization();
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
             UpdateVisuals();
         }
         else
@@ -368,7 +371,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isTapeStopped = false;
             isTapePlaying = true;
             _PlayTape();
-            RequestSerialization();
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
             UpdateVisuals();
         }
         else if (!isTapePlaying && !waitingPlay)
@@ -379,7 +385,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 isTapePlaying = true;
                 if (videoAudioSource != null) videoAudioSource.mute = false;
                 tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
-                RequestSerialization();
+                if (isGlobal)
+                {
+                    RequestSerialization();
+                }
                 UpdateVisuals();
             }
         }
@@ -411,7 +420,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 isTapePlaying = true;
                 tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
             }
-            RequestSerialization();
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
             UpdateVisuals();
         }
     }
@@ -434,7 +446,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         videoPlayer.SetTime(targetTime);
 
         tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
-        RequestSerialization();
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
     }
 
     public void InteractButtonRewind()
@@ -455,7 +470,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         videoPlayer.SetTime(targetTime);
 
         tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
-        RequestSerialization();
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
     }
 
     private void LockInteraction()
@@ -1060,7 +1078,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             }
             UpdateVisuals();
 
-            if (Networking.IsOwner(gameObject))
+            if (isGlobal && Networking.IsOwner(gameObject))
             {
                 RequestSerialization();
             }
