@@ -133,6 +133,21 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void OnDisable()
     {
+        if (pendingInsertTape != null)
+        {
+            _CompleteInsertSnap();
+        }
+
+        if (isEjecting && insertedTape != null && insertedTape.pickup != null && !insertedTape.pickup.pickupable)
+        {
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.localPosition = Vector3.up * 0.05f;
+            insertedTape.pickup.pickupable = true;
+            isEjectAnimating = false;
+        }
+
+        StopChannelNoise();
+
         _accumulatedSeekTime = 0f;
         pendingInsertTape = null;
         waitingPlay = false;
