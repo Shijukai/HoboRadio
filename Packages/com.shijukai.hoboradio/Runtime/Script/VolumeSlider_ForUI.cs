@@ -5,14 +5,20 @@ using UnityEngine.UI;
 public class VolumeSlider_ForUI : UdonSharpBehaviour
 {
     [SerializeField] private Slider slider;
-    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private HoboRadio_Controller controller;
 
     void Start()
     {
-        slider.value = audioSource.volume;
+        if (controller != null && slider != null)
+        {
+            slider.value = controller.masterVolume;
+        }
     }
     public void UpdateVolume()
     {
-        audioSource.volume = slider.value;
+        if (controller != null && slider != null)
+        {
+            controller.UpdateMasterVolume(slider.value);
+        }
     }
 }
