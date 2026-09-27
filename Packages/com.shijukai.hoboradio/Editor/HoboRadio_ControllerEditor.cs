@@ -5,7 +5,8 @@ using UnityEngine;
 [CustomEditor(typeof(HoboRadio_Controller))]
 public class HoboRadio_ControllerEditor : Editor
 {
-    private static bool showAdvancedSettings = false;
+    // 開発時に内部設定を表示したい場合は true に書き換えます
+    private const bool isDebugMode = false;
 
     public override void OnInspectorGUI()
     {
@@ -16,16 +17,12 @@ public class HoboRadio_ControllerEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("radioPowerOn"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("currentChannelIndex"));
 
-        EditorGUILayout.Space(10);
-        EditorGUILayout.HelpBox("詳細設定欄は開発・内部用です。不具合の原因になりますのでお手を触れないようにお願いします。", MessageType.Warning);
-
-        // その他の設定項目を折りたたみ表示
-        showAdvancedSettings = EditorGUILayout.Foldout(showAdvancedSettings, "詳細設定 (Advanced Settings)", true);
-        if (showAdvancedSettings)
+        // 開発者モード時のみ内部設定を表示
+        if (isDebugMode)
         {
-            EditorGUI.indentLevel++;
+            EditorGUILayout.Space(10);
+            EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
             DrawPropertiesExcluding(serializedObject, "m_Script", "isGlobal", "radioPowerOn", "currentChannelIndex");
-            EditorGUI.indentLevel--;
         }
 
         serializedObject.ApplyModifiedProperties();
