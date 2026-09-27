@@ -16,7 +16,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     [Header("--- 自動起動設定 ---")]
     [Tooltip("チェックを入れるとワールドに入った時に電源が自動でONになります")]
-    [SerializeField] public bool radioPowerOn = true;
+    [UdonSynced, SerializeField] public bool radioPowerOn = true;
 
     private const int ChannelCount = 4;
 
@@ -34,6 +34,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [HideInInspector] public VRCUrl[] channels = new VRCUrl[ChannelCount];
     [HideInInspector] private int loadedChannelIndex = -1;
     private int loadedMode = -1;
+    private bool loadedPowerOn = true;
     private VRCUrl loadedTapeUrl;
 
     //AnimationSettings
@@ -137,6 +138,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             hasSyncedInitial = true;
         }
+        loadedPowerOn = radioPowerOn;
 
         // 初期化
         if (radioPowerOn)
@@ -238,6 +240,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked) return;
         LockInteraction();
+        TakeOwnership();
 
         if (radioPowerOn) // OFFにする処理
         {
@@ -278,6 +281,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 waitingPlay = true;
                 SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
             }
+        }
+
+        if (isGlobal)
+        {
+            RequestSerialization();
         }
     }
 
@@ -473,12 +481,38 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             }
         }
 
+        bool powerChanged = loadedPowerOn != radioPowerOn;
+        loadedPowerOn = radioPowerOn;
+
         bool modeChanged = loadedMode != currentMode;
         string loadedUrlStr = loadedTapeUrl != null ? loadedTapeUrl.Get() : "";
         string currentUrlStr = currentTapeUrl != null ? currentTapeUrl.Get() : "";
         bool tapeChanged = loadedUrlStr != currentUrlStr;
 
-        if (isFirstSync || loadedChannelIndex != currentChannelIndex || modeChanged)
+        if (powerChanged || (isFirstSync && !radioPowerOn))
+        {
+            if (radioPowerOn)
+            {
+                if (!isFirstSync && tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
+                lastDisplayedSecond = -1;
+            }
+            else
+            {
+                if (!isFirstSync && tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
+                if (videoPlayer != null) videoPlayer.Stop();
+                CancelPendingNoiseFadeOut();
+                StopChannelNoise();
+                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOff");
+                if (channelText != null) channelText.text = "";
+                if (statusText != null) statusText.text = "";
+                waitingPlay = false;
+                isRetryScheduled = false;
+                if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
+            }
+        }
+
+        if (isFirstSync || loadedChannelIndex != currentChannelIndex || modeChanged || powerChanged)
         {
             _ApplyChannel();
         }
@@ -508,7 +542,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 if (videoPlayer != null)
                 {
-                    if (modeChanged || tapeChanged || (!videoPlayer.IsReady && !waitingPlay && !isRetryScheduled))
+                    if (modeChanged || tapeChanged || powerChanged || (!videoPlayer.IsReady && !waitingPlay && !isRetryScheduled))
                     {
                         isRetryScheduled = false;
                         loadedTapeUrl = currentTapeUrl;
