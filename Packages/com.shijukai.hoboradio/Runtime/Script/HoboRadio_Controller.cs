@@ -500,7 +500,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         bool isFirstSync = !hasSyncedInitial;
         hasSyncedInitial = true;
 
-        if (isTapeInserted && insertedTape == null)
+        if (!isTapeInserted && insertedTape != null)
+        {
+            insertedTape = null;
+            isEjectAnimating = false;
+        }
+        else if (isTapeInserted && insertedTape == null)
         {
             if (!isRestoreLateJoinerScheduled)
             {
