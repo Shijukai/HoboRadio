@@ -500,7 +500,12 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (videoPlayer != null)
         {
-            float targetTime = Mathf.Clamp((float)videoPlayer.GetTime() + _accumulatedSeekTime, 0f, (float)videoPlayer.GetDuration());
+            float duration = videoPlayer.GetDuration();
+            float currentTime = videoPlayer.GetTime();
+            if (float.IsInfinity(duration) || float.IsNaN(duration)) duration = float.MaxValue;
+            if (float.IsInfinity(currentTime) || float.IsNaN(currentTime)) currentTime = 0f;
+
+            float targetTime = Mathf.Clamp(currentTime + _accumulatedSeekTime, 0f, duration);
             videoPlayer.SetTime(targetTime);
             tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
 
