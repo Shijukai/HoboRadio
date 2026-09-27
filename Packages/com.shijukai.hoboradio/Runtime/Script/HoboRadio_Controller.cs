@@ -1135,6 +1135,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void _CompleteInsertSnap()
     {
         if (pendingInsertTape == null) return;
+        if (isEjecting || !isTapeInserted)
+        {
+            pendingInsertTape = null;
+            return;
+        }
 
         insertedTape = pendingInsertTape;
         pendingInsertTape = null;
