@@ -115,6 +115,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private float _accumulatedSeekTime = 0f;
     private float _lastSeekTime = 0f;
+    private float _ejectCooldownEndTime = 0f;
+    private HoboTape _ignoredTape;
 
     [Header("--- アニメーション設定（リール） ---")]
     public Transform radioReelLeft;
@@ -858,7 +860,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             UpdateVisuals();
             SendCustomEventDelayedSeconds(nameof(_RestoreTapeAudio), 1.0f);
-            StartNoiseFadeOutDelay(0.5f);
+            StartNoiseFadeOutDelay(4.0f);
         }
         else // Radio Mode
         {
@@ -1359,6 +1361,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (tape != null)
         {
+            if (tape == _ignoredTape) return;
+
+            if (Time.time < _ejectCooldownEndTime)
+            {
+                _ignoredTape = tape;
+                return;
+            }
+
             if (!Networking.IsOwner(tape.gameObject)) return;
             InsertTape(tape);
         }
@@ -1366,7 +1376,18 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other == null || !isTapeInserted || !isEjecting || insertedTape == null) return;
+        if (other == null) return;
+
+        if (_ignoredTape != null)
+        {
+            Transform ignoredRoot = _ignoredTape.targetTransform != null ? _ignoredTape.targetTransform : _ignoredTape.transform;
+            if (other.transform == ignoredRoot || other.transform.IsChildOf(ignoredRoot))
+            {
+                _ignoredTape = null;
+            }
+        }
+
+        if (!isTapeInserted || !isEjecting || insertedTape == null) return;
 
         Transform tapeRoot = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
 
@@ -1404,6 +1425,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isEjecting = false;
             isEjectAnimating = false;
             _accumulatedSeekTime = 0f;
+            _ejectCooldownEndTime = Time.time + 2.0f;
             isTapeStopped = false;
             isTapePlaying = false;
             currentMode = 0;
