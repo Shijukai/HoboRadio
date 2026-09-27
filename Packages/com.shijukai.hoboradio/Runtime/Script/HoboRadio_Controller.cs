@@ -487,6 +487,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             UpdateVisuals();
         }
 
+        if (isEjecting && !isEjectAnimating)
+        {
+            _StartEjectAnimation();
+        }
+
         if (currentMode == 1 && isTapeInserted && currentTapeUrl != null && radioPowerOn)
         {
             if (isTapeStopped || isEjecting)
