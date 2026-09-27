@@ -212,7 +212,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // 再生時間の表示更新
-        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
+        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
         {
             if (videoPlayer.IsPlaying && statusText != null)
             {
@@ -257,7 +257,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
             }
 
-            if (videoLoadStartTime > 0f && !isTapeStopped && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
+            if (videoLoadStartTime > 0f && !isTapeStopped && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
             {
                 if (videoPlayer.IsPlaying)
                 {
@@ -286,7 +286,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             if (isTapeInserted && isTapePlaying && videoPlayer != null)
             {
-                if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer.gameObject.activeInHierarchy)
+                if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
                 {
                     tapeStartTime = -videoPlayer.GetTime();
                 }
@@ -504,7 +504,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             return;
         }
 
-        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
+        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
         {
             float duration = videoPlayer.GetDuration();
             float currentTime = videoPlayer.GetTime();
@@ -609,7 +609,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 if (videoPlayer != null)
                 {
-                    if (waitingPlay || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsPlaying))
+                    if (waitingPlay || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying))
                     {
                         videoPlayer.Stop();
                         waitingPlay = false;

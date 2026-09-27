@@ -326,77 +326,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &458504159
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6367971505347072, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: serializationData.Prefab
-      value: 
-      objectReference: {fileID: 6367971505347072, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-    - target: {fileID: 3079118736934474355, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_Name
-      value: HoboRadioCassette_Sample
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.018
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.0126
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 5239471159576207624, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
---- !u!1 &458504160 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4679764339710193744, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-  m_PrefabInstance: {fileID: 458504159}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &458504161 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9136140335767599980, guid: cc7422ea2cb092749b38ca2ca0a220ed, type: 3}
-  m_PrefabInstance: {fileID: 458504159}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &863233505
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1432,14 +1361,14 @@ MonoBehaviour:
   useAssignedLayers: 0
   DynamicPrefabs: []
   DynamicMaterials:
+  - {fileID: 2100000, guid: 1f2d03a6900dc3144a47199fce03d1c9, type: 2}
   - {fileID: 2100000, guid: 56296738798ef084eb0a765bfc9a0817, type: 2}
   - {fileID: 2100000, guid: f768f3b4aab195a47a2280d0b94af113, type: 2}
   - {fileID: 2100000, guid: 6b64806972d8feb469c0a3e8f943b0e6, type: 2}
   - {fileID: 2100000, guid: 208a6c36c42e0344e86d959773bf311d, type: 2}
+  - {fileID: 2100000, guid: ae2771c3760b7f340bfdf8caccd75f75, type: 2}
   - {fileID: 2100000, guid: b24880da413704c45aaf2255092d3b65, type: 2}
   - {fileID: 2100000, guid: a212227b465e4074080ea6af36bdc40c, type: 2}
-  - {fileID: 2100000, guid: 1f2d03a6900dc3144a47199fce03d1c9, type: 2}
-  - {fileID: 2100000, guid: ae2771c3760b7f340bfdf8caccd75f75, type: 2}
   LightMapsNear: []
   LightMapsFar: []
   LightMode: 0
@@ -1498,12 +1427,12 @@ MonoBehaviour:
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
     - VRC.Udon.UdonBehaviour
-  - gameObject: {fileID: 458504161}
+  - gameObject: {fileID: 0}
     ID: 49
     SerializedTypeNames:
     - VRC.SDK3.Components.VRCPickup
     - VRC.SDK3.Components.VRCObjectSync
-  - gameObject: {fileID: 458504160}
+  - gameObject: {fileID: 0}
     ID: 50
     SerializedTypeNames:
     - VRC.Udon.UdonBehaviour
@@ -1784,4 +1713,3 @@ SceneRoots:
   - {fileID: 1983041504}
   - {fileID: 202581354}
   - {fileID: 1573066983}
-  - {fileID: 458504159}
