@@ -212,7 +212,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         // 再生時間の表示更新
-        if (videoPlayer != null && videoPlayer.IsPlaying && statusText != null)
+        if (videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsPlaying && statusText != null)
         {
             int totalSec = (int)videoPlayer.GetTime();
             if (totalSec != lastDisplayedSecond)
@@ -254,7 +254,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
             }
 
-            if (!isTapeStopped && videoPlayer != null)
+            if (!isTapeStopped && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy)
             {
                 float duration = videoPlayer.GetDuration();
                 if (duration > 0f && !float.IsInfinity(duration))
@@ -639,7 +639,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void _SyncTapePosition()
     {
-        if (videoPlayer == null || currentMode != 1) return;
+        if (videoPlayer == null || !videoPlayer.gameObject.activeInHierarchy || currentMode != 1) return;
 
         float targetTime;
         if (!isTapePlaying)
@@ -908,7 +908,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (currentMode != 0) return;
         if (Time.timeSinceLevelLoad - lastVideoReadyTime < 29f) return;
 
-        if (videoPlayer != null && videoPlayer.IsPlaying)
+        if (videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsPlaying)
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
