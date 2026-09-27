@@ -284,7 +284,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
 
-            iif(isTapeInserted && isTapePlaying && videoPlayer != null)
+            if (isTapeInserted && isTapePlaying && videoPlayer != null)
             {
                 if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer.gameObject.activeInHierarchy)
                 {
@@ -622,15 +622,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             {
                 if (videoPlayer != null)
                 {
-                    if (modeChanged || tapeChanged || powerChanged || (!videoPlayer.IsReady && !waitingPlay && !isRetryScheduled))
+                    bool isVideoActive = videoPlayer.gameObject.activeInHierarchy;
+                    if (modeChanged || tapeChanged || powerChanged || ((!isVideoActive || !videoPlayer.IsReady) && !waitingPlay && !isRetryScheduled))
                     {
                         isRetryScheduled = false;
                         loadedTapeUrl = currentTapeUrl;
-                        if (videoPlayer.IsPlaying) videoPlayer.Stop();
+                        if (isVideoActive && videoPlayer.IsPlaying) videoPlayer.Stop();
                         waitingPlay = true;
                         SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
                     }
-                    else if (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && !waitingPlay)
+                    else if (videoLoadStartTime > 0f && isVideoActive && videoPlayer.IsReady && !waitingPlay)
                     {
                         if (isTapePlaying && !videoPlayer.IsPlaying)
                         {
