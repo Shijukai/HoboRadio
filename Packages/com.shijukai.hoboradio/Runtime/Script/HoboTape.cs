@@ -6,7 +6,6 @@ using VRC.Udon;
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class HoboTape : UdonSharpBehaviour
 {
-    [Header("Tape Info")]
     public VRCUrl tapeUrl;
     public string tapeTitle;
     [Tooltip("制作団体・サークル名")]

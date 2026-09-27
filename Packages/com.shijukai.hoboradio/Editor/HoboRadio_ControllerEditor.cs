@@ -133,6 +133,7 @@ public class HoboTapeEditor : Editor
 
         SerializedProperty titleProp = serializedObject.FindProperty("tapeTitle");
         SerializedProperty artistProp = serializedObject.FindProperty("tapeArtist");
+        SerializedProperty urlProp = serializedObject.FindProperty("tapeUrl");
 
         // 通常表示領域（表示専用・URL非表示）
         EditorGUILayout.BeginVertical(GUI.skin.box);
@@ -152,6 +153,7 @@ public class HoboTapeEditor : Editor
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(titleProp, new GUIContent("タイトル"));
             EditorGUILayout.PropertyField(artistProp, new GUIContent("サークル・制作団体"));
+            EditorGUILayout.PropertyField(urlProp, new GUIContent("テープURL"));
             EditorGUI.indentLevel--;
         }
 
@@ -160,7 +162,7 @@ public class HoboTapeEditor : Editor
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
-            DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist");
+            DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist", "tapeUrl");
         }
 
         serializedObject.ApplyModifiedProperties();
