@@ -27,6 +27,7 @@ public class HoboTape : UdonSharpBehaviour
     private Vector3 initialLocalPosition;
     private Quaternion initialLocalRotation;
     private bool isTimerScheduled = false;
+    private float lastDropTime = 0f;
 
     [Header("Animation Settings")]
     public Transform hubLeft;
@@ -74,6 +75,7 @@ public class HoboTape : UdonSharpBehaviour
         if (autoRespawnDelay > 0f)
         {
             isTimerScheduled = true;
+            lastDropTime = Time.time;
             SendCustomEventDelayedSeconds(nameof(_ResetToInitialPosition), autoRespawnDelay);
         }
     }
@@ -81,6 +83,10 @@ public class HoboTape : UdonSharpBehaviour
     public void _ResetToInitialPosition()
     {
         if (!isTimerScheduled) return;
+
+        // 後から別のドロップタイマーが開始されている場合は処理を破棄
+        if (Time.time - lastDropTime < autoRespawnDelay - 0.1f) return;
+
         isTimerScheduled = false;
 
         // 対象オブジェクトのオーナー権限がない場合（他人が操作中など）はリセットしない
