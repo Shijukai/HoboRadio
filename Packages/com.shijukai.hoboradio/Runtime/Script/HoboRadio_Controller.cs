@@ -652,7 +652,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     private void _SyncTapePosition()
     {
-        if (videoPlayer == null || !videoPlayer.gameObject.activeInHierarchy || currentMode != 1) return;
+        if (videoPlayer == null || !videoPlayer.gameObject.activeInHierarchy || !videoPlayer.IsReady || currentMode != 1) return;
 
         float targetTime;
         if (!isTapePlaying)
@@ -921,7 +921,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (currentMode != 0) return;
         if (Time.timeSinceLevelLoad - lastVideoReadyTime < 29f) return;
 
-        if (videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsPlaying)
+        if (videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying)
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
