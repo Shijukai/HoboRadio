@@ -1287,6 +1287,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (isTargetCollider)
         {
+            if (!Networking.IsOwner(insertedTape.gameObject)) return;
+
             TakeOwnership();
 
             if (tapeRoot != null)
