@@ -290,6 +290,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 {
                     tapeStartTime = -videoPlayer.GetTime();
                 }
+                else
+                {
+                    double elapsed = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime;
+                    elapsed %= 86400.0;
+                    if (elapsed < 0) elapsed += 86400.0;
+                    tapeStartTime = -elapsed;
+                }
                 isTapePlaying = false;
             }
 
