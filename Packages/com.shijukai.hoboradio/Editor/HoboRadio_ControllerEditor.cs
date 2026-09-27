@@ -80,4 +80,74 @@ public class HoboRadio_ControllerEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
+
+[CustomEditor(typeof(HoboTape))]
+public class HoboTapeEditor : Editor
+{
+    private const bool isDebugMode = false;
+    private Texture2D logoTexture;
+
+    private void OnEnable()
+    {
+        logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        EditorGUILayout.Space(5);
+        if (logoTexture != null)
+        {
+            float cropTop = 0.15f;
+            float cropBottom = 0.2f;
+            float croppedHeightRatio = 1f - cropTop - cropBottom;
+
+            float aspect = (float)logoTexture.width / (logoTexture.height * croppedHeightRatio);
+            float maxHeight = 120f;
+
+            Rect totalRect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth - 30f, maxHeight);
+
+            float drawHeight = totalRect.height;
+            float drawWidth = drawHeight * aspect;
+
+            if (drawWidth > totalRect.width)
+            {
+                drawWidth = totalRect.width;
+                drawHeight = drawWidth / aspect;
+            }
+
+            float drawX = totalRect.x + (totalRect.width - drawWidth) * 0.5f;
+            float drawY = totalRect.y + (totalRect.height - drawHeight) * 0.5f;
+            Rect drawRect = new Rect(drawX, drawY, drawWidth, drawHeight);
+
+            Rect texCoords = new Rect(0f, cropBottom, 1f, croppedHeightRatio);
+            GUI.DrawTextureWithTexCoords(drawRect, logoTexture, texCoords);
+        }
+        else
+        {
+            EditorGUILayout.LabelField("Hobo Tape", EditorStyles.boldLabel);
+        }
+
+        EditorGUILayout.Space(10);
+
+        EditorGUILayout.BeginVertical(GUI.skin.box);
+        EditorGUILayout.LabelField("テープ情報設定 (Tape Info)", EditorStyles.boldLabel);
+        EditorGUILayout.Space(2);
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("tapeTitle"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("tapeArtist"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("tapeUrl"));
+        EditorGUILayout.EndVertical();
+
+        if (isDebugMode)
+        {
+            EditorGUILayout.Space(10);
+            EditorGUILayout.HelpBox("開発者モードが有効です。", MessageType.Info);
+            DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist", "tapeUrl");
+        }
+
+        serializedObject.ApplyModifiedProperties();
+    }
+}
 #endif
