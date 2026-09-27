@@ -43,30 +43,28 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f, 0.47f };
 
     //UISettings
-    [HideInInspector] public TextMeshProUGUI channelText;
-    [HideInInspector] public TextMeshProUGUI statusText;
-    [HideInInspector] public GameObject debugCanvas;
+    public TextMeshProUGUI channelText;
+    public TextMeshProUGUI statusText;
+    public GameObject debugCanvas;
 
     //AudioSettings
-    [HideInInspector] public AudioSource channelNoiseSE;
-    [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
-    [Tooltip("動画の音声を出力するAudioSource（初期化ノイズ防止用）")]
+    public AudioSource channelNoiseSE;
+    public BaseVRCVideoPlayer videoPlayer;
     public AudioSource videoAudioSource;
     [Range(0f, 1f)]
-    public float masterVolume = 0.5f;
-    [HideInInspector] public UdonBehaviour infoFetcher;
+    [HideInInspector] public float masterVolume = 0.5f;
+    public UdonBehaviour infoFetcher;
 
-    [Header("--- テープ再生設定 ---")]
-    [UdonSynced] public int currentMode = 0; // 0: Radio, 1: Tape
-    [UdonSynced] public bool isTapeInserted = false;
-    [UdonSynced] public bool isTapePlaying = false;
-    [UdonSynced] public VRCUrl currentTapeUrl;
-    [UdonSynced] public double tapeStartTime = 0;
+    [HideInInspector, UdonSynced] public int currentMode = 0; // 0: Radio, 1: Tape
+    [HideInInspector, UdonSynced] public bool isTapeInserted = false;
+    [HideInInspector, UdonSynced] public bool isTapePlaying = false;
+    [HideInInspector, UdonSynced] public VRCUrl currentTapeUrl;
+    [HideInInspector, UdonSynced] public double tapeStartTime = 0;
 
     [Header("--- テープ機構設定 ---")]
     public Transform tapeSlot;
     [Tooltip("スロットが開いてからスナップされるまでの待機時間（秒）")]
-    public float slotOpenDelay = 0.5f;
+    [HideInInspector] public float slotOpenDelay = 0.5f;
     public AudioSource tapeMechanicsAudioSource;
     public AudioClip powerSwitchOnSE;
     public AudioClip powerSwitchOffSE;
@@ -78,9 +76,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [HideInInspector] public HoboTape insertedTape;
     private HoboTape pendingInsertTape;
 
-    [UdonSynced] public bool isEjecting = false;
-    [UdonSynced] public bool isTapeStopped = false;
-    [UdonSynced] public bool isSlotOpen = false;
+    [HideInInspector, UdonSynced] public bool isEjecting = false;
+    [HideInInspector, UdonSynced] public bool isTapeStopped = false;
+    [HideInInspector, UdonSynced] public bool isSlotOpen = false;
 
     // Internal State
     private const int NoiseFadeNone = 0;
@@ -121,8 +119,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     [Header("--- アニメーション設定（リール） ---")]
     public Transform radioReelLeft;
     public Transform radioReelRight;
-    [Tooltip("リールの回転速度と軸（ローカル空間）")]
-    public Vector3 reelRotationSpeed = new Vector3(-180f, 0f, 0f);
+    [HideInInspector] public Vector3 reelRotationSpeed = new Vector3(-180f, 0f, 0f);
 
     // Animation Trackers
     private bool _animPlayDown = false;
