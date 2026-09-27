@@ -1275,7 +1275,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonEject()
     {
-        if (!isTapeInserted || isEjecting) return;
+        if (!isTapeInserted || isEjecting || _accumulatedSeekTime != 0f) return;
 
         if (insertedTape == null)
         {
