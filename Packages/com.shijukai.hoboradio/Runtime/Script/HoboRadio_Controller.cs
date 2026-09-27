@@ -550,6 +550,18 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (!isTapeInserted && insertedTape != null)
         {
+            Transform tapeRoot = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            if (tapeRoot != null)
+            {
+                if (insertedTape.originalParent != null)
+                {
+                    tapeRoot.SetParent(insertedTape.originalParent, true);
+                }
+                else
+                {
+                    tapeRoot.SetParent(null, true);
+                }
+            }
             insertedTape = null;
             isEjectAnimating = false;
         }
