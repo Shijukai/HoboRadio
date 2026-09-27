@@ -632,11 +632,22 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         else
         {
             targetTime = (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
-            while (targetTime < 0f) targetTime += 86400f;
-            while (targetTime >= 86400f) targetTime -= 86400f;
         }
 
-        if (Mathf.Abs(videoPlayer.GetTime() - targetTime) > 1f)
+        if (float.IsInfinity(targetTime) || float.IsNaN(targetTime))
+        {
+            targetTime = 0f;
+        }
+        else if (isTapePlaying)
+        {
+            targetTime %= 86400f;
+            if (targetTime < 0f) targetTime += 86400f;
+        }
+
+        float currentTime = videoPlayer.GetTime();
+        if (float.IsInfinity(currentTime) || float.IsNaN(currentTime)) currentTime = 0f;
+
+        if (Mathf.Abs(currentTime - targetTime) > 1f)
         {
             videoPlayer.SetTime(targetTime);
         }
@@ -834,8 +845,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             else
             {
                 targetTime = (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
-                while (targetTime < 0f) targetTime += 86400f;
-                while (targetTime >= 86400f) targetTime -= 86400f;
+                if (float.IsInfinity(targetTime) || float.IsNaN(targetTime))
+                {
+                    targetTime = 0f;
+                }
+                else
+                {
+                    targetTime %= 86400f;
+                    if (targetTime < 0f) targetTime += 86400f;
+                }
             }
             videoPlayer.SetTime(targetTime);
 
