@@ -380,6 +380,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
 
+        if (!isTapeStopped && (isTapePlaying || waitingPlay)) return;
+
         TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -419,15 +421,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void InteractButtonPause()
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
-        LockInteraction();
 
+        if (isTapeStopped || waitingPlay) return;
+
+        LockInteraction();
         TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
-
-        if (isTapeStopped || waitingPlay) return;
 
         if (videoPlayer != null)
         {
@@ -455,14 +457,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
+        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
+
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
         if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_FF");
-
-        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
 
         TakeOwnership();
         _accumulatedSeekTime += 10f;
@@ -475,14 +477,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
         // 連続入力を可能にするためLockInteraction()は呼ばない
 
+        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
+
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
             tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
         }
 
         if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_REW");
-
-        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
 
         TakeOwnership();
         _accumulatedSeekTime -= 10f;
