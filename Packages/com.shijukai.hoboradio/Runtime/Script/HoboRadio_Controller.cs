@@ -904,6 +904,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             CancelPendingNoiseFadeOut();
             NoiseFadeOut();
             if (statusText != null) statusText.text = "LOAD ERROR";
+
+            if (currentMode == 1)
+            {
+                isTapePlaying = false;
+                isTapeStopped = true;
+                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
+                if (isGlobal) RequestSerialization();
+                UpdateVisuals();
+            }
         }
     }
 
