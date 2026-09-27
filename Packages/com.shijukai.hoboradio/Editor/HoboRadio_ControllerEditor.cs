@@ -23,11 +23,34 @@ public class HoboRadio_ControllerEditor : Editor
         EditorGUILayout.Space(5);
         if (logoTexture != null)
         {
-            float aspect = (float)logoTexture.width / logoTexture.height;
-            float width = EditorGUIUtility.currentViewWidth - 30f;
-            float height = Mathf.Min(width / aspect, 80f);
-            Rect rect = GUILayoutUtility.GetRect(width, height);
-            GUI.DrawTexture(rect, logoTexture, ScaleMode.ScaleToFit);
+            float cropTop = 0.15f;
+            float cropBottom = 0.2f;
+            float croppedHeightRatio = 1f - cropTop - cropBottom;
+
+            // トリミング後の正確な縦横比
+            float aspect = (float)logoTexture.width / (logoTexture.height * croppedHeightRatio);
+            float maxHeight = 120f;
+
+            // Inspector上の描画枠を確保
+            Rect totalRect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth - 30f, maxHeight);
+
+            // アスペクト比を維持した実際の描画サイズを計算
+            float drawHeight = totalRect.height;
+            float drawWidth = drawHeight * aspect;
+
+            if (drawWidth > totalRect.width)
+            {
+                drawWidth = totalRect.width;
+                drawHeight = drawWidth / aspect;
+            }
+
+            // 確保した領域の中央に配置
+            float drawX = totalRect.x + (totalRect.width - drawWidth) * 0.5f;
+            float drawY = totalRect.y + (totalRect.height - drawHeight) * 0.5f;
+            Rect drawRect = new Rect(drawX, drawY, drawWidth, drawHeight);
+
+            Rect texCoords = new Rect(0f, cropBottom, 1f, croppedHeightRatio);
+            GUI.DrawTextureWithTexCoords(drawRect, logoTexture, texCoords);
         }
         else
         {
