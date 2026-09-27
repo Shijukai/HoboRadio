@@ -134,6 +134,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private void OnDisable()
     {
         _accumulatedSeekTime = 0f;
+        pendingInsertTape = null;
+        waitingPlay = false;
+        isRetryScheduled = false;
+        isInteractedLocked = false;
+        isRestoreLateJoinerScheduled = false;
+        isPeriodicApplyScheduled = false;
+        isNoiseFadeOutDelayActive = false;
+        isNoiseFadeOutDelayStepScheduled = false;
+        isNoiseFadeStepScheduled = false;
     }
 
     private void Start()
