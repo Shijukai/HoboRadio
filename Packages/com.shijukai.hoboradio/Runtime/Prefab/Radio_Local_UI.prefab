@@ -4080,7 +4080,7 @@ MonoBehaviour:
   debugCanvas: {fileID: 7786361528694860895}
   channelNoiseSE: {fileID: 5698711809734983120}
   videoPlayer: {fileID: 5705073457391701656}
-  videoAudioSource: {fileID: 0}
+  videoAudioSource: {fileID: 4156740579978612955}
   masterVolume: 0.5
   infoFetcher: {fileID: 370849523556061850}
   currentMode: 0
