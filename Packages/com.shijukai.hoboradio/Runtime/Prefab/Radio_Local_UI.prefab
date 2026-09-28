@@ -3014,7 +3014,7 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 2935096533855931643}
   slider: {fileID: 1361770126320376712}
-  controller: {fileID: 0}
+  controller: {fileID: 2815444158879912488}
 --- !u!114 &2935096533855931643
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4080,7 +4080,7 @@ MonoBehaviour:
   debugCanvas: {fileID: 7786361528694860895}
   channelNoiseSE: {fileID: 5698711809734983120}
   videoPlayer: {fileID: 5705073457391701656}
-  videoAudioSource: {fileID: 0}
+  videoAudioSource: {fileID: 4156740579978612955}
   masterVolume: 0.5
   infoFetcher: {fileID: 370849523556061850}
   currentMode: 0
