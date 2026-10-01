@@ -15,6 +15,8 @@ Radio_Informationは紐づけたいHierarchy上のラジオを右クリックし
 
 **グローバル版について**
 - グローバル版はチャンネル切り替えのみ同期します、電源のON/OFFや音量は同期しませんのでご注意ください。
+- v2.2.0より電源も同期するようになりました。
+
 
 **ラジオの複数設置について**  
 - ワールドに複数配置すると初期電源ONや時間による番組の切り替わり等のタイミングで一斉にURLを読もうとしてしまい
@@ -43,7 +45,7 @@ CurrentChannelIndexの数値を0-3の間で変更すると、
 0でCH1、1でCH2、2でCH3、3でCH4が初期チャンネルになります。 
 
 **カラーリングの変更/限定モデルの導入**  
-- 1.上部ツールバーのToolsの中にある HoboRadio/Hoboradio_ColorChange をクリックしてください。
+- 1.上部ツールバーのToolsの中にある Shijukai/Hoboradio_ColorChange をクリックしてください。
 - 2.専用のウィンドウが開きますので、Radio_Local/Radio_GlobalにHierarchyから色を変更したいラジオをD&Dしてください。
 - 3.通常カラーもしくは限定モデルのタブからカラーリングを選択して置き換え実行を押すと指定したカラーリングになります。
 
@@ -52,4 +54,10 @@ CurrentChannelIndexの数値を0-3の間で変更すると、
 `Packages/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
 また、RenderingModeをCutoutに変更して、メインカラーのAlpha（不透明度）を0にすることで透明にすることも可能です。
 
+---
 
+# ライセンス・使用素材（Credits）
+
+本パッケージに含まれる音声素材には、以下の素材を使用しています。
+
+- **効果音（ボタン操作音・ノイズ）:** OtoLogic (https://otologic.jp) / CC BY 4.0

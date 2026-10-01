@@ -15,6 +15,14 @@ public class RadioVideoPlayerRelay : UdonSharpBehaviour
         }
     }
 
+    public override void OnVideoEnd()
+    {
+        if (controller != null)
+        {
+            controller.OnVideoEnd();
+        }
+    }
+
     public override void OnVideoError(VideoError videoError)
     {
         if (controller != null)

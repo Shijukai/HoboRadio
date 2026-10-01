@@ -16,7 +16,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     [Header("--- 自動起動設定 ---")]
     [Tooltip("チェックを入れるとワールドに入った時に電源が自動でONになります")]
-    [SerializeField] public bool radioPowerOn = true;
+    [UdonSynced, SerializeField] public bool radioPowerOn = true;
 
     private const int ChannelCount = 4;
 
@@ -33,21 +33,52 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     //ChannelSettings
     [HideInInspector] public VRCUrl[] channels = new VRCUrl[ChannelCount];
     [HideInInspector] private int loadedChannelIndex = -1;
+    private int loadedMode = -1;
+    private bool loadedPowerOn = true;
+    private bool loadedIsEjecting = false;
+    private VRCUrl loadedTapeUrl;
 
     //AnimationSettings
-    
+
     [SerializeField, HideInInspector] private float[] channelDialValues = new float[] { 0.416f, 0.43f, 0.45f, 0.47f };
 
     //UISettings
-    [HideInInspector] public TextMeshProUGUI channelText;
-    [HideInInspector] public TextMeshProUGUI statusText;
-    [HideInInspector] public GameObject debugCanvas;
+    public TextMeshProUGUI channelText;
+    public TextMeshProUGUI statusText;
+    public GameObject debugCanvas;
 
     //AudioSettings
-    [HideInInspector] public AudioSource powerSwitchSE;
-    [HideInInspector] public AudioSource channelNoiseSE;
-    [HideInInspector] public BaseVRCVideoPlayer videoPlayer;
-    [HideInInspector] public UdonBehaviour infoFetcher;
+    public AudioSource channelNoiseSE;
+    public BaseVRCVideoPlayer videoPlayer;
+    public AudioSource videoAudioSource;
+    [Range(0f, 1f)]
+    [HideInInspector] public float masterVolume = 0.5f;
+    public UdonBehaviour infoFetcher;
+
+    [HideInInspector, UdonSynced] public int currentMode = 0; // 0: Radio, 1: Tape
+    [HideInInspector, UdonSynced] public bool isTapeInserted = false;
+    [HideInInspector, UdonSynced] public bool isTapePlaying = false;
+    [HideInInspector, UdonSynced] public VRCUrl currentTapeUrl;
+    [HideInInspector, UdonSynced] public double tapeStartTime = 0;
+
+    [Header("--- テープ機構設定 ---")]
+    public Transform tapeSlot;
+    [Tooltip("スロットが開いてからスナップされるまでの待機時間（秒）")]
+    [HideInInspector] public float slotOpenDelay = 0.5f;
+    public AudioSource tapeMechanicsAudioSource;
+    public AudioClip powerSwitchOnSE;
+    public AudioClip powerSwitchOffSE;
+    public AudioClip tapeInsertSE;
+    public AudioClip tapeEjectSE;
+    [Tooltip("テープ読み込み中の駆動音（ノイズ用AudioSourceで再生）")]
+    public AudioClip tapeLoadingSE;
+
+    [HideInInspector] public HoboTape insertedTape;
+    private HoboTape pendingInsertTape;
+
+    [HideInInspector, UdonSynced] public bool isEjecting = false;
+    [HideInInspector, UdonSynced] public bool isTapeStopped = false;
+    [HideInInspector, UdonSynced] public bool isSlotOpen = false;
 
     // Internal State
     private const int NoiseFadeNone = 0;
@@ -70,20 +101,81 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 5f;
     private const float LoadingTimeout = 45f;
+    private float lastVideoReadyTime = 0f;
+
+    private bool isEjectAnimating = false;
+    private float ejectAnimTime = 0f;
+    private Vector3 ejectStartPos;
+    private Vector3 ejectEndPos;
+    private int lateJoinerRetryCount = 0;
+    private bool isRestoreLateJoinerScheduled = false;
+    private bool isPeriodicApplyScheduled = false;
+
+    private float _accumulatedSeekTime = 0f;
+    private float _lastSeekTime = 0f;
+    private float _ejectCooldownEndTime = 0f;
+    private HoboTape _ignoredTape;
+
+    [Header("--- アニメーション設定（リール） ---")]
+    public Transform radioReelLeft;
+    public Transform radioReelRight;
+    [HideInInspector] public Vector3 reelRotationSpeed = new Vector3(-180f, 0f, 0f);
+
+    // Animation Trackers
+    private bool _animPlayDown = false;
+    private bool _animPauseDown = false;
+    private bool _animSlotOpen = false;
+
+    private AudioClip defaultRadioNoiseSE;
+
+    private void OnDisable()
+    {
+        if (pendingInsertTape != null)
+        {
+            _CompleteInsertSnap();
+        }
+
+        if (isEjecting && insertedTape != null && insertedTape.pickup != null && !insertedTape.pickup.pickupable)
+        {
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.localPosition = Vector3.up * 0.05f;
+            insertedTape.pickup.pickupable = true;
+            isEjectAnimating = false;
+        }
+
+        StopChannelNoise();
+
+        _accumulatedSeekTime = 0f;
+        pendingInsertTape = null;
+        waitingPlay = false;
+        isRetryScheduled = false;
+        isInteractedLocked = false;
+        isRestoreLateJoinerScheduled = false;
+        isPeriodicApplyScheduled = false;
+        isNoiseFadeOutDelayActive = false;
+        isNoiseFadeOutDelayStepScheduled = false;
+        isNoiseFadeStepScheduled = false;
+    }
 
     private void Start()
     {
         Debug.Log("[HoboRadio] Controller Started");
 
+        if (channelNoiseSE != null)
+        {
+            defaultRadioNoiseSE = channelNoiseSE.clip;
+        }
+
         if (!isGlobal || Networking.IsOwner(gameObject))
         {
             hasSyncedInitial = true;
         }
+        loadedPowerOn = radioPowerOn;
 
         // 初期化
         if (radioPowerOn)
         {
-            if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             UpdateVisuals();
 
             // Global設定かつオーナーなら初期ロード実行
@@ -106,23 +198,76 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             lastServerHour = currentHr;
         }
 
-        // 1時間ごとの自動更新（電源ON時のみ）
-        if (radioPowerOn && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
+        // 1時間ごとの自動更新（電源ON時かつラジオモード時のみ）
+        if (radioPowerOn && currentMode == 0 && currentMin == 0 && lastServerHour != currentHr && (!isGlobal || hasSyncedInitial))
         {
             lastServerHour = currentHr;
-            float jitterDelay = UnityEngine.Random.Range(0f, 5f);
-            Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
-            SendCustomEventDelayedSeconds(nameof(_ApplyChannel), jitterDelay);
+            if (!isPeriodicApplyScheduled)
+            {
+                isPeriodicApplyScheduled = true;
+                float jitterDelay = UnityEngine.Random.Range(0f, 5f);
+                Debug.Log($"[HoboRadio] Periodic Update Triggered: currentHr/Min={currentHr}");
+                SendCustomEventDelayedSeconds(nameof(_PeriodicApplyChannel), jitterDelay);
+            }
         }
 
         // 再生時間の表示更新
-        if (videoPlayer != null && videoPlayer.IsPlaying && statusText != null)
+        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
         {
-            int totalSec = (int)videoPlayer.GetTime();
-            if (totalSec != lastDisplayedSecond)
+            if (videoPlayer.IsPlaying && statusText != null)
             {
-                lastDisplayedSecond = totalSec;
-                statusText.text = $"{totalSec / 60:00}:{totalSec % 60:00}";
+                int totalSec = (int)videoPlayer.GetTime();
+                if (totalSec != lastDisplayedSecond)
+                {
+                    lastDisplayedSecond = totalSec;
+                    statusText.text = $"{totalSec / 60:00}:{totalSec % 60:00}";
+                }
+            }
+        }
+
+        // テープせり出しアニメーション
+        if (isEjectAnimating && insertedTape != null && tapeSlot != null)
+        {
+            ejectAnimTime += Time.deltaTime;
+            float t = Mathf.Clamp01(ejectAnimTime / 0.5f); // 0.5秒かけて移動
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.localPosition = Vector3.Lerp(ejectStartPos, ejectEndPos, t);
+
+            if (t >= 1.0f)
+            {
+                isEjectAnimating = false;
+                if (insertedTape.pickup != null)
+                {
+                    insertedTape.pickup.pickupable = true;
+                }
+            }
+        }
+
+        // テープとリール・ハブの再生アニメーション
+        if (currentMode == 1 && isTapeInserted && insertedTape != null)
+        {
+            if (isTapePlaying || waitingPlay)
+            {
+                Quaternion rotDelta = Quaternion.Euler(reelRotationSpeed * Time.deltaTime);
+
+                if (radioReelLeft != null) radioReelLeft.localRotation = rotDelta * radioReelLeft.localRotation;
+                if (radioReelRight != null) radioReelRight.localRotation = rotDelta * radioReelRight.localRotation;
+
+                if (insertedTape.hubLeft != null) insertedTape.hubLeft.localRotation = rotDelta * insertedTape.hubLeft.localRotation;
+                if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
+            }
+
+            if (videoLoadStartTime > 0f && !isTapeStopped && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
+            {
+                if (videoPlayer.IsPlaying)
+                {
+                    float duration = videoPlayer.GetDuration();
+                    if (duration > 0f && !float.IsInfinity(duration))
+                    {
+                        float progress = Mathf.Clamp01(videoPlayer.GetTime() / duration);
+                        insertedTape.UpdateTapeProgress(progress);
+                    }
+                }
             }
         }
     }
@@ -131,41 +276,76 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
     public void InteractButtonPower()
     {
-        if (isInteractedLocked) return;
+        if (isInteractedLocked || _accumulatedSeekTime != 0f) return;
         LockInteraction();
-
-        if (powerSwitchSE != null) powerSwitchSE.Play();
+        TakeOwnership();
 
         if (radioPowerOn) // OFFにする処理
         {
+            if (tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
+
+            if (isTapeInserted && isTapePlaying && videoPlayer != null)
+            {
+                if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
+                {
+                    tapeStartTime = -videoPlayer.GetTime();
+                }
+                else
+                {
+                    double elapsed = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime;
+                    elapsed %= 86400.0;
+                    if (elapsed < 0) elapsed += 86400.0;
+                    tapeStartTime = -elapsed;
+                }
+                isTapePlaying = false;
+            }
+
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
-            if (radioAnimator != null) radioAnimator.SetTrigger("PowerOff");
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOff");
             if (channelText != null) channelText.text = "";
+            if (statusText != null) statusText.text = "";
             radioPowerOn = false;
+            loadedPowerOn = false;
             waitingPlay = false;
+            isRetryScheduled = false;
 
             // Fetcherに表示クリアを通知
             if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
         }
         else // ONにする処理
         {
+            if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
             radioPowerOn = true;
+            loadedPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
-            if (radioAnimator != null) radioAnimator.SetTrigger("PowerOn");
+            retryCount = 0;
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             lastDisplayedSecond = -1;
             _ApplyChannel(); // ApplyChannel内でRequestUpdateが呼ばれ画面が点灯
+
+            if (currentMode == 1 && isTapeInserted && !isTapeStopped && currentTapeUrl != null)
+            {
+                if (videoPlayer != null) videoPlayer.Stop();
+                waitingPlay = true;
+                SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+            }
+        }
+
+        if (isGlobal)
+        {
+            RequestSerialization();
         }
     }
 
     public void InteractSwitchChannel()
     {
-        if (!radioPowerOn || isInteractedLocked || waitingPlay) return;
+        if (!radioPowerOn || isInteractedLocked || waitingPlay || isTapeInserted) return;
         LockInteraction();
 
-        if (powerSwitchSE != null) powerSwitchSE.Play();
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
 
         if (isGlobal)
         {
@@ -186,9 +366,172 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (debugCanvas != null) debugCanvas.SetActive(!debugCanvas.activeSelf);
     }
 
+    public void InteractButtonStop()
+    {
+        if (isInteractedLocked || !isTapeInserted || isEjecting || _accumulatedSeekTime != 0f) return;
+        LockInteraction();
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
+
+        TakeOwnership();
+
+        if (!radioPowerOn || isTapeStopped)
+        {
+            if (insertedTape == null) _FindTapeInSlot();
+            if (insertedTape != null) EjectTape(insertedTape);
+        }
+        else
+        {
+            if (videoAudioSource != null) videoAudioSource.mute = false;
+            if (videoPlayer != null) videoPlayer.Stop();
+            isTapePlaying = false;
+            isTapeStopped = true;
+            waitingPlay = false;
+
+            CancelPendingNoiseFadeOut();
+            StopChannelNoise();
+
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
+            UpdateVisuals();
+        }
+    }
+
+    public void InteractButtonPlay()
+    {
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
+
+        if (!isTapeStopped) return;
+
+        TakeOwnership();
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        LockInteraction();
+        isTapeStopped = false;
+        isTapePlaying = true;
+        _PlayTape();
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
+        UpdateVisuals();
+    }
+
+    public void InteractButtonPause()
+    {
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
+
+        if (isTapeStopped || waitingPlay) return;
+
+        LockInteraction();
+        TakeOwnership();
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (videoPlayer != null)
+        {
+            if (isTapePlaying)
+            {
+                videoPlayer.Pause();
+                isTapePlaying = false;
+                tapeStartTime = -videoPlayer.GetTime();
+            }
+            else
+            {
+                videoPlayer.Play();
+                isTapePlaying = true;
+                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - videoPlayer.GetTime();
+            }
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
+            UpdateVisuals();
+        }
+    }
+
+    public void InteractButtonFastForward()
+    {
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
+
+        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_FF");
+
+        TakeOwnership();
+        _accumulatedSeekTime += 10f;
+        _lastSeekTime = Time.time;
+        SendCustomEventDelayedSeconds(nameof(_CheckAndExecuteSeek), 1.0f);
+    }
+
+    public void InteractButtonRewind()
+    {
+        if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
+        // 連続入力を可能にするためLockInteraction()は呼ばない
+
+        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
+
+        if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+        }
+
+        if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_REW");
+
+        TakeOwnership();
+        _accumulatedSeekTime -= 10f;
+        _lastSeekTime = Time.time;
+        SendCustomEventDelayedSeconds(nameof(_CheckAndExecuteSeek), 1.0f);
+    }
+
+    public void _CheckAndExecuteSeek()
+    {
+        if (_accumulatedSeekTime == 0f || Time.time - _lastSeekTime < 0.95f) return;
+
+        if (isGlobal && !Networking.IsOwner(gameObject))
+        {
+            _accumulatedSeekTime = 0f;
+            return;
+        }
+
+        if (videoLoadStartTime > 0f && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
+        {
+            float duration = videoPlayer.GetDuration();
+            float currentTime = videoPlayer.GetTime();
+            if (float.IsInfinity(duration) || float.IsNaN(duration)) duration = float.MaxValue;
+            if (float.IsInfinity(currentTime) || float.IsNaN(currentTime)) currentTime = 0f;
+
+            float targetTime = Mathf.Clamp(currentTime + _accumulatedSeekTime, 0f, duration);
+            videoPlayer.SetTime(targetTime);
+            tapeStartTime = isTapePlaying ? (Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - targetTime) : -targetTime;
+
+            if (isGlobal)
+            {
+                RequestSerialization();
+            }
+        }
+        _accumulatedSeekTime = 0f;
+    }
+
     private void LockInteraction()
     {
-        if (!isGlobal) return;
         isInteractedLocked = true;
         SendCustomEventDelayedSeconds(nameof(_UnlockInteraction), 3f);
     }
@@ -205,48 +548,278 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         bool isFirstSync = !hasSyncedInitial;
         hasSyncedInitial = true;
 
-        if (isFirstSync || loadedChannelIndex != currentChannelIndex)
+        if (!isTapeInserted && insertedTape != null)
+        {
+            Transform tapeRoot = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            if (tapeRoot != null)
+            {
+                if (insertedTape.originalParent != null)
+                {
+                    tapeRoot.SetParent(insertedTape.originalParent, true);
+                }
+                else
+                {
+                    tapeRoot.SetParent(null, true);
+                }
+            }
+            insertedTape = null;
+            isEjectAnimating = false;
+        }
+        else if (isTapeInserted && insertedTape == null)
+        {
+            if (!isRestoreLateJoinerScheduled)
+            {
+                lateJoinerRetryCount = 0;
+                _RestoreLateJoinerTape();
+            }
+        }
+
+        bool powerChanged = loadedPowerOn != radioPowerOn;
+        loadedPowerOn = radioPowerOn;
+
+        bool ejectChanged = loadedIsEjecting != isEjecting;
+        loadedIsEjecting = isEjecting;
+
+        bool modeChanged = loadedMode != currentMode;
+        string loadedUrlStr = loadedTapeUrl != null ? loadedTapeUrl.Get() : "";
+        string currentUrlStr = currentTapeUrl != null ? currentTapeUrl.Get() : "";
+        bool tapeChanged = loadedUrlStr != currentUrlStr;
+
+        if (powerChanged || (isFirstSync && !radioPowerOn))
+        {
+            if (radioPowerOn)
+            {
+                if (!isFirstSync && tapeMechanicsAudioSource != null && powerSwitchOnSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
+                lastDisplayedSecond = -1;
+            }
+            else
+            {
+                if (!isFirstSync && tapeMechanicsAudioSource != null && powerSwitchOffSE != null) tapeMechanicsAudioSource.PlayOneShot(powerSwitchOffSE);
+                if (videoPlayer != null) videoPlayer.Stop();
+                CancelPendingNoiseFadeOut();
+                StopChannelNoise();
+                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOff");
+                if (channelText != null) channelText.text = "";
+                if (statusText != null) statusText.text = "";
+                waitingPlay = false;
+                isRetryScheduled = false;
+                if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
+            }
+        }
+
+        if (isFirstSync || loadedChannelIndex != currentChannelIndex || modeChanged || powerChanged)
         {
             _ApplyChannel();
+        }
+        else
+        {
+            UpdateVisuals();
+        }
+
+        if (ejectChanged && isEjecting)
+        {
+            _StartEjectAnimation();
+        }
+
+        if (currentMode == 1 && isTapeInserted && currentTapeUrl != null && radioPowerOn)
+        {
+            if (isTapeStopped || isEjecting)
+            {
+                if (videoPlayer != null)
+                {
+                    if (waitingPlay || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying))
+                    {
+                        videoPlayer.Stop();
+                        waitingPlay = false;
+                        CancelPendingNoiseFadeOut();
+                        StopChannelNoise();
+                    }
+                }
+            }
+            else
+            {
+                if (videoPlayer != null)
+                {
+                    bool isVideoActive = videoPlayer.gameObject.activeInHierarchy;
+                    if (modeChanged || tapeChanged || powerChanged || ((!isVideoActive || !videoPlayer.IsReady) && !waitingPlay && !isRetryScheduled))
+                    {
+                        isRetryScheduled = false;
+                        loadedTapeUrl = currentTapeUrl;
+                        if (isVideoActive && videoPlayer.IsPlaying) videoPlayer.Stop();
+                        waitingPlay = true;
+                        SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+                    }
+                    else if (videoLoadStartTime > 0f && isVideoActive && videoPlayer.IsReady && !waitingPlay)
+                    {
+                        if (isTapePlaying && !videoPlayer.IsPlaying)
+                        {
+                            videoPlayer.Play();
+                            if (videoAudioSource != null) videoAudioSource.mute = false;
+                        }
+                        else if (!isTapePlaying && videoPlayer.IsPlaying)
+                        {
+                            videoPlayer.Pause();
+                        }
+
+                        _SyncTapePosition();
+                    }
+                }
+            }
+        }
+    }
+
+    private void _SyncTapePosition()
+    {
+        if (videoPlayer == null || !videoPlayer.gameObject.activeInHierarchy || !videoPlayer.IsReady || currentMode != 1) return;
+
+        float targetTime;
+        if (!isTapePlaying)
+        {
+            targetTime = (float)Math.Abs(tapeStartTime);
+        }
+        else
+        {
+            targetTime = (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
+        }
+
+        if (float.IsInfinity(targetTime) || float.IsNaN(targetTime))
+        {
+            targetTime = 0f;
+        }
+        else if (isTapePlaying)
+        {
+            targetTime %= 86400f;
+            if (targetTime < 0f) targetTime += 86400f;
+        }
+
+        float currentTime = videoPlayer.GetTime();
+        if (float.IsInfinity(currentTime) || float.IsNaN(currentTime)) currentTime = 0f;
+
+        if (Mathf.Abs(currentTime - targetTime) > 1f)
+        {
+            videoPlayer.SetTime(targetTime);
+        }
+    }
+
+    public void _RestoreLateJoinerTape()
+    {
+        isRestoreLateJoinerScheduled = false;
+
+        if (!isTapeInserted || insertedTape != null) return;
+
+        _FindTapeInSlot();
+
+        if (insertedTape != null)
+        {
+            if (insertedTape.tapeRigidbody != null) insertedTape.tapeRigidbody.isKinematic = true;
+            if (insertedTape.pickup != null)
+            {
+                insertedTape.pickup.Drop();
+                insertedTape.pickup.pickupable = isEjecting;
+            }
+
+            if (tapeSlot != null)
+            {
+                Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+                target.SetParent(tapeSlot, true);
+                target.localPosition = isEjecting ? (Vector3.up * 0.05f) : Vector3.zero;
+                target.localRotation = Quaternion.identity;
+            }
+            UpdateVisuals();
+        }
+        else
+        {
+            lateJoinerRetryCount++;
+            if (lateJoinerRetryCount < 10)
+            {
+                isRestoreLateJoinerScheduled = true;
+                SendCustomEventDelayedSeconds(nameof(_RestoreLateJoinerTape), 2f);
+            }
+        }
+    }
+
+    public void _PeriodicApplyChannel()
+    {
+        isPeriodicApplyScheduled = false;
+        if (!radioPowerOn || currentMode != 0) return;
+        _ApplyChannel();
+    }
+
+    private void _FindTapeInSlot()
+    {
+        if (tapeSlot == null) return;
+        Collider[] colliders = Physics.OverlapSphere(tapeSlot.position, 0.2f);
+        foreach (Collider col in colliders)
+        {
+            if (col == null) continue;
+            HoboTape tape = col.GetComponent<HoboTape>();
+            if (tape == null && col.transform.root != null)
+            {
+                tape = col.transform.root.GetComponentInChildren<HoboTape>();
+            }
+
+            if (tape != null)
+            {
+                if (currentTapeUrl != null && tape.tapeUrl != null && currentTapeUrl.Get() == tape.tapeUrl.Get())
+                {
+                    insertedTape = tape;
+                    break;
+                }
+            }
         }
     }
 
     public void _ApplyChannel()
     {
         loadedChannelIndex = currentChannelIndex;
+        loadedMode = currentMode;
         UpdateVisuals();
 
         Debug.Log($"[HoboRadio] ApplyChannel: powerOn={radioPowerOn}, waitingPlay={waitingPlay}, currentCh={currentChannelIndex}, isOwner={Networking.IsOwner(gameObject)}");
 
         if (!radioPowerOn) return;
 
+        // Fetcherへの通知（電源ON時は画面を点灯させる）
+        if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
+
+        if (currentMode == 1)
+        {
+            return;
+        }
+
+        if (videoAudioSource != null) videoAudioSource.mute = false;
+
         if (videoPlayer != null)
         {
             videoPlayer.Stop();
         }
-        waitingPlay = false;
+
+        if (statusText != null) statusText.text = "";
+
+        waitingPlay = true;
+        retryCount = 0;
+        isRetryScheduled = false;
 
         CancelPendingNoiseFadeOut();
 
-        // Fetcherへの通知
-        if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
-
-        // ビデオロード
-        if (!waitingPlay)
-        {
-            retryCount = 0;
-            isRetryScheduled = false;
-            _ExecuteLoad();
-        }
+        SendCustomEventDelayedFrames(nameof(_ExecuteLoad), 2);
 
         NoiseFadeIn();
     }
 
     public void _ExecuteLoad()
     {
-        if (!radioPowerOn) return;
+        if (!radioPowerOn || currentMode != 0) return;
 
-        if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null) return;
+        if (videoPlayer == null || channels == null || currentChannelIndex >= channels.Length || channels[currentChannelIndex] == null || string.IsNullOrEmpty(channels[currentChannelIndex].Get()))
+        {
+            waitingPlay = false;
+            isRetryScheduled = false;
+            StopChannelNoise();
+            if (statusText != null) statusText.text = "NO SIGNAL";
+            return;
+        }
 
         Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
         videoPlayer.LoadURL(channels[currentChannelIndex]);
@@ -261,7 +834,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // 3Dモデル：針の移動
         if (radioAnimator != null && currentChannelIndex < channelDialValues.Length)
         {
-            radioAnimator.SetFloat("Float_Needle_Position", channelDialValues[currentChannelIndex]);
+            radioAnimator.SetFloat("HoboRadio_NeedlePosition", channelDialValues[currentChannelIndex]);
         }
 
         // UI：チャンネル番号表示
@@ -269,11 +842,39 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             channelText.text = $"CH{(currentChannelIndex + 1):00}";
         }
+
+        if (radioAnimator == null) return;
+
+        // スロット状態の同期
+        if (isSlotOpen && !_animSlotOpen) { radioAnimator.SetTrigger("HoboRadio_SlotOpen"); _animSlotOpen = true; }
+        else if (!isSlotOpen && _animSlotOpen) { radioAnimator.SetTrigger("HoboRadio_SlotClose"); _animSlotOpen = false; }
+
+        // ボタン沈み込み状態の同期
+        bool shouldPlayDown = isTapeInserted && !isTapeStopped && !isEjecting;
+        bool shouldPauseDown = isTapeInserted && !isTapePlaying && !isTapeStopped && !waitingPlay && !isEjecting;
+
+        if (shouldPlayDown && !_animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOn"); _animPlayDown = true; }
+        else if (!shouldPlayDown && _animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOff"); _animPlayDown = false; }
+
+        if (shouldPauseDown && !_animPauseDown) { radioAnimator.SetTrigger("HoboRadio_PauseOn"); _animPauseDown = true; }
+        else if (!shouldPauseDown && _animPauseDown) { radioAnimator.SetTrigger("HoboRadio_PauseOff"); _animPauseDown = false; }
+    }
+
+    private void TakeOwnership()
+    {
+        if (isGlobal && !Networking.IsOwner(gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+        }
     }
 
     public override void OnVideoReady()
     {
-        if (!waitingPlay) return;
+        if (!waitingPlay)
+        {
+            if (videoPlayer != null) videoPlayer.Stop();
+            return;
+        }
         waitingPlay = false;
         isRetryScheduled = false;
 
@@ -281,23 +882,76 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         Debug.Log($"[HoboRadio] OnVideoReady: ready={videoPlayer.IsReady} dur={videoPlayer.GetDuration()}");
 
-        // 再生開始
-        float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
-        videoPlayer.SetTime(syncTime);
-        videoPlayer.Play();
+        if (currentMode == 1) // Tape Mode
+        {
+            if (videoAudioSource != null) videoAudioSource.mute = true;
 
-        if (statusText != null) statusText.text = "";
+            float targetTime;
+            if (!isTapePlaying)
+            {
+                targetTime = (float)Math.Abs(tapeStartTime);
+            }
+            else
+            {
+                targetTime = (float)(Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds - tapeStartTime);
+                if (float.IsInfinity(targetTime) || float.IsNaN(targetTime))
+                {
+                    targetTime = 0f;
+                }
+                else
+                {
+                    targetTime %= 86400f;
+                    if (targetTime < 0f) targetTime += 86400f;
+                }
+            }
+            videoPlayer.SetTime(targetTime);
 
-        StartNoiseFadeOutDelay(3f);
-        SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
+            if (isTapePlaying)
+            {
+                videoPlayer.Play();
+            }
+            else
+            {
+                videoPlayer.Pause();
+            }
+
+            if (statusText != null) statusText.text = "";
+
+            UpdateVisuals();
+            SendCustomEventDelayedSeconds(nameof(_RestoreTapeAudio), 1.0f);
+            StartNoiseFadeOutDelay(4.0f);
+        }
+        else // Radio Mode
+        {
+            float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
+            videoPlayer.SetTime(syncTime);
+            videoPlayer.Play();
+
+            if (statusText != null) statusText.text = "";
+
+            StartNoiseFadeOutDelay(3f);
+            lastVideoReadyTime = Time.timeSinceLevelLoad;
+            SendCustomEventDelayedSeconds(nameof(_ReSyncSeek), 30f); // 30秒後に微調整
+        }
     }
 
     public void _ReSyncSeek()
     {
-        if (videoPlayer != null && videoPlayer.IsPlaying)
+        if (currentMode != 0) return;
+        if (Time.timeSinceLevelLoad - lastVideoReadyTime < 29f) return;
+
+        if (videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying)
         {
             float syncTime = Networking.GetNetworkDateTime().Minute * 60f + Networking.GetNetworkDateTime().Second;
             videoPlayer.SetTime(syncTime);
+        }
+    }
+
+    public void _RestoreTapeAudio()
+    {
+        if (currentMode == 1 && videoAudioSource != null)
+        {
+            videoAudioSource.mute = false;
         }
     }
 
@@ -323,7 +977,15 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
 
             if (videoPlayer != null) videoPlayer.Stop();
-            SendCustomEventDelayedSeconds(nameof(_ExecuteLoad), RetryDelay);
+
+            if (currentMode == 1)
+            {
+                SendCustomEventDelayedSeconds(nameof(_RetryExecuteTapeLoad), RetryDelay);
+            }
+            else
+            {
+                SendCustomEventDelayedSeconds(nameof(_RetryExecuteLoad), RetryDelay);
+            }
         }
         else
         {
@@ -334,17 +996,57 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             CancelPendingNoiseFadeOut();
             NoiseFadeOut();
             if (statusText != null) statusText.text = "LOAD ERROR";
+
+            if (currentMode == 1)
+            {
+                isTapePlaying = false;
+                isTapeStopped = true;
+                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
+                if (isGlobal) RequestSerialization();
+                UpdateVisuals();
+            }
         }
+    }
+
+    public void _RetryExecuteTapeLoad()
+    {
+        if (!isRetryScheduled) return;
+        _ExecuteTapeLoad();
+    }
+
+    public void _RetryExecuteLoad()
+    {
+        if (!isRetryScheduled) return;
+        _ExecuteLoad();
     }
 
     #endregion
 
     #region --- Audio Effects ---
 
-    public void NoiseFadeIn()
+    public void UpdateMasterVolume(float newVolume)
+    {
+        masterVolume = Mathf.Clamp01(newVolume);
+
+        if (videoAudioSource != null)
+        {
+            videoAudioSource.volume = masterVolume;
+        }
+
+        if (channelNoiseSE != null && channelNoiseSE.isPlaying && noiseFadeMode == NoiseFadeNone)
+        {
+            channelNoiseSE.volume = masterVolume;
+        }
+    }
+
+    private void NoiseFadeIn()
     {
         if (channelNoiseSE == null) return;
         CancelPendingNoiseFadeOut();
+        if (defaultRadioNoiseSE != null && channelNoiseSE.clip != defaultRadioNoiseSE)
+        {
+            channelNoiseSE.clip = defaultRadioNoiseSE;
+        }
         noiseFadeMode = NoiseFadeInMode;
         noiseFadeStep = 0;
         channelNoiseSE.volume = 0f;
@@ -352,7 +1054,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         ScheduleNoiseFadeStep();
     }
 
-    public void NoiseFadeOut()
+    private void NoiseFadeOut()
     {
         if (channelNoiseSE == null) return;
         CancelPendingNoiseFadeOut();
@@ -372,7 +1074,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (noiseFadeMode == NoiseFadeInMode)
         {
-            channelNoiseSE.volume = Mathf.Lerp(0f, 1f, fadeProgress);
+            channelNoiseSE.volume = Mathf.Lerp(0f, 1f, fadeProgress) * masterVolume;
 
             if (noiseFadeStep < 10)
             {
@@ -388,7 +1090,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (noiseFadeMode == NoiseFadeOutMode)
         {
-            channelNoiseSE.volume = Mathf.Lerp(1f, 0f, fadeProgress);
+            channelNoiseSE.volume = Mathf.Lerp(1f, 0f, fadeProgress) * masterVolume;
 
             if (noiseFadeStep < 10)
             {
@@ -458,8 +1160,347 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (!waitingPlay) return;
 
+        if (currentMode == 1 && (!isTapeInserted || isEjecting))
+        {
+            return;
+        }
+
         Debug.LogWarning($"[HoboRadio] OnVideoError Received: {videoError}");
         HandleRetry();
 
+    }
+
+    public override void OnVideoEnd()
+    {
+        if (currentMode == 1 && isTapeInserted && !isTapeStopped)
+        {
+            isTapePlaying = false;
+            isTapeStopped = true;
+            if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
+            if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+            {
+                tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+            }
+            UpdateVisuals();
+
+            if (isGlobal && Networking.IsOwner(gameObject))
+            {
+                RequestSerialization();
+            }
+        }
+    }
+
+    #region --- Tape Playback Control ---
+
+    private void InsertTape(HoboTape tape)
+    {
+        if (tape == null || isTapeInserted || pendingInsertTape != null) return;
+
+        TakeOwnership();
+
+        pendingInsertTape = tape;
+        isTapeInserted = true;
+        isEjecting = false;
+        isSlotOpen = true;
+        isTapeStopped = true;
+
+        if (tape.pickup != null)
+        {
+            tape.pickup.Drop();
+            tape.pickup.pickupable = false;
+        }
+
+        if (tape.tapeRigidbody != null)
+        {
+            tape.tapeRigidbody.isKinematic = true;
+        }
+
+        Transform target = tape.targetTransform != null ? tape.targetTransform : tape.transform;
+        if (tapeSlot != null)
+        {
+            target.SetParent(tapeSlot, true);
+        }
+
+        currentTapeUrl = tape.tapeUrl;
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
+        UpdateVisuals();
+
+        if (tapeMechanicsAudioSource != null && tapeInsertSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(tapeInsertSE);
+        }
+
+        SendCustomEventDelayedSeconds(nameof(_CompleteInsertSnap), slotOpenDelay);
+    }
+
+    public void _CompleteInsertSnap()
+    {
+        if (pendingInsertTape == null) return;
+        if (isEjecting || !isTapeInserted)
+        {
+            pendingInsertTape = null;
+            return;
+        }
+
+        insertedTape = pendingInsertTape;
+        pendingInsertTape = null;
+
+        currentMode = 1;
+        loadedMode = 1;
+        currentTapeUrl = insertedTape.tapeUrl;
+        loadedTapeUrl = currentTapeUrl;
+        tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+        isSlotOpen = false;
+
+        if (insertedTape.tapeRigidbody != null)
+        {
+            insertedTape.tapeRigidbody.isKinematic = true;
+        }
+
+        if (tapeSlot != null)
+        {
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.SetParent(tapeSlot, true);
+            target.localPosition = Vector3.zero;
+            target.localRotation = Quaternion.identity;
+        }
+
+        insertedTape.UpdateTapeProgress(0f);
+
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
+        UpdateVisuals();
+
+        if (videoPlayer != null) videoPlayer.Stop();
+        CancelPendingNoiseFadeOut();
+        StopChannelNoise();
+
+        if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
+
+        InteractButtonPlay();
+    }
+
+    private void EjectTape(HoboTape tape)
+    {
+        if (!isTapeInserted || isEjecting) return;
+
+        TakeOwnership();
+        if (tape != null && tape.gameObject != null && !Networking.IsOwner(tape.gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, tape.gameObject);
+        }
+
+        isEjecting = true;
+        isSlotOpen = true;
+
+        if (videoPlayer != null) videoPlayer.Stop();
+        isTapePlaying = false;
+        isTapeStopped = true;
+        waitingPlay = false;
+
+        CancelPendingNoiseFadeOut();
+        StopChannelNoise();
+
+        if (isGlobal)
+        {
+            RequestSerialization();
+        }
+        UpdateVisuals();
+
+        if (tapeMechanicsAudioSource != null && tapeEjectSE != null)
+        {
+            tapeMechanicsAudioSource.PlayOneShot(tapeEjectSE);
+        }
+
+        SendCustomEventDelayedSeconds(nameof(_StartEjectAnimation), slotOpenDelay);
+    }
+
+    public void _StartEjectAnimation()
+    {
+        if (insertedTape != null && tapeSlot != null)
+        {
+            Transform target = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+            target.SetParent(tapeSlot, true);
+
+            if (insertedTape.tapeRigidbody != null)
+            {
+                insertedTape.tapeRigidbody.isKinematic = true;
+            }
+
+            ejectStartPos = target.localPosition;
+            ejectEndPos = Vector3.up * 0.05f;
+            ejectAnimTime = 0f;
+            isEjectAnimating = true;
+        }
+    }
+
+    public void InteractButtonEject()
+    {
+        if (!isTapeInserted || isEjecting || _accumulatedSeekTime != 0f) return;
+
+        if (insertedTape == null)
+        {
+            _FindTapeInSlot();
+        }
+
+        if (insertedTape == null) return;
+
+        EjectTape(insertedTape);
+    }
+
+    public void _PlayTape()
+    {
+        if (!radioPowerOn || currentTapeUrl == null) return;
+
+        retryCount = 0;
+        isRetryScheduled = false;
+
+        if (insertedTape != null)
+        {
+            insertedTape.UpdateTapeProgress(0f);
+        }
+
+        tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+
+        if (videoPlayer != null) videoPlayer.Stop();
+        waitingPlay = true;
+
+        SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+    }
+
+    public void _ExecuteTapeLoad()
+    {
+        if (!radioPowerOn || currentMode != 1 || isTapeStopped || isEjecting) return;
+
+        if (currentTapeUrl == null || string.IsNullOrEmpty(currentTapeUrl.Get()))
+        {
+            waitingPlay = false;
+            isRetryScheduled = false;
+            StopChannelNoise();
+            if (statusText != null) statusText.text = "BLANK TAPE";
+            return;
+        }
+
+        if (videoPlayer != null)
+        {
+            Debug.Log($"[HoboRadio] LoadURL Executed (Tape Attempt {retryCount + 1}): {currentTapeUrl}");
+            videoPlayer.LoadURL(currentTapeUrl);
+            waitingPlay = true;
+            isRetryScheduled = false;
+            videoLoadStartTime = Time.timeSinceLevelLoad;
+            SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
+
+            if (channelNoiseSE != null && tapeLoadingSE != null)
+            {
+                CancelPendingNoiseFadeOut();
+                channelNoiseSE.clip = tapeLoadingSE;
+                channelNoiseSE.volume = masterVolume;
+                if (!channelNoiseSE.isPlaying) channelNoiseSE.Play();
+                noiseFadeMode = NoiseFadeNone;
+            }
+        }
+    }
+
+    #endregion
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other == null || isTapeInserted || pendingInsertTape != null) return;
+
+        HoboTape tape = other.GetComponent<HoboTape>();
+        if (tape == null && other.transform.root != null)
+        {
+            tape = other.transform.root.GetComponentInChildren<HoboTape>();
+        }
+
+        if (tape != null)
+        {
+            if (tape == _ignoredTape) return;
+
+            if (Time.time < _ejectCooldownEndTime)
+            {
+                _ignoredTape = tape;
+                return;
+            }
+
+            if (!Networking.IsOwner(tape.gameObject)) return;
+            InsertTape(tape);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other == null) return;
+
+        if (_ignoredTape != null)
+        {
+            Transform ignoredRoot = _ignoredTape.targetTransform != null ? _ignoredTape.targetTransform : _ignoredTape.transform;
+            if (other.transform == ignoredRoot || other.transform.IsChildOf(ignoredRoot))
+            {
+                _ignoredTape = null;
+            }
+        }
+
+        if (!isTapeInserted || !isEjecting || insertedTape == null) return;
+
+        Transform tapeRoot = insertedTape.targetTransform != null ? insertedTape.targetTransform : insertedTape.transform;
+
+        bool isTargetCollider = false;
+        if (other.transform == tapeRoot || other.transform.IsChildOf(tapeRoot))
+        {
+            isTargetCollider = true;
+        }
+
+        if (isTargetCollider)
+        {
+            if (!Networking.IsOwner(insertedTape.gameObject)) return;
+
+            TakeOwnership();
+
+            if (tapeRoot != null)
+            {
+                if (insertedTape.originalParent != null)
+                {
+                    tapeRoot.SetParent(insertedTape.originalParent, true);
+                }
+                else
+                {
+                    tapeRoot.SetParent(null, true);
+                }
+            }
+
+            if (insertedTape.tapeRigidbody != null)
+            {
+                insertedTape.tapeRigidbody.isKinematic = true;
+            }
+
+            insertedTape = null;
+            pendingInsertTape = null;
+            isTapeInserted = false;
+            isEjecting = false;
+            isEjectAnimating = false;
+            _accumulatedSeekTime = 0f;
+            _ejectCooldownEndTime = Time.time + 2.0f;
+            isTapeStopped = false;
+            isTapePlaying = false;
+            currentMode = 0;
+            isSlotOpen = false;
+
+            UpdateVisuals();
+
+            if (!isGlobal || Networking.IsOwner(gameObject))
+            {
+                if (isGlobal)
+                {
+                    RequestSerialization();
+                }
+                _ApplyChannel();
+            }
+        }
     }
 }

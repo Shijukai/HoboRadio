@@ -6,7 +6,7 @@ public class VolumeSlider : UdonSharpBehaviour
 {
     [Header("References")]
     public Transform knob;
-    public AudioSource targetAudio;
+    public HoboRadio_Controller controller;
 
     [Header("Slider Range (Z Axis)")]
     public float minZ = 0.005f;
@@ -84,11 +84,14 @@ public class VolumeSlider : UdonSharpBehaviour
         // Z方向のみスライド
         Vector3 localPos = knob.localPosition;     
         localPos.z = Mathf.Clamp(inputLocal.x, minZ, maxZ);                         // Z軸範囲で制限
-        knob.localPosition = localPos; 
+        knob.localPosition = localPos;
 
         // 音量へ変換
         float volume = Mathf.InverseLerp(minZ, maxZ, localPos.z);
-        targetAudio.volume = volume;
+        if (controller != null)
+        {
+            controller.UpdateMasterVolume(volume);
+        }
     }
 
     // Desktop USE
