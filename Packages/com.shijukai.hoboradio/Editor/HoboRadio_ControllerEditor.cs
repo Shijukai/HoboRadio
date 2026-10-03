@@ -101,6 +101,8 @@ public class HoboRadio_ControllerEditor : Editor
         foreach (var radio in radios)
         {
             if (PrefabUtility.IsPartOfPrefabAsset(radio.gameObject)) continue;
+            if ((radio.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+            
             SerializedObject so = new SerializedObject(radio);
             SerializedProperty prop = so.FindProperty("isGlobal");
             if (prop != null)
@@ -118,6 +120,8 @@ public class HoboRadio_ControllerEditor : Editor
             foreach (var tape in allTapes)
             {
                 if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
+                if ((tape.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+                
                 targetTapes.Add(tape);
             }
 
@@ -131,6 +135,8 @@ public class HoboRadio_ControllerEditor : Editor
             foreach (var tape in allTapes)
             {
                 if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
+                if ((tape.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+                
                 VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if (isGlobal && syncComp == null)
@@ -255,28 +261,44 @@ public static class HoboRadio_HierarchyMonitor
         if (Application.isPlaying) return;
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
-        HoboRadio_Controller[] radios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
-        HoboTape[] tapes = Object.FindObjectsOfType<HoboTape>(true);
+        HoboRadio_Controller[] rawRadios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
+        HoboTape[] rawTapes = Object.FindObjectsOfType<HoboTape>(true);
+
+        List<HoboRadio_Controller> validRadios = new List<HoboRadio_Controller>();
+        foreach (var r in rawRadios)
+        {
+            if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
+            if ((r.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+            validRadios.Add(r);
+        }
+
+        List<HoboTape> validTapes = new List<HoboTape>();
+        foreach (var t in rawTapes)
+        {
+            if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
+            if ((t.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+            validTapes.Add(t);
+        }
 
         // シーンロード時などはカウントを初期化して終了
         if (lastRadioCount == -1 || lastTapeCount == -1)
         {
-            lastRadioCount = radios.Length;
-            lastTapeCount = tapes.Length;
+            lastRadioCount = validRadios.Count;
+            lastTapeCount = validTapes.Count;
             return;
         }
 
         bool hasAdded = false;
-        if (radios.Length > lastRadioCount) hasAdded = true;
-        if (tapes.Length > lastTapeCount) hasAdded = true;
+        if (validRadios.Count > lastRadioCount) hasAdded = true;
+        if (validTapes.Count > lastTapeCount) hasAdded = true;
 
-        lastRadioCount = radios.Length;
-        lastTapeCount = tapes.Length;
+        lastRadioCount = validRadios.Count;
+        lastTapeCount = validTapes.Count;
 
         // ヒエラルキーに対象オブジェクトが追加（配置）されたタイミングでのみ実行
         if (hasAdded)
         {
-            CheckSyncStateOnPlaced(radios, tapes);
+            CheckSyncStateOnPlaced(validRadios.ToArray(), validTapes.ToArray());
         }
     }
 
@@ -289,7 +311,6 @@ public static class HoboRadio_HierarchyMonitor
 
         foreach (var r in radios)
         {
-            if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
             SerializedObject radioSO = new SerializedObject(r);
             SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
             if (isGlobalProp != null)
@@ -305,7 +326,6 @@ public static class HoboRadio_HierarchyMonitor
         {
             foreach (var t in tapes)
             {
-                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
                 targetTapes.Add(t);
             }
 
@@ -319,7 +339,6 @@ public static class HoboRadio_HierarchyMonitor
             bool isGlobal = hasGlobal;
             foreach (var t in tapes)
             {
-                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
                 VRC.SDK3.Components.VRCObjectSync syncComp = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
