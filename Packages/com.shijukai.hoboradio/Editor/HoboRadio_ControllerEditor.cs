@@ -307,7 +307,7 @@ public static class HoboRadio_HierarchyMonitor
 
             if (targetTapes.Count > 0)
             {
-                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true);
+                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true, HoboRadio_SyncSettingsWindow.TriggerType.Placed);
             }
         }
         else
@@ -326,7 +326,7 @@ public static class HoboRadio_HierarchyMonitor
 
             if (targetTapes.Count > 0)
             {
-                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false, HoboRadio_SyncSettingsWindow.TriggerType.Placed);
             }
         }
     }
