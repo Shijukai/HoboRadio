@@ -93,11 +93,6 @@ public class HoboRadio_ControllerEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("currentChannelIndex"));
         EditorGUILayout.EndVertical();
 
-        if (isGlobalChanged)
-        {
-            CheckTapeSyncState(isGlobalProp.boolValue);
-        }
-
         // 開発者モード時のみ内部設定を表示
         if (isDebugMode)
         {
@@ -107,6 +102,11 @@ public class HoboRadio_ControllerEditor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
+
+        if (isGlobalChanged)
+        {
+            CheckTapeSyncState(isGlobalProp.boolValue);
+        }
     }
 
     private void CheckTapeSyncState(bool isGlobal, bool isAutomaticCheck = false)
