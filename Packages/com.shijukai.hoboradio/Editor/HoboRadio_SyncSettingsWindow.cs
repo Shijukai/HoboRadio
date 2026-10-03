@@ -111,6 +111,9 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 
     private void ExecuteChanges()
     {
+        Undo.SetCurrentGroupName("テープの同期設定を一括更新");
+        int undoGroup = Undo.GetCurrentGroup();
+
         foreach (var tape in targetTapes)
         {
             if (tape == null) continue;
@@ -155,6 +158,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
                 }
             }
         }
+        
+        Undo.CollapseUndoOperations(undoGroup);
         Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
     }
 }
