@@ -64,10 +64,19 @@ public class HoboRadio_ControllerEditor : Editor
         EditorGUILayout.LabelField("基本設定 (Basic Settings)", EditorStyles.boldLabel);
         EditorGUILayout.Space(2);
 
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("isGlobal"));
+        EditorGUI.BeginChangeCheck();
+        SerializedProperty isGlobalProp = serializedObject.FindProperty("isGlobal");
+        EditorGUILayout.PropertyField(isGlobalProp);
+        bool isGlobalChanged = EditorGUI.EndChangeCheck();
+
         EditorGUILayout.PropertyField(serializedObject.FindProperty("radioPowerOn"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("currentChannelIndex"));
         EditorGUILayout.EndVertical();
+
+        if (isGlobalChanged)
+        {
+            CheckTapeSyncState(isGlobalProp.boolValue);
+        }
 
         // 開発者モード時のみ内部設定を表示
         if (isDebugMode)
@@ -78,6 +87,31 @@ public class HoboRadio_ControllerEditor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void CheckTapeSyncState(bool isGlobal)
+    {
+        HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
+        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+
+        foreach (var tape in allTapes)
+        {
+            VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+
+            if (isGlobal && syncComp == null)
+            {
+                targetTapes.Add(tape);
+            }
+            else if (!isGlobal && syncComp != null)
+            {
+                targetTapes.Add(tape);
+            }
+        }
+
+        if (targetTapes.Count > 0)
+        {
+            HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes);
+        }
     }
 }
 
