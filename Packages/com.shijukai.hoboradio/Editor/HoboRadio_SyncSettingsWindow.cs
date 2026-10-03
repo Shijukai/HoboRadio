@@ -141,20 +141,26 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
+        bool shouldClose = false;
+
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("実行 (Apply)", GUILayout.Height(30)))
         {
             ExecuteChanges();
-            Close();
-            GUIUtility.ExitGUI();
+            shouldClose = true;
         }
         if (GUILayout.Button("キャンセル (Cancel)", GUILayout.Height(30)))
+        {
+            shouldClose = true;
+        }
+        GUILayout.EndHorizontal();
+        EditorGUILayout.Space(10);
+
+        if (shouldClose)
         {
             Close();
             GUIUtility.ExitGUI();
         }
-        GUILayout.EndHorizontal();
-        EditorGUILayout.Space(10);
     }
 
     private void ExecuteChanges()
@@ -217,7 +223,7 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         }
         else
         {
-            Undo.RevertAllDownToGroup(undoGroup);
+            Undo.CollapseUndoOperations(undoGroup);
         }
     }
 }
