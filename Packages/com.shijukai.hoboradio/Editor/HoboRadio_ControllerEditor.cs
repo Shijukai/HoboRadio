@@ -13,6 +13,25 @@ public class HoboRadio_ControllerEditor : Editor
     private void OnEnable()
     {
         logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
+        EditorApplication.delayCall += CheckSyncStateOnEnable;
+    }
+
+    private void OnDisable()
+    {
+        EditorApplication.delayCall -= CheckSyncStateOnEnable;
+    }
+
+    private void CheckSyncStateOnEnable()
+    {
+        if (this == null || target == null || Application.isPlaying) return;
+        HoboRadio_Controller radio = (HoboRadio_Controller)target;
+        if (radio == null || radio.gameObject == null || PrefabUtility.IsPartOfPrefabAsset(radio.gameObject)) return;
+        
+        SerializedProperty isGlobalProp = serializedObject.FindProperty("isGlobal");
+        if (isGlobalProp != null)
+        {
+            CheckTapeSyncState(isGlobalProp.boolValue);
+        }
     }
 
     public override void OnInspectorGUI()
@@ -91,6 +110,8 @@ public class HoboRadio_ControllerEditor : Editor
 
     private void CheckTapeSyncState(bool isGlobal)
     {
+        if (Resources.FindObjectsOfTypeAll<HoboRadio_SyncSettingsWindow>().Length > 0) return;
+
         HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
         System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
 
@@ -124,6 +145,51 @@ public class HoboTapeEditor : Editor
     private void OnEnable()
     {
         logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
+        EditorApplication.delayCall += CheckSyncStateOnEnable;
+    }
+
+    private void OnDisable()
+    {
+        EditorApplication.delayCall -= CheckSyncStateOnEnable;
+    }
+
+    private void CheckSyncStateOnEnable()
+    {
+        if (this == null || target == null || Application.isPlaying) return;
+        HoboTape tape = (HoboTape)target;
+        if (tape == null || tape.gameObject == null || PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) return;
+
+        if (Resources.FindObjectsOfTypeAll<HoboRadio_SyncSettingsWindow>().Length > 0) return;
+
+        HoboRadio_Controller radio = FindObjectOfType<HoboRadio_Controller>();
+        if (radio == null) return;
+
+        SerializedObject radioSO = new SerializedObject(radio);
+        SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
+        if (isGlobalProp == null) return;
+
+        bool isGlobal = isGlobalProp.boolValue;
+        VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+
+        if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
+        {
+            HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
+            System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+
+            foreach (var t in allTapes)
+            {
+                VRC.SDK3.Components.VRCObjectSync sync = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+                if ((isGlobal && sync == null) || (!isGlobal && sync != null))
+                {
+                    targetTapes.Add(t);
+                }
+            }
+
+            if (targetTapes.Count > 0)
+            {
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes);
+            }
+        }
     }
 
     public override void OnInspectorGUI()
