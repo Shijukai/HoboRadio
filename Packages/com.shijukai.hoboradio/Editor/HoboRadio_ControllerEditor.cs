@@ -255,8 +255,8 @@ public static class HoboRadio_HierarchyMonitor
         if (Application.isPlaying) return;
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
-        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>(true);
-        HoboTape[] tapes = FindObjectsOfType<HoboTape>(true);
+        HoboRadio_Controller[] radios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
+        HoboTape[] tapes = Object.FindObjectsOfType<HoboTape>(true);
 
         // シーンロード時などはカウントを初期化して終了
         if (lastRadioCount == -1 || lastTapeCount == -1)
