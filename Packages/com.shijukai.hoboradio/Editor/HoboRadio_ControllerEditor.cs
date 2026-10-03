@@ -147,6 +147,8 @@ public class HoboRadio_ControllerEditor : Editor
         }
         else
         {
+            if (isAutomaticCheck) return;
+
             foreach (var tape in allTapes)
             {
                 VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
@@ -192,6 +194,10 @@ public class HoboTapeEditor : Editor
         if (this == null || target == null || Application.isPlaying) return;
         HoboTape tape = (HoboTape)target;
         if (tape == null || tape.gameObject == null || PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) return;
+
+        string sessionKey = "HoboRadio_CheckedTape_" + tape.GetInstanceID();
+        if (SessionState.GetBool(sessionKey, false)) return;
+        SessionState.SetBool(sessionKey, true);
 
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
