@@ -7,22 +7,24 @@ using System.Collections.Generic;
 public class HoboRadio_SyncSettingsWindow : EditorWindow
 {
     private bool isGlobalMode;
+    private bool isMixedMode;
     private List<HoboTape> targetTapes = new List<HoboTape>();
     private Dictionary<string, List<HoboTape>> groupedTapes = new Dictionary<string, List<HoboTape>>();
     private Dictionary<HoboTape, bool> tapeSelection = new Dictionary<HoboTape, bool>();
     private Vector2 scrollPosition;
 
-    public static void ShowWindow(bool isGlobal, List<HoboTape> tapes)
+    public static void ShowWindow(bool isGlobal, List<HoboTape> tapes, bool isMixed = false)
     {
         HoboRadio_SyncSettingsWindow window = GetWindow<HoboRadio_SyncSettingsWindow>("同期設定の確認 (Hobo Radio)");
         window.minSize = new Vector2(400, 300);
-        window.Initialize(isGlobal, tapes);
+        window.Initialize(isGlobal, tapes, isMixed);
         window.Show();
     }
 
-    private void Initialize(bool isGlobal, List<HoboTape> tapes)
+    private void Initialize(bool isGlobal, List<HoboTape> tapes, bool isMixed)
     {
         isGlobalMode = isGlobal;
+        isMixedMode = isMixed;
         targetTapes = tapes;
         groupedTapes.Clear();
         tapeSelection.Clear();
@@ -36,7 +38,14 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
                 groupedTapes[parentName] = new List<HoboTape>();
             }
             groupedTapes[parentName].Add(tape);
-            tapeSelection[tape] = true;
+            if (isMixedMode)
+            {
+                tapeSelection[tape] = tape.GetComponent<VRCObjectSync>() != null;
+            }
+            else
+            {
+                tapeSelection[tape] = true;
+            }
         }
     }
 
@@ -46,7 +55,11 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         EditorGUILayout.LabelField("同期設定の変更を検知しました", EditorStyles.boldLabel);
         EditorGUILayout.Space(5);
 
-        if (isGlobalMode)
+        if (isMixedMode)
+        {
+            EditorGUILayout.HelpBox("シーン内に Global と Local のラジオが混在しています。\n各テープの同期（VRCObjectSync）の有無を選択してください。", MessageType.Warning);
+        }
+        else if (isGlobalMode)
         {
             EditorGUILayout.HelpBox("ラジオが Global (グローバル同期) に設定されています。\n以下のテープに VRCObjectSync を追加しますか？", MessageType.Info);
         }
@@ -58,14 +71,21 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         EditorGUILayout.Space(10);
 
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUI.skin.box);
-        
+
         foreach (var group in groupedTapes)
         {
             EditorGUILayout.LabelField($"親階層: {group.Key}", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             foreach (var tape in group.Value)
             {
-                tapeSelection[tape] = EditorGUILayout.ToggleLeft(tape.gameObject.name, tapeSelection[tape]);
+                if (isMixedMode)
+                {
+                    tapeSelection[tape] = EditorGUILayout.ToggleLeft($"{tape.gameObject.name} (VRCObjectSyncを有効化)", tapeSelection[tape]);
+                }
+                else
+                {
+                    tapeSelection[tape] = EditorGUILayout.ToggleLeft(tape.gameObject.name, tapeSelection[tape]);
+                }
             }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space(5);
@@ -93,17 +113,17 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
     {
         foreach (var tape in targetTapes)
         {
-            if (tape == null || !tapeSelection[tape]) continue;
+            if (tape == null) continue;
 
             VRCObjectSync syncObj = tape.gameObject.GetComponent<VRCObjectSync>();
+            bool shouldHaveSync = isMixedMode ? tapeSelection[tape] : (isGlobalMode ? tapeSelection[tape] : !tapeSelection[tape]);
 
-            if (isGlobalMode)
+            if (shouldHaveSync)
             {
                 if (syncObj == null)
                 {
                     bool reverted = false;
 
-                    // Prefabインスタンスであり、元のPrefabにVRCObjectSyncが存在する場合はRevert（元に戻す）する
                     if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
                     {
                         GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(tape.gameObject);
@@ -118,7 +138,6 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
                         }
                     }
 
-                    // PrefabのRevertで解決できなかった場合のみ新規追加する
                     if (!reverted)
                     {
                         Undo.AddComponent<VRCObjectSync>(tape.gameObject);
@@ -129,12 +148,10 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             {
                 if (syncObj != null)
                 {
-                    // 削除操作（Prefabインスタンスの場合は自動的に「Removed Component」のオーバーライドとして記録される）
                     Undo.DestroyObjectImmediate(syncObj);
                 }
             }
         }
         Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
     }
-}
 #endif

@@ -112,26 +112,56 @@ public class HoboRadio_ControllerEditor : Editor
     {
         if (Resources.FindObjectsOfTypeAll<HoboRadio_SyncSettingsWindow>().Length > 0) return;
 
-        HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
-        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>();
+        bool hasGlobal = false;
+        bool hasLocal = false;
 
-        foreach (var tape in allTapes)
+        foreach (var radio in radios)
         {
-            VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-
-            if (isGlobal && syncComp == null)
+            SerializedObject so = new SerializedObject(radio);
+            SerializedProperty prop = so.FindProperty("isGlobal");
+            if (prop != null)
             {
-                targetTapes.Add(tape);
-            }
-            else if (!isGlobal && syncComp != null)
-            {
-                targetTapes.Add(tape);
+                if (prop.boolValue) hasGlobal = true;
+                else hasLocal = true;
             }
         }
 
-        if (targetTapes.Count > 0)
+        HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
+        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+
+        if (hasGlobal && hasLocal)
         {
-            HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes);
+            foreach (var tape in allTapes)
+            {
+                targetTapes.Add(tape);
+            }
+
+            if (targetTapes.Count > 0)
+            {
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, true);
+            }
+        }
+        else
+        {
+            foreach (var tape in allTapes)
+            {
+                VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+
+                if (isGlobal && syncComp == null)
+                {
+                    targetTapes.Add(tape);
+                }
+                else if (!isGlobal && syncComp != null)
+                {
+                    targetTapes.Add(tape);
+                }
+            }
+
+            if (targetTapes.Count > 0)
+            {
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+            }
         }
     }
 }
@@ -161,33 +191,58 @@ public class HoboTapeEditor : Editor
 
         if (Resources.FindObjectsOfTypeAll<HoboRadio_SyncSettingsWindow>().Length > 0) return;
 
-        HoboRadio_Controller radio = FindObjectOfType<HoboRadio_Controller>();
-        if (radio == null) return;
+        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>();
+        if (radios.Length == 0) return;
 
-        SerializedObject radioSO = new SerializedObject(radio);
-        SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
-        if (isGlobalProp == null) return;
+        bool hasGlobal = false;
+        bool hasLocal = false;
 
-        bool isGlobal = isGlobalProp.boolValue;
-        VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-
-        if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
+        foreach (var r in radios)
         {
-            HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
-            System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+            SerializedObject radioSO = new SerializedObject(r);
+            SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
+            if (isGlobalProp != null)
+            {
+                if (isGlobalProp.boolValue) hasGlobal = true;
+                else hasLocal = true;
+            }
+        }
 
+        HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
+        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+
+        if (hasGlobal && hasLocal)
+        {
             foreach (var t in allTapes)
             {
-                VRC.SDK3.Components.VRCObjectSync sync = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-                if ((isGlobal && sync == null) || (!isGlobal && sync != null))
-                {
-                    targetTapes.Add(t);
-                }
+                targetTapes.Add(t);
             }
 
             if (targetTapes.Count > 0)
             {
-                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes);
+                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true);
+            }
+        }
+        else
+        {
+            bool isGlobal = hasGlobal;
+            VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+
+            if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
+            {
+                foreach (var t in allTapes)
+                {
+                    VRC.SDK3.Components.VRCObjectSync sync = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+                    if ((isGlobal && sync == null) || (!isGlobal && sync != null))
+                    {
+                        targetTapes.Add(t);
+                    }
+                }
+
+                if (targetTapes.Count > 0)
+                {
+                    HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+                }
             }
         }
     }
