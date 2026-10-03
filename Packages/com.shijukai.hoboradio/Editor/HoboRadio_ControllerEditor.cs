@@ -83,7 +83,7 @@ public class HoboRadio_ControllerEditor : Editor
 
         serializedObject.ApplyModifiedProperties();
 
-        f (isGlobalChanged)
+        if (isGlobalChanged)
         {
             CheckTapeSyncState(isGlobalProp.boolValue);
         }
@@ -231,7 +231,11 @@ public class HoboTapeEditor : Editor
             DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist", "tapeUrl");
         }
 
-        [InitializeOnLoad]
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+
+[InitializeOnLoad]
 public static class HoboRadio_HierarchyMonitor
 {
     private static int lastRadioCount = -1;
