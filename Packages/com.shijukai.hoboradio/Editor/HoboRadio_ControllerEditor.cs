@@ -270,8 +270,8 @@ public static class HoboRadio_HierarchyMonitor
             if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
             if (EditorUtility.IsPersistent(r.gameObject)) continue;
             if (r.gameObject.hideFlags != HideFlags.None) continue;
-            if (string.IsNullOrEmpty(r.gameObject.scene.name)) continue;
-            
+            if (!r.gameObject.scene.IsValid() || !r.gameObject.scene.isLoaded) continue;
+            if (r.gameObject.scene.name == "Preview Scene") continue;
             validRadios.Add(r);
         }
 
@@ -281,8 +281,8 @@ public static class HoboRadio_HierarchyMonitor
             if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
             if (EditorUtility.IsPersistent(t.gameObject)) continue;
             if (t.gameObject.hideFlags != HideFlags.None) continue;
-            if (string.IsNullOrEmpty(t.gameObject.scene.name)) continue;
-            
+            if (!t.gameObject.scene.IsValid() || !t.gameObject.scene.isLoaded) continue;
+            if (t.gameObject.scene.name == "Preview Scene") continue;
             validTapes.Add(t);
         }
 
