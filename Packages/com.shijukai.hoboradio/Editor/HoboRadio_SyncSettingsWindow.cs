@@ -146,10 +146,12 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         {
             ExecuteChanges();
             Close();
+            GUIUtility.ExitGUI();
         }
         if (GUILayout.Button("キャンセル (Cancel)", GUILayout.Height(30)))
         {
             Close();
+            GUIUtility.ExitGUI();
         }
         GUILayout.EndHorizontal();
         EditorGUILayout.Space(10);
