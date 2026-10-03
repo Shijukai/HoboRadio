@@ -115,8 +115,11 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         {
             if (tape == null) continue;
 
+            // 混在モード以外でチェックが外れている場合は処理をスキップ
+            if (!isMixedMode && !tapeSelection[tape]) continue;
+
             VRCObjectSync syncObj = tape.gameObject.GetComponent<VRCObjectSync>();
-            bool shouldHaveSync = isMixedMode ? tapeSelection[tape] : (isGlobalMode ? tapeSelection[tape] : !tapeSelection[tape]);
+            bool shouldHaveSync = isMixedMode ? tapeSelection[tape] : isGlobalMode;
 
             if (shouldHaveSync)
             {
