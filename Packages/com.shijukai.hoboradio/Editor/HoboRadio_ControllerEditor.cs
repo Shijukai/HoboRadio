@@ -147,28 +147,27 @@ public class HoboRadio_ControllerEditor : Editor
         }
         else
         {
-            bool isGlobal = hasGlobal;
-            VRC.SDK3.Components.VRCObjectSync targetSyncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-
-            // 選択されたテープ自身に不整合がある場合のみ全体チェックを実行
-            if ((isGlobal && targetSyncComp == null) || (!isGlobal && targetSyncComp != null))
+            foreach (var tape in allTapes)
             {
-                foreach (var t in allTapes)
-                {
-                    VRC.SDK3.Components.VRCObjectSync sync = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-                    if ((isGlobal && sync == null) || (!isGlobal && sync != null))
-                    {
-                        targetTapes.Add(t);
-                    }
-                }
+                VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
-                if (targetTapes.Count > 0)
+                if (isGlobal && syncComp == null)
                 {
-                    HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+                    targetTapes.Add(tape);
                 }
+                else if (!isGlobal && syncComp != null)
+                {
+                    targetTapes.Add(tape);
+                }
+            }
+
+            if (targetTapes.Count > 0)
+            {
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
             }
         }
     }
+}
 
 [CustomEditor(typeof(HoboTape))]
 public class HoboTapeEditor : Editor
@@ -223,9 +222,10 @@ public class HoboTapeEditor : Editor
         else
         {
             bool isGlobal = hasGlobal;
-            VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+            VRC.SDK3.Components.VRCObjectSync targetSyncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
-            if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
+            // 選択されたテープ自身に不整合がある場合のみ全体チェックを実行
+            if ((isGlobal && targetSyncComp == null) || (!isGlobal && targetSyncComp != null))
             {
                 foreach (var t in allTapes)
                 {
