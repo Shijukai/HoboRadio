@@ -31,7 +31,7 @@ public class HoboRadio_ControllerEditor : Editor
         SerializedProperty isGlobalProp = serializedObject.FindProperty("isGlobal");
         if (isGlobalProp != null)
         {
-            CheckTapeSyncState(isGlobalProp.boolValue);
+            CheckTapeSyncState(isGlobalProp.boolValue, true);
         }
     }
 
@@ -109,7 +109,7 @@ public class HoboRadio_ControllerEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
-    private void CheckTapeSyncState(bool isGlobal)
+    private void CheckTapeSyncState(bool isGlobal, bool isAutomaticCheck = false)
     {
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
@@ -133,6 +133,8 @@ public class HoboRadio_ControllerEditor : Editor
 
         if (hasGlobal && hasLocal)
         {
+            if (isAutomaticCheck) return;
+
             foreach (var tape in allTapes)
             {
                 targetTapes.Add(tape);
@@ -215,15 +217,7 @@ public class HoboTapeEditor : Editor
 
         if (hasGlobal && hasLocal)
         {
-            foreach (var t in allTapes)
-            {
-                targetTapes.Add(t);
-            }
-
-            if (targetTapes.Count > 0)
-            {
-                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true);
-            }
+            return;
         }
         else
         {
