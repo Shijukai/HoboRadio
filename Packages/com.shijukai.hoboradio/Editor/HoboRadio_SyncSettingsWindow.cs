@@ -113,6 +113,7 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
     {
         Undo.SetCurrentGroupName("テープの同期設定を一括更新");
         int undoGroup = Undo.GetCurrentGroup();
+        bool hasChanged = false;
 
         foreach (var tape in targetTapes)
         {
@@ -148,6 +149,7 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
                     {
                         Undo.AddComponent<VRCObjectSync>(tape.gameObject);
                     }
+                    hasChanged = true;
                 }
             }
             else
@@ -155,12 +157,20 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
                 if (syncObj != null)
                 {
                     Undo.DestroyObjectImmediate(syncObj);
+                    hasChanged = true;
                 }
             }
         }
         
-        Undo.CollapseUndoOperations(undoGroup);
-        Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
+        if (hasChanged)
+        {
+            Undo.CollapseUndoOperations(undoGroup);
+            Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
+        }
+        else
+        {
+            Undo.RevertAllDownToGroup(undoGroup);
+        }
     }
 }
 #endif

@@ -147,27 +147,28 @@ public class HoboRadio_ControllerEditor : Editor
         }
         else
         {
-            foreach (var tape in allTapes)
-            {
-                VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+            bool isGlobal = hasGlobal;
+            VRC.SDK3.Components.VRCObjectSync targetSyncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
-                if (isGlobal && syncComp == null)
-                {
-                    targetTapes.Add(tape);
-                }
-                else if (!isGlobal && syncComp != null)
-                {
-                    targetTapes.Add(tape);
-                }
-            }
-
-            if (targetTapes.Count > 0)
+            // 選択されたテープ自身に不整合がある場合のみ全体チェックを実行
+            if ((isGlobal && targetSyncComp == null) || (!isGlobal && targetSyncComp != null))
             {
-                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+                foreach (var t in allTapes)
+                {
+                    VRC.SDK3.Components.VRCObjectSync sync = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+                    if ((isGlobal && sync == null) || (!isGlobal && sync != null))
+                    {
+                        targetTapes.Add(t);
+                    }
+                }
+
+                if (targetTapes.Count > 0)
+                {
+                    HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+                }
             }
         }
     }
-}
 
 [CustomEditor(typeof(HoboTape))]
 public class HoboTapeEditor : Editor
