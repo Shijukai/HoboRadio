@@ -248,8 +248,8 @@ public class HoboTapeEditor : Editor
 [InitializeOnLoad]
 public static class HoboRadio_HierarchyMonitor
 {
-    private static int lastRadioCount = -1;
-    private static int lastTapeCount = -1;
+    private static HashSet<int> knownInstanceIDs = new HashSet<int>();
+    private static bool isInitialized = false;
 
     static HoboRadio_HierarchyMonitor()
     {
@@ -259,59 +259,96 @@ public static class HoboRadio_HierarchyMonitor
     private static void OnHierarchyChanged()
     {
         if (Application.isPlaying) return;
-        if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
         HoboRadio_Controller[] rawRadios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
         HoboTape[] rawTapes = Object.FindObjectsOfType<HoboTape>(true);
 
-        List<HoboRadio_Controller> validRadios = new List<HoboRadio_Controller>();
+        List<GameObject> validObjects = new List<GameObject>();
+
         foreach (var r in rawRadios)
         {
             if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
             if (EditorUtility.IsPersistent(r.gameObject)) continue;
             if (r.gameObject.hideFlags != HideFlags.None) continue;
             if (!r.gameObject.scene.IsValid() || !r.gameObject.scene.isLoaded) continue;
-            // プレビュー用の一時シーン（パスが存在しない）を除外することで確実にはじく
             if (string.IsNullOrEmpty(r.gameObject.scene.path)) continue;
-            validRadios.Add(r);
+            validObjects.Add(r.gameObject);
         }
 
-        List<HoboTape> validTapes = new List<HoboTape>();
         foreach (var t in rawTapes)
         {
             if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
             if (EditorUtility.IsPersistent(t.gameObject)) continue;
             if (t.gameObject.hideFlags != HideFlags.None) continue;
             if (!t.gameObject.scene.IsValid() || !t.gameObject.scene.isLoaded) continue;
-            // プレビュー用の一時シーンを除外
             if (string.IsNullOrEmpty(t.gameObject.scene.path)) continue;
-            validTapes.Add(t);
+            validObjects.Add(t.gameObject);
         }
 
-        // シーンロード時などはカウントを初期化して終了
-        if (lastRadioCount == -1 || lastTapeCount == -1)
+        // 初回ロード時は現在のオブジェクトIDを記録して終了
+        if (!isInitialized)
         {
-            lastRadioCount = validRadios.Count;
-            lastTapeCount = validTapes.Count;
+            foreach (var go in validObjects)
+            {
+                knownInstanceIDs.Add(go.GetInstanceID());
+            }
+            isInitialized = true;
             return;
         }
 
-        bool hasAdded = false;
-        if (validRadios.Count > lastRadioCount) hasAdded = true;
-        if (validTapes.Count > lastTapeCount) hasAdded = true;
+        bool hasNewPlaced = false;
+        HashSet<int> currentIDs = new HashSet<int>();
 
-        lastRadioCount = validRadios.Count;
-        lastTapeCount = validTapes.Count;
-
-        // ヒエラルキーに対象オブジェクトが追加（配置）されたタイミングでのみ実行
-        if (hasAdded)
+        foreach (var go in validObjects)
         {
-            CheckSyncStateOnPlaced(validRadios.ToArray(), validTapes.ToArray());
+            int id = go.GetInstanceID();
+
+            if (!knownInstanceIDs.Contains(id))
+            {
+                // 未知のIDを検出した場合、それが「現在選択されているか」で配置確定を判定
+                if (IsSelectedOrChildOfSelected(go))
+                {
+                    hasNewPlaced = true;
+                    currentIDs.Add(id); // 配置確定したので既知リストに追加
+                }
+                // 選択されていない新規オブジェクト（ドラッグ中のプレビュー等）は既知リストに入れない
+            }
+            else
+            {
+                currentIDs.Add(id); // 既存のものは引き継ぐ
+            }
+        }
+
+        knownInstanceIDs = currentIDs;
+
+        if (hasNewPlaced && !EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
+        {
+            CheckSyncStateOnPlaced();
         }
     }
 
-    private static void CheckSyncStateOnPlaced(HoboRadio_Controller[] radios, HoboTape[] tapes)
+    private static bool IsSelectedOrChildOfSelected(GameObject go)
     {
+        GameObject[] selectedObjects = Selection.gameObjects;
+        if (selectedObjects == null || selectedObjects.Length == 0) return false;
+
+        Transform t = go.transform;
+        while (t != null)
+        {
+            foreach (var sel in selectedObjects)
+            {
+                if (t.gameObject == sel) return true;
+            }
+            t = t.parent;
+        }
+        return false;
+    }
+
+    private static void CheckSyncStateOnPlaced()
+    {
+        HoboRadio_Controller[] radios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
+        HoboTape[] tapes = Object.FindObjectsOfType<HoboTape>(true);
+
         if (radios.Length == 0) return;
 
         bool hasGlobal = false;
@@ -319,6 +356,7 @@ public static class HoboRadio_HierarchyMonitor
 
         foreach (var r in radios)
         {
+            if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
             SerializedObject radioSO = new SerializedObject(r);
             SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
             if (isGlobalProp != null)
@@ -334,6 +372,7 @@ public static class HoboRadio_HierarchyMonitor
         {
             foreach (var t in tapes)
             {
+                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
                 targetTapes.Add(t);
             }
 
@@ -347,6 +386,7 @@ public static class HoboRadio_HierarchyMonitor
             bool isGlobal = hasGlobal;
             foreach (var t in tapes)
             {
+                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
                 VRC.SDK3.Components.VRCObjectSync syncComp = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
