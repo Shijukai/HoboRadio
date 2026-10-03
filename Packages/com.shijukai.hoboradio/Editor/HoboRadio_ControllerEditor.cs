@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(HoboRadio_Controller))]
 public class HoboRadio_ControllerEditor : Editor
@@ -109,7 +110,7 @@ public class HoboRadio_ControllerEditor : Editor
         }
 
         HoboTape[] allTapes = FindObjectsOfType<HoboTape>(true);
-        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+        List<HoboTape> targetTapes = new List<HoboTape>();
 
         if (hasGlobal && hasLocal)
         {
@@ -251,8 +252,8 @@ public static class HoboRadio_HierarchyMonitor
         if (Application.isPlaying) return;
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
-        HoboRadio_Controller[] radios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
-        HoboTape[] tapes = Object.FindObjectsOfType<HoboTape>(true);
+        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>(true);
+        HoboTape[] tapes = FindObjectsOfType<HoboTape>(true);
 
         // シーンロード時などはカウントを初期化して終了
         if (lastRadioCount == -1 || lastTapeCount == -1)
@@ -295,7 +296,7 @@ public static class HoboRadio_HierarchyMonitor
             }
         }
 
-        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+        List<HoboTape> targetTapes = new List<HoboTape>();
 
         if (hasGlobal && hasLocal)
         {

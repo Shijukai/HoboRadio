@@ -91,6 +91,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             EditorGUI.indentLevel++;
             foreach (var tape in group.Value)
             {
+                if (tape == null) continue;
+
                 GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
                 Transform rootTransform = prefabRoot != null ? prefabRoot.transform : tape.transform.root;
                 string cassetteName = rootTransform.name;
