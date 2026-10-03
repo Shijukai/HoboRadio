@@ -13,6 +13,7 @@ public class HoboRadio_ControllerEditor : Editor
     private void OnEnable()
     {
         logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
+        EditorApplication.delayCall -= CheckSyncStateOnEnable;
         EditorApplication.delayCall += CheckSyncStateOnEnable;
     }
 
@@ -110,9 +111,9 @@ public class HoboRadio_ControllerEditor : Editor
 
     private void CheckTapeSyncState(bool isGlobal)
     {
-        if (Resources.FindObjectsOfTypeAll<HoboRadio_SyncSettingsWindow>().Length > 0) return;
+        if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
-        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>();
+        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>(true);
         bool hasGlobal = false;
         bool hasLocal = false;
 
@@ -127,7 +128,7 @@ public class HoboRadio_ControllerEditor : Editor
             }
         }
 
-        HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
+        HoboTape[] allTapes = FindObjectsOfType<HoboTape>(true);
         System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
 
         if (hasGlobal && hasLocal)
@@ -175,6 +176,7 @@ public class HoboTapeEditor : Editor
     private void OnEnable()
     {
         logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
+        EditorApplication.delayCall -= CheckSyncStateOnEnable;
         EditorApplication.delayCall += CheckSyncStateOnEnable;
     }
 
@@ -189,9 +191,9 @@ public class HoboTapeEditor : Editor
         HoboTape tape = (HoboTape)target;
         if (tape == null || tape.gameObject == null || PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) return;
 
-        if (Resources.FindObjectsOfTypeAll<HoboRadio_SyncSettingsWindow>().Length > 0) return;
+        if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
-        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>();
+        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>(true);
         if (radios.Length == 0) return;
 
         bool hasGlobal = false;
@@ -208,7 +210,7 @@ public class HoboTapeEditor : Editor
             }
         }
 
-        HoboTape[] allTapes = FindObjectsOfType<HoboTape>();
+        HoboTape[] allTapes = FindObjectsOfType<HoboTape>(true);
         System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
 
         if (hasGlobal && hasLocal)
