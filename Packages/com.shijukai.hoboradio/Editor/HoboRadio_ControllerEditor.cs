@@ -250,6 +250,7 @@ public static class HoboRadio_HierarchyMonitor
 {
     private static int lastRadioCount = -1;
     private static int lastTapeCount = -1;
+    private static bool isWaitingForDrag = false;
 
     static HoboRadio_HierarchyMonitor()
     {
@@ -261,6 +262,37 @@ public static class HoboRadio_HierarchyMonitor
         if (Application.isPlaying) return;
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
+        // ドラッグ＆ドロップ中のプレビューオブジェクト生成による誤発火を防止
+        if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+        {
+            if (!isWaitingForDrag)
+            {
+                isWaitingForDrag = true;
+                EditorApplication.update += CheckAfterDrag;
+            }
+            return;
+        }
+
+        ExecuteCheck();
+    }
+
+    private static void CheckAfterDrag()
+    {
+        // ドラッグ操作が終了したタイミングを監視
+        if (DragAndDrop.objectReferences == null || DragAndDrop.objectReferences.Length == 0)
+        {
+            isWaitingForDrag = false;
+            EditorApplication.update -= CheckAfterDrag;
+
+            if (!Application.isPlaying && !EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
+            {
+                ExecuteCheck();
+            }
+        }
+    }
+
+    private static void ExecuteCheck()
+    {
         HoboRadio_Controller[] rawRadios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
         HoboTape[] rawTapes = Object.FindObjectsOfType<HoboTape>(true);
 
