@@ -68,9 +68,20 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 
     private void OnGUI()
     {
+        // ターゲットオブジェクトがシーンから削除された場合、安全のためウィンドウを閉じる
+        for (int i = 0; i < targetTapes.Count; i++)
+        {
+            if (targetTapes[i] == null)
+            {
+                Close();
+                GUIUtility.ExitGUI();
+                return;
+            }
+        }
+
         EditorGUILayout.Space(10);
 
-        string titleMessage = currentTriggerType == TriggerType.Placed 
+        string titleMessage = currentTriggerType == TriggerType.Placed
             ? "新規オブジェクトの配置を検知しました" 
             : "同期設定の変更を検知しました";
 
@@ -93,36 +104,40 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         EditorGUILayout.Space(10);
 
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUI.skin.box);
-
-        foreach (var group in groupedTapes)
+        try
         {
-            EditorGUILayout.LabelField($"親階層: {group.Key}", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            foreach (var tape in group.Value)
+            foreach (var group in groupedTapes)
             {
-                if (tape == null) continue;
-
-                string cassetteName;
-                if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
+                EditorGUILayout.LabelField($"親階層: {group.Key}", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                foreach (var tape in group.Value)
                 {
-                    GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
-                    cassetteName = prefabRoot.name;
-                }
-                else
-                {
-                    cassetteName = tape.gameObject.name;
-                }
+                    if (tape == null) continue;
 
-                string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
-                string displayName = $"{title} ({cassetteName})";
+                    string cassetteName;
+                    if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
+                    {
+                        GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+                        cassetteName = prefabRoot.name;
+                    }
+                    else
+                    {
+                        cassetteName = tape.gameObject.name;
+                    }
 
-                tapeSelection[tape] = EditorGUILayout.ToggleLeft(displayName, tapeSelection[tape]);
+                    string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
+                    string displayName = $"{title} ({cassetteName})";
+
+                    tapeSelection[tape] = EditorGUILayout.ToggleLeft(displayName, tapeSelection[tape]);
+                }
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space(5);
             }
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space(5);
         }
-
-        EditorGUILayout.EndScrollView();
+        finally
+        {
+            EditorGUILayout.EndScrollView();
+        }
 
         EditorGUILayout.Space(10);
 
