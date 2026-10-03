@@ -13,26 +13,6 @@ public class HoboRadio_ControllerEditor : Editor
     private void OnEnable()
     {
         logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
-        EditorApplication.delayCall -= CheckSyncStateOnEnable;
-        EditorApplication.delayCall += CheckSyncStateOnEnable;
-    }
-
-    private void OnDisable()
-    {
-        EditorApplication.delayCall -= CheckSyncStateOnEnable;
-    }
-
-    private void CheckSyncStateOnEnable()
-    {
-        if (this == null || target == null || Application.isPlaying) return;
-        HoboRadio_Controller radio = (HoboRadio_Controller)target;
-        if (radio == null || radio.gameObject == null || PrefabUtility.IsPartOfPrefabAsset(radio.gameObject)) return;
-        
-        SerializedProperty isGlobalProp = serializedObject.FindProperty("isGlobal");
-        if (isGlobalProp != null)
-        {
-            CheckTapeSyncState(isGlobalProp.boolValue, true);
-        }
     }
 
     public override void OnInspectorGUI()
@@ -103,13 +83,13 @@ public class HoboRadio_ControllerEditor : Editor
 
         serializedObject.ApplyModifiedProperties();
 
-        if (isGlobalChanged)
+        f (isGlobalChanged)
         {
             CheckTapeSyncState(isGlobalProp.boolValue);
         }
     }
 
-    private void CheckTapeSyncState(bool isGlobal, bool isAutomaticCheck = false)
+    private void CheckTapeSyncState(bool isGlobal)
     {
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
@@ -133,8 +113,6 @@ public class HoboRadio_ControllerEditor : Editor
 
         if (hasGlobal && hasLocal)
         {
-            if (isAutomaticCheck) return;
-
             foreach (var tape in allTapes)
             {
                 targetTapes.Add(tape);
@@ -147,8 +125,6 @@ public class HoboRadio_ControllerEditor : Editor
         }
         else
         {
-            if (isAutomaticCheck) return;
-
             foreach (var tape in allTapes)
             {
                 VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
@@ -180,74 +156,6 @@ public class HoboTapeEditor : Editor
     private void OnEnable()
     {
         logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.shijukai.hoboradio/Runtime/Material/UI/HoboRadio_Logo.png");
-        EditorApplication.delayCall -= CheckSyncStateOnEnable;
-        EditorApplication.delayCall += CheckSyncStateOnEnable;
-    }
-
-    private void OnDisable()
-    {
-        EditorApplication.delayCall -= CheckSyncStateOnEnable;
-    }
-
-    private void CheckSyncStateOnEnable()
-    {
-        if (this == null || target == null || Application.isPlaying) return;
-        HoboTape tape = (HoboTape)target;
-        if (tape == null || tape.gameObject == null || PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) return;
-
-        string sessionKey = "HoboRadio_CheckedTape_" + tape.GetInstanceID();
-        if (SessionState.GetBool(sessionKey, false)) return;
-        SessionState.SetBool(sessionKey, true);
-
-        if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
-
-        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>(true);
-        if (radios.Length == 0) return;
-
-        bool hasGlobal = false;
-        bool hasLocal = false;
-
-        foreach (var r in radios)
-        {
-            SerializedObject radioSO = new SerializedObject(r);
-            SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
-            if (isGlobalProp != null)
-            {
-                if (isGlobalProp.boolValue) hasGlobal = true;
-                else hasLocal = true;
-            }
-        }
-
-        HoboTape[] allTapes = FindObjectsOfType<HoboTape>(true);
-        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
-
-        if (hasGlobal && hasLocal)
-        {
-            return;
-        }
-        else
-        {
-            bool isGlobal = hasGlobal;
-            VRC.SDK3.Components.VRCObjectSync targetSyncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-
-            // 選択されたテープ自身に不整合がある場合のみ全体チェックを実行
-            if ((isGlobal && targetSyncComp == null) || (!isGlobal && targetSyncComp != null))
-            {
-                foreach (var t in allTapes)
-                {
-                    VRC.SDK3.Components.VRCObjectSync sync = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-                    if ((isGlobal && sync == null) || (!isGlobal && sync != null))
-                    {
-                        targetTapes.Add(t);
-                    }
-                }
-
-                if (targetTapes.Count > 0)
-                {
-                    HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
-                }
-            }
-        }
     }
 
     public override void OnInspectorGUI()
@@ -323,7 +231,100 @@ public class HoboTapeEditor : Editor
             DrawPropertiesExcluding(serializedObject, "m_Script", "tapeTitle", "tapeArtist", "tapeUrl");
         }
 
-        serializedObject.ApplyModifiedProperties();
+        [InitializeOnLoad]
+public static class HoboRadio_HierarchyMonitor
+{
+    private static int lastRadioCount = -1;
+    private static int lastTapeCount = -1;
+
+    static HoboRadio_HierarchyMonitor()
+    {
+        EditorApplication.hierarchyChanged += OnHierarchyChanged;
+    }
+
+    private static void OnHierarchyChanged()
+    {
+        if (Application.isPlaying) return;
+        if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
+
+        HoboRadio_Controller[] radios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
+        HoboTape[] tapes = Object.FindObjectsOfType<HoboTape>(true);
+
+        // シーンロード時などはカウントを初期化して終了
+        if (lastRadioCount == -1 || lastTapeCount == -1)
+        {
+            lastRadioCount = radios.Length;
+            lastTapeCount = tapes.Length;
+            return;
+        }
+
+        bool hasAdded = false;
+        if (radios.Length > lastRadioCount) hasAdded = true;
+        if (tapes.Length > lastTapeCount) hasAdded = true;
+
+        lastRadioCount = radios.Length;
+        lastTapeCount = tapes.Length;
+
+        // ヒエラルキーに対象オブジェクトが追加（配置）されたタイミングでのみ実行
+        if (hasAdded)
+        {
+            CheckSyncStateOnPlaced(radios, tapes);
+        }
+    }
+
+    private static void CheckSyncStateOnPlaced(HoboRadio_Controller[] radios, HoboTape[] tapes)
+    {
+        if (radios.Length == 0) return;
+
+        bool hasGlobal = false;
+        bool hasLocal = false;
+
+        foreach (var r in radios)
+        {
+            if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
+            SerializedObject radioSO = new SerializedObject(r);
+            SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
+            if (isGlobalProp != null)
+            {
+                if (isGlobalProp.boolValue) hasGlobal = true;
+                else hasLocal = true;
+            }
+        }
+
+        System.Collections.Generic.List<HoboTape> targetTapes = new System.Collections.Generic.List<HoboTape>();
+
+        if (hasGlobal && hasLocal)
+        {
+            foreach (var t in tapes)
+            {
+                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
+                targetTapes.Add(t);
+            }
+
+            if (targetTapes.Count > 0)
+            {
+                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true);
+            }
+        }
+        else
+        {
+            bool isGlobal = hasGlobal;
+            foreach (var t in tapes)
+            {
+                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
+                VRC.SDK3.Components.VRCObjectSync syncComp = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+
+                if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
+                {
+                    targetTapes.Add(t);
+                }
+            }
+
+            if (targetTapes.Count > 0)
+            {
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+            }
+        }
     }
 }
 #endif
