@@ -154,4 +154,5 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         }
         Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
     }
+}
 #endif
