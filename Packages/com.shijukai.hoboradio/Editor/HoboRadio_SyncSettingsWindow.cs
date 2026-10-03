@@ -37,9 +37,18 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         {
             if (tape == null) continue;
 
-            GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
-            Transform rootTransform = prefabRoot != null ? prefabRoot.transform : tape.transform.root;
-            string parentName = rootTransform.parent != null ? rootTransform.parent.name : "Root";
+            Transform parentTransform;
+            if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
+            {
+                GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+                parentTransform = prefabRoot.transform.parent;
+            }
+            else
+            {
+                parentTransform = tape.transform.parent;
+            }
+
+            string parentName = parentTransform != null ? parentTransform.name : "Root";
 
             if (!groupedTapes.ContainsKey(parentName))
             {
@@ -93,9 +102,17 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             {
                 if (tape == null) continue;
 
-                GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
-                Transform rootTransform = prefabRoot != null ? prefabRoot.transform : tape.transform.root;
-                string cassetteName = rootTransform.name;
+                string cassetteName;
+                if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
+                {
+                    GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+                    cassetteName = prefabRoot.name;
+                }
+                else
+                {
+                    cassetteName = tape.gameObject.name;
+                }
+
                 string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
                 string displayName = $"{title} ({cassetteName})";
 

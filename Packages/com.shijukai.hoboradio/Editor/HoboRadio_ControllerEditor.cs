@@ -100,6 +100,7 @@ public class HoboRadio_ControllerEditor : Editor
 
         foreach (var radio in radios)
         {
+            if (PrefabUtility.IsPartOfPrefabAsset(radio.gameObject)) continue;
             SerializedObject so = new SerializedObject(radio);
             SerializedProperty prop = so.FindProperty("isGlobal");
             if (prop != null)
@@ -116,6 +117,7 @@ public class HoboRadio_ControllerEditor : Editor
         {
             foreach (var tape in allTapes)
             {
+                if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
                 targetTapes.Add(tape);
             }
 
@@ -128,6 +130,7 @@ public class HoboRadio_ControllerEditor : Editor
         {
             foreach (var tape in allTapes)
             {
+                if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
                 VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if (isGlobal && syncComp == null)
