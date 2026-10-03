@@ -112,18 +112,21 @@ public class HoboRadio_ControllerEditor : Editor
             }
         }
 
-        HoboTape[] allTapes = FindObjectsOfType<HoboTape>(true);
+        HoboTape[] rawTapes = FindObjectsOfType<HoboTape>(true);
+        List<HoboTape> validTapes = new List<HoboTape>();
+        
+        foreach (var tape in rawTapes)
+        {
+            if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
+            if ((tape.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+            validTapes.Add(tape);
+        }
+
         List<HoboTape> targetTapes = new List<HoboTape>();
 
         if (hasGlobal && hasLocal)
         {
-            foreach (var tape in allTapes)
-            {
-                if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
-                if ((tape.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-                
-                targetTapes.Add(tape);
-            }
+            targetTapes.AddRange(validTapes);
 
             if (targetTapes.Count > 0)
             {
@@ -132,11 +135,8 @@ public class HoboRadio_ControllerEditor : Editor
         }
         else
         {
-            foreach (var tape in allTapes)
+            foreach (var tape in validTapes)
             {
-                if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
-                if ((tape.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-                
                 VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if (isGlobal && syncComp == null)
