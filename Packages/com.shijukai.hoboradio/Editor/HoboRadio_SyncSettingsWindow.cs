@@ -32,7 +32,11 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         foreach (var tape in targetTapes)
         {
             if (tape == null) continue;
-            string parentName = tape.transform.parent != null ? tape.transform.parent.name : "Root";
+
+            GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+            Transform rootTransform = prefabRoot != null ? prefabRoot.transform : tape.transform.root;
+            string parentName = rootTransform.parent != null ? rootTransform.parent.name : "Root";
+
             if (!groupedTapes.ContainsKey(parentName))
             {
                 groupedTapes[parentName] = new List<HoboTape>();
@@ -78,13 +82,19 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             EditorGUI.indentLevel++;
             foreach (var tape in group.Value)
             {
+                GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+                Transform rootTransform = prefabRoot != null ? prefabRoot.transform : tape.transform.root;
+                string cassetteName = rootTransform.name;
+                string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
+                string displayName = $"{title} ({cassetteName})";
+
                 if (isMixedMode)
                 {
-                    tapeSelection[tape] = EditorGUILayout.ToggleLeft($"{tape.gameObject.name} (VRCObjectSyncを有効化)", tapeSelection[tape]);
+                    tapeSelection[tape] = EditorGUILayout.ToggleLeft($"{displayName} (VRCObjectSyncを有効化)", tapeSelection[tape]);
                 }
                 else
                 {
-                    tapeSelection[tape] = EditorGUILayout.ToggleLeft(tape.gameObject.name, tapeSelection[tape]);
+                    tapeSelection[tape] = EditorGUILayout.ToggleLeft(displayName, tapeSelection[tape]);
                 }
             }
             EditorGUI.indentLevel--;
