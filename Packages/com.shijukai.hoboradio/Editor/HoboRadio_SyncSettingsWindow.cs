@@ -67,7 +67,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
             string displayName = $"{title} ({cassetteName})";
 
-            bool selected = isMixed ? tape.GetComponent<VRCObjectSync>() != null : isGlobal;
+            // 混在モード以外は一括処理が前提のためデフォルトでチェックをON（true）にする
+            bool selected = isMixed ? tape.GetComponent<VRCObjectSync>() != null : true;
 
             var entry = new TapeEntry
             {
