@@ -8,12 +8,17 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 {
     public enum TriggerType { Changed, Placed }
 
+    private class TapeEntry
+    {
+        public HoboTape tape;
+        public string displayName;
+        public bool isSelected;
+    }
+
     private bool isGlobalMode;
     private bool isMixedMode;
     private TriggerType currentTriggerType;
-    private List<HoboTape> targetTapes = new List<HoboTape>();
-    private Dictionary<string, List<HoboTape>> groupedTapes = new Dictionary<string, List<HoboTape>>();
-    private Dictionary<HoboTape, bool> tapeSelection = new Dictionary<HoboTape, bool>();
+    private Dictionary<string, List<TapeEntry>> groupedEntries = new Dictionary<string, List<TapeEntry>>();
     private Vector2 scrollPosition;
 
     public static void ShowWindow(bool isGlobal, List<HoboTape> tapes, bool isMixed = false, TriggerType triggerType = TriggerType.Changed)
@@ -29,11 +34,9 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         isGlobalMode = isGlobal;
         isMixedMode = isMixed;
         currentTriggerType = triggerType;
-        targetTapes = tapes;
-        groupedTapes.Clear();
-        tapeSelection.Clear();
+        groupedEntries.Clear();
 
-        foreach (var tape in targetTapes)
+        foreach (var tape in tapes)
         {
             if (tape == null) continue;
 
@@ -50,35 +53,39 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 
             string parentName = parentTransform != null ? parentTransform.name : "Root";
 
-            if (!groupedTapes.ContainsKey(parentName))
+            string cassetteName;
+            if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
             {
-                groupedTapes[parentName] = new List<HoboTape>();
-            }
-            groupedTapes[parentName].Add(tape);
-            if (isMixedMode)
-            {
-                tapeSelection[tape] = tape.GetComponent<VRCObjectSync>() != null;
+                GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+                cassetteName = prefabRoot.name;
             }
             else
             {
-                tapeSelection[tape] = true;
+                cassetteName = tape.gameObject.name;
             }
+
+            string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
+            string displayName = $"{title} ({cassetteName})";
+
+            bool selected = isMixed ? tape.GetComponent<VRCObjectSync>() != null : isGlobal;
+
+            var entry = new TapeEntry
+            {
+                tape = tape,
+                displayName = displayName,
+                isSelected = selected
+            };
+
+            if (!groupedEntries.ContainsKey(parentName))
+            {
+                groupedEntries[parentName] = new List<TapeEntry>();
+            }
+            groupedEntries[parentName].Add(entry);
         }
     }
 
     private void OnGUI()
     {
-        // ターゲットオブジェクトがシーンから削除された場合、安全のためウィンドウを閉じる
-        for (int i = 0; i < targetTapes.Count; i++)
-        {
-            if (targetTapes[i] == null)
-            {
-                Close();
-                GUIUtility.ExitGUI();
-                return;
-            }
-        }
-
         EditorGUILayout.Space(10);
 
         string titleMessage = currentTriggerType == TriggerType.Placed
@@ -106,29 +113,25 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUI.skin.box);
         try
         {
-            foreach (var group in groupedTapes)
+            GUIStyle strikeStyle = new GUIStyle(EditorStyles.label);
+            strikeStyle.richText = true;
+
+            foreach (var group in groupedEntries)
             {
                 EditorGUILayout.LabelField($"親階層: {group.Key}", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-                foreach (var tape in group.Value)
+                foreach (var entry in group.Value)
                 {
-                    if (tape == null) continue;
-
-                    string cassetteName;
-                    if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
+                    if (entry.tape == null)
                     {
-                        GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
-                        cassetteName = prefabRoot.name;
+                        EditorGUI.BeginDisabledGroup(true);
+                        EditorGUILayout.ToggleLeft($"<s>{entry.displayName}</s> (削除済み)", entry.isSelected, strikeStyle);
+                        EditorGUI.EndDisabledGroup();
                     }
                     else
                     {
-                        cassetteName = tape.gameObject.name;
+                        entry.isSelected = EditorGUILayout.ToggleLeft(entry.displayName, entry.isSelected);
                     }
-
-                    string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
-                    string displayName = $"{title} ({cassetteName})";
-
-                    tapeSelection[tape] = EditorGUILayout.ToggleLeft(displayName, tapeSelection[tape]);
                 }
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space(5);
@@ -169,54 +172,55 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         int undoGroup = Undo.GetCurrentGroup();
         bool hasChanged = false;
 
-        foreach (var tape in targetTapes)
+        foreach (var group in groupedEntries.Values)
         {
-            if (tape == null) continue;
-
-            // 混在モード以外でチェックが外れている場合は処理をスキップ
-            if (!isMixedMode && !tapeSelection[tape]) continue;
-
-            VRCObjectSync syncObj = tape.gameObject.GetComponent<VRCObjectSync>();
-            bool shouldHaveSync = isMixedMode ? tapeSelection[tape] : isGlobalMode;
-
-            if (shouldHaveSync)
+            foreach (var entry in group)
             {
-                if (syncObj == null)
-                {
-                    bool reverted = false;
+                if (entry.tape == null) continue;
 
-                    if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
+                if (!isMixedMode && !entry.isSelected) continue;
+
+                VRCObjectSync syncObj = entry.tape.gameObject.GetComponent<VRCObjectSync>();
+                bool shouldHaveSync = isMixedMode ? entry.isSelected : isGlobalMode;
+
+                if (shouldHaveSync)
+                {
+                    if (syncObj == null)
                     {
-                        GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(tape.gameObject);
-                        if (prefabAsset != null)
+                        bool reverted = false;
+
+                        if (PrefabUtility.IsPartOfPrefabInstance(entry.tape.gameObject))
                         {
-                            VRCObjectSync assetSync = prefabAsset.GetComponent<VRCObjectSync>();
-                            if (assetSync != null)
+                            GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(entry.tape.gameObject);
+                            if (prefabAsset != null)
                             {
-                                PrefabUtility.RevertRemovedComponent(tape.gameObject, assetSync, InteractionMode.UserAction);
-                                reverted = true;
+                                VRCObjectSync assetSync = prefabAsset.GetComponent<VRCObjectSync>();
+                                if (assetSync != null)
+                                {
+                                    PrefabUtility.RevertRemovedComponent(entry.tape.gameObject, assetSync, InteractionMode.UserAction);
+                                    reverted = true;
+                                }
                             }
                         }
-                    }
 
-                    if (!reverted)
-                    {
-                        Undo.AddComponent<VRCObjectSync>(tape.gameObject);
+                        if (!reverted)
+                        {
+                            Undo.AddComponent<VRCObjectSync>(entry.tape.gameObject);
+                        }
+                        hasChanged = true;
                     }
-                    hasChanged = true;
                 }
-            }
-            else
-            {
-                if (syncObj != null)
+                else
                 {
-                    Undo.DestroyObjectImmediate(syncObj);
-                    hasChanged = true;
+                    if (syncObj != null)
+                    {
+                        Undo.DestroyObjectImmediate(syncObj);
+                        hasChanged = true;
+                    }
                 }
             }
         }
         
-        // 変更の有無にかかわらずUndoグループを閉じる
         Undo.CollapseUndoOperations(undoGroup);
 
         if (hasChanged)

@@ -157,14 +157,17 @@ public static class HoboRadio_HierarchyMonitor
 {
     private static HashSet<int> knownInstanceIDs = new HashSet<int>();
     private static bool isInitialized = false;
+    private static bool isCheckPending = false;
 
     static HoboRadio_HierarchyMonitor()
     {
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
-        UnityEditor.SceneManagement.EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
+        UnityEditor.SceneManagement.EditorSceneManager.activeSceneChangedInEditMode += (c, n) => ResetMonitor();
+        UnityEditor.SceneManagement.EditorSceneManager.newSceneCreated += (s, st, m) => ResetMonitor();
+        UnityEditor.SceneManagement.EditorSceneManager.sceneOpened += (s, m) => ResetMonitor();
     }
 
-    private static void OnSceneChanged(UnityEngine.SceneManagement.Scene current, UnityEngine.SceneManagement.Scene next)
+    private static void ResetMonitor()
     {
         isInitialized = false;
         knownInstanceIDs.Clear();
@@ -189,6 +192,15 @@ public static class HoboRadio_HierarchyMonitor
     private static void OnHierarchyChanged()
     {
         if (Application.isPlaying) return;
+        if (isCheckPending) return;
+
+        isCheckPending = true;
+        EditorApplication.delayCall += PerformHierarchyCheck;
+    }
+
+    private static void PerformHierarchyCheck()
+    {
+        isCheckPending = false;
 
         List<HoboRadio_Controller> validRadios = GetValidObjects<HoboRadio_Controller>();
         List<HoboTape> validTapes = GetValidObjects<HoboTape>();
