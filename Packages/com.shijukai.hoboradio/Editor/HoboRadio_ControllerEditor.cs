@@ -200,44 +200,28 @@ public static class HoboRadio_HierarchyMonitor
         knownInstanceIDs.Clear();
     }
 
-    public static List<HoboRadio_Controller> GetValidRadios()
+    public static List<T> GetValidObjects<T>() where T : Component
     {
-        HoboRadio_Controller[] rawRadios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
-        List<HoboRadio_Controller> validRadios = new List<HoboRadio_Controller>();
-        foreach (var r in rawRadios)
+        T[] rawObjects = Object.FindObjectsOfType<T>(true);
+        List<T> validObjects = new List<T>();
+        foreach (var obj in rawObjects)
         {
-            if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
-            if (EditorUtility.IsPersistent(r.gameObject)) continue;
-            if ((r.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-            if (!r.gameObject.scene.IsValid() || !r.gameObject.scene.isLoaded) continue;
-            if (string.IsNullOrEmpty(r.gameObject.scene.path)) continue;
-            validRadios.Add(r);
+            if (PrefabUtility.IsPartOfPrefabAsset(obj.gameObject)) continue;
+            if (EditorUtility.IsPersistent(obj.gameObject)) continue;
+            if ((obj.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
+            if (!obj.gameObject.scene.IsValid() || !obj.gameObject.scene.isLoaded) continue;
+            if (string.IsNullOrEmpty(obj.gameObject.scene.path)) continue;
+            validObjects.Add(obj);
         }
-        return validRadios;
-    }
-
-    public static List<HoboTape> GetValidTapes()
-    {
-        HoboTape[] rawTapes = Object.FindObjectsOfType<HoboTape>(true);
-        List<HoboTape> validTapes = new List<HoboTape>();
-        foreach (var t in rawTapes)
-        {
-            if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
-            if (EditorUtility.IsPersistent(t.gameObject)) continue;
-            if ((t.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-            if (!t.gameObject.scene.IsValid() || !t.gameObject.scene.isLoaded) continue;
-            if (string.IsNullOrEmpty(t.gameObject.scene.path)) continue;
-            validTapes.Add(t);
-        }
-        return validTapes;
+        return validObjects;
     }
 
     private static void OnHierarchyChanged()
     {
         if (Application.isPlaying) return;
 
-        List<HoboRadio_Controller> validRadios = GetValidRadios();
-        List<HoboTape> validTapes = GetValidTapes();
+        List<HoboRadio_Controller> validRadios = GetValidObjects<HoboRadio_Controller>();
+        List<HoboTape> validTapes = GetValidObjects<HoboTape>();
 
         List<GameObject> validObjects = new List<GameObject>();
         foreach (var r in validRadios) validObjects.Add(r.gameObject);
@@ -303,8 +287,8 @@ public static class HoboRadio_HierarchyMonitor
 
     public static void CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType triggerType)
     {
-        List<HoboRadio_Controller> radios = GetValidRadios();
-        List<HoboTape> tapes = GetValidTapes();
+        List<HoboRadio_Controller> radios = GetValidObjects<HoboRadio_Controller>();
+        List<HoboTape> tapes = GetValidObjects<HoboTape>();
 
         if (radios.Count == 0) return;
 
