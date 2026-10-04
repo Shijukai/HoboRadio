@@ -169,8 +169,14 @@ public static class HoboRadio_HierarchyMonitor
 
     private static void ResetMonitor()
     {
-        isInitialized = false;
         knownInstanceIDs.Clear();
+        List<HoboRadio_Controller> validRadios = GetValidObjects<HoboRadio_Controller>();
+        List<HoboTape> validTapes = GetValidObjects<HoboTape>();
+
+        foreach (var r in validRadios) knownInstanceIDs.Add(r.gameObject.GetInstanceID());
+        foreach (var t in validTapes) knownInstanceIDs.Add(t.gameObject.GetInstanceID());
+
+        isInitialized = true;
     }
 
     public static List<T> GetValidObjects<T>() where T : Component
