@@ -211,7 +211,6 @@ public static class HoboRadio_HierarchyMonitor
 
         // D&Dが完全に終了したら監視を解除し、判定処理を実行
         EditorApplication.update -= MonitorDragAndDrop;
-        isCheckPending = false;
 
         PerformHierarchyCheck();
     }
