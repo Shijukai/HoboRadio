@@ -87,10 +87,7 @@ public class HoboRadio_ControllerEditor : Editor
 
         if (isGlobalChanged)
         {
-            if (!EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
-            {
-                HoboRadio_HierarchyMonitor.CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType.Changed);
-            }
+            HoboRadio_HierarchyMonitor.CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType.Changed);
         }
     }
 }
@@ -265,7 +262,7 @@ public static class HoboRadio_HierarchyMonitor
 
         knownInstanceIDs = currentIDs;
 
-        if (hasNewPlaced && !EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
+        if (hasNewPlaced)
         {
             CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType.Placed);
         }
@@ -319,6 +316,10 @@ public static class HoboRadio_HierarchyMonitor
             {
                 HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true, triggerType);
             }
+            else if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
+            {
+                EditorWindow.GetWindow<HoboRadio_SyncSettingsWindow>().Close();
+            }
         }
         else
         {
@@ -336,6 +337,10 @@ public static class HoboRadio_HierarchyMonitor
             if (targetTapes.Count > 0)
             {
                 HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false, triggerType);
+            }
+            else if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
+            {
+                EditorWindow.GetWindow<HoboRadio_SyncSettingsWindow>().Close();
             }
         }
     }
