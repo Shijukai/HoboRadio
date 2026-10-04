@@ -216,14 +216,12 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             }
         }
         
+        // 変更の有無にかかわらずUndoグループを閉じる
+        Undo.CollapseUndoOperations(undoGroup);
+
         if (hasChanged)
         {
-            Undo.CollapseUndoOperations(undoGroup);
             Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
-        }
-        else
-        {
-            Undo.CollapseUndoOperations(undoGroup);
         }
     }
 }
