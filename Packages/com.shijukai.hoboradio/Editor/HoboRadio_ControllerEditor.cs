@@ -86,60 +86,9 @@ public class HoboRadio_ControllerEditor : Editor
 
         if (isGlobalChanged)
         {
-            CheckTapeSyncState(isGlobalProp.boolValue);
-        }
-    }
-
-    private void CheckTapeSyncState(bool isGlobal)
-    {
-        if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
-
-        List<HoboRadio_Controller> radios = HoboRadio_HierarchyMonitor.GetValidRadios();
-        bool hasGlobal = false;
-        bool hasLocal = false;
-
-        foreach (var radio in radios)
-        {
-            SerializedObject so = new SerializedObject(radio);
-            SerializedProperty prop = so.FindProperty("isGlobal");
-            if (prop != null)
+            if (!EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
             {
-                if (prop.boolValue) hasGlobal = true;
-                else hasLocal = true;
-            }
-        }
-
-        List<HoboTape> validTapes = HoboRadio_HierarchyMonitor.GetValidTapes();
-        List<HoboTape> targetTapes = new List<HoboTape>();
-
-        if (hasGlobal && hasLocal)
-        {
-            targetTapes.AddRange(validTapes);
-
-            if (targetTapes.Count > 0)
-            {
-                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, true);
-            }
-        }
-        else
-        {
-            foreach (var tape in validTapes)
-            {
-                VRC.SDK3.Components.VRCObjectSync syncComp = tape.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
-
-                if (isGlobal && syncComp == null)
-                {
-                    targetTapes.Add(tape);
-                }
-                else if (!isGlobal && syncComp != null)
-                {
-                    targetTapes.Add(tape);
-                }
-            }
-
-            if (targetTapes.Count > 0)
-            {
-                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false);
+                HoboRadio_HierarchyMonitor.CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType.Changed);
             }
         }
     }
@@ -331,7 +280,7 @@ public static class HoboRadio_HierarchyMonitor
 
         if (hasNewPlaced && !EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>())
         {
-            CheckSyncStateOnPlaced();
+            CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType.Placed);
         }
     }
 
@@ -352,7 +301,7 @@ public static class HoboRadio_HierarchyMonitor
         return false;
     }
 
-    private static void CheckSyncStateOnPlaced()
+    public static void CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType triggerType)
     {
         List<HoboRadio_Controller> radios = GetValidRadios();
         List<HoboTape> tapes = GetValidTapes();
@@ -381,7 +330,7 @@ public static class HoboRadio_HierarchyMonitor
 
             if (targetTapes.Count > 0)
             {
-                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true, HoboRadio_SyncSettingsWindow.TriggerType.Placed);
+                HoboRadio_SyncSettingsWindow.ShowWindow(true, targetTapes, true, triggerType);
             }
         }
         else
@@ -399,7 +348,7 @@ public static class HoboRadio_HierarchyMonitor
 
             if (targetTapes.Count > 0)
             {
-                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false, HoboRadio_SyncSettingsWindow.TriggerType.Placed);
+                HoboRadio_SyncSettingsWindow.ShowWindow(isGlobal, targetTapes, false, triggerType);
             }
         }
     }
