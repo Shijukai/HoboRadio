@@ -94,15 +94,12 @@ public class HoboRadio_ControllerEditor : Editor
     {
         if (EditorWindow.HasOpenInstances<HoboRadio_SyncSettingsWindow>()) return;
 
-        HoboRadio_Controller[] radios = FindObjectsOfType<HoboRadio_Controller>(true);
+        List<HoboRadio_Controller> radios = HoboRadio_HierarchyMonitor.GetValidRadios();
         bool hasGlobal = false;
         bool hasLocal = false;
 
         foreach (var radio in radios)
         {
-            if (PrefabUtility.IsPartOfPrefabAsset(radio.gameObject)) continue;
-            if ((radio.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-            
             SerializedObject so = new SerializedObject(radio);
             SerializedProperty prop = so.FindProperty("isGlobal");
             if (prop != null)
@@ -112,16 +109,7 @@ public class HoboRadio_ControllerEditor : Editor
             }
         }
 
-        HoboTape[] rawTapes = FindObjectsOfType<HoboTape>(true);
-        List<HoboTape> validTapes = new List<HoboTape>();
-        
-        foreach (var tape in rawTapes)
-        {
-            if (PrefabUtility.IsPartOfPrefabAsset(tape.gameObject)) continue;
-            if ((tape.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-            validTapes.Add(tape);
-        }
-
+        List<HoboTape> validTapes = HoboRadio_HierarchyMonitor.GetValidTapes();
         List<HoboTape> targetTapes = new List<HoboTape>();
 
         if (hasGlobal && hasLocal)
@@ -263,34 +251,48 @@ public static class HoboRadio_HierarchyMonitor
         knownInstanceIDs.Clear();
     }
 
-    private static void OnHierarchyChanged()
+    public static List<HoboRadio_Controller> GetValidRadios()
     {
-        if (Application.isPlaying) return;
-
         HoboRadio_Controller[] rawRadios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
-        HoboTape[] rawTapes = Object.FindObjectsOfType<HoboTape>(true);
-
-        List<GameObject> validObjects = new List<GameObject>();
-
+        List<HoboRadio_Controller> validRadios = new List<HoboRadio_Controller>();
         foreach (var r in rawRadios)
         {
             if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
             if (EditorUtility.IsPersistent(r.gameObject)) continue;
-            if (r.gameObject.hideFlags != HideFlags.None) continue;
+            if ((r.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
             if (!r.gameObject.scene.IsValid() || !r.gameObject.scene.isLoaded) continue;
             if (string.IsNullOrEmpty(r.gameObject.scene.path)) continue;
-            validObjects.Add(r.gameObject);
+            validRadios.Add(r);
         }
+        return validRadios;
+    }
 
+    public static List<HoboTape> GetValidTapes()
+    {
+        HoboTape[] rawTapes = Object.FindObjectsOfType<HoboTape>(true);
+        List<HoboTape> validTapes = new List<HoboTape>();
         foreach (var t in rawTapes)
         {
             if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
             if (EditorUtility.IsPersistent(t.gameObject)) continue;
-            if (t.gameObject.hideFlags != HideFlags.None) continue;
+            if ((t.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
             if (!t.gameObject.scene.IsValid() || !t.gameObject.scene.isLoaded) continue;
             if (string.IsNullOrEmpty(t.gameObject.scene.path)) continue;
-            validObjects.Add(t.gameObject);
+            validTapes.Add(t);
         }
+        return validTapes;
+    }
+
+    private static void OnHierarchyChanged()
+    {
+        if (Application.isPlaying) return;
+
+        List<HoboRadio_Controller> validRadios = GetValidRadios();
+        List<HoboTape> validTapes = GetValidTapes();
+
+        List<GameObject> validObjects = new List<GameObject>();
+        foreach (var r in validRadios) validObjects.Add(r.gameObject);
+        foreach (var t in validTapes) validObjects.Add(t.gameObject);
 
         // 初回ロード時は現在のオブジェクトIDを記録して終了
         if (!isInitialized)
@@ -352,17 +354,16 @@ public static class HoboRadio_HierarchyMonitor
 
     private static void CheckSyncStateOnPlaced()
     {
-        HoboRadio_Controller[] radios = Object.FindObjectsOfType<HoboRadio_Controller>(true);
-        HoboTape[] tapes = Object.FindObjectsOfType<HoboTape>(true);
+        List<HoboRadio_Controller> radios = GetValidRadios();
+        List<HoboTape> tapes = GetValidTapes();
 
-        if (radios.Length == 0) return;
+        if (radios.Count == 0) return;
 
         bool hasGlobal = false;
         bool hasLocal = false;
 
         foreach (var r in radios)
         {
-            if (PrefabUtility.IsPartOfPrefabAsset(r.gameObject)) continue;
             SerializedObject radioSO = new SerializedObject(r);
             SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
             if (isGlobalProp != null)
@@ -376,11 +377,7 @@ public static class HoboRadio_HierarchyMonitor
 
         if (hasGlobal && hasLocal)
         {
-            foreach (var t in tapes)
-            {
-                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
-                targetTapes.Add(t);
-            }
+            targetTapes.AddRange(tapes);
 
             if (targetTapes.Count > 0)
             {
@@ -392,7 +389,6 @@ public static class HoboRadio_HierarchyMonitor
             bool isGlobal = hasGlobal;
             foreach (var t in tapes)
             {
-                if (PrefabUtility.IsPartOfPrefabAsset(t.gameObject)) continue;
                 VRC.SDK3.Components.VRCObjectSync syncComp = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
