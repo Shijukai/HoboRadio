@@ -254,6 +254,13 @@ public static class HoboRadio_HierarchyMonitor
     static HoboRadio_HierarchyMonitor()
     {
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
+        UnityEditor.SceneManagement.EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
+    }
+
+    private static void OnSceneChanged(UnityEngine.SceneManagement.Scene current, UnityEngine.SceneManagement.Scene next)
+    {
+        isInitialized = false;
+        knownInstanceIDs.Clear();
     }
 
     private static void OnHierarchyChanged()
@@ -305,17 +312,16 @@ public static class HoboRadio_HierarchyMonitor
 
             if (!knownInstanceIDs.Contains(id))
             {
-                // 未知のIDを検出した場合、それが「現在選択されているか」で配置確定を判定
                 if (IsSelectedOrChildOfSelected(go))
                 {
                     hasNewPlaced = true;
-                    currentIDs.Add(id); // 配置確定したので既知リストに追加
                 }
-                // 選択されていない新規オブジェクト（ドラッグ中のプレビュー等）は既知リストに入れない
+                // 選択状態に関わらず、一度検出したオブジェクトは既知として登録し後からの誤発火を防ぐ
+                currentIDs.Add(id);
             }
             else
             {
-                currentIDs.Add(id); // 既存のものは引き継ぐ
+                currentIDs.Add(id);
             }
         }
 
