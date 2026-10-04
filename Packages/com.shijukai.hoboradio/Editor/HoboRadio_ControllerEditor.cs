@@ -200,11 +200,23 @@ public static class HoboRadio_HierarchyMonitor
         if (Application.isPlaying) return;
         if (isCheckPending) return;
 
-        // ドラッグ＆ドロップ中はプレビュー用の仮オブジェクトが生成されるため、リストへの誤登録を防止し処理を保留する
-        if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0) return;
-
         isCheckPending = true;
-        EditorApplication.delayCall += PerformHierarchyCheck;
+        EditorApplication.update += MonitorDragAndDrop;
+    }
+
+    private static void MonitorDragAndDrop()
+    {
+        // ドラッグ＆ドロップ中はプレビュー用の仮オブジェクトが存在するため、操作の完了（参照クリア）を待機する
+        if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+        {
+            return;
+        }
+
+        // D&Dが完全に終了したら監視を解除し、判定処理を実行
+        EditorApplication.update -= MonitorDragAndDrop;
+        isCheckPending = false;
+
+        PerformHierarchyCheck();
     }
 
     private static void PerformHierarchyCheck()
