@@ -189,7 +189,7 @@ public static class HoboRadio_HierarchyMonitor
             if (EditorUtility.IsPersistent(obj.gameObject)) continue;
             if ((obj.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
             if (!obj.gameObject.scene.IsValid() || !obj.gameObject.scene.isLoaded) continue;
-            if (string.IsNullOrEmpty(obj.gameObject.scene.path)) continue;
+            if (obj.gameObject.scene.name == "Preview Scene") continue;
             validObjects.Add(obj);
         }
         return validObjects;
