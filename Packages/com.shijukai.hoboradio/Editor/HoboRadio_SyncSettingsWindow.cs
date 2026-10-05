@@ -56,7 +56,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             string cassetteName;
             if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
             {
-                GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
+                GameObject prefabRoot = PrefabUtility.GetOutermos
+                tPrefabInstanceRoot(tape.gameObject);
                 cassetteName = prefabRoot.name;
             }
             else
@@ -167,8 +168,42 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         }
     }
 
+    private bool VerifyCurrentState()
+    {
+        List<HoboRadio_Controller> radios = HoboRadio_HierarchyMonitor.GetValidObjects<HoboRadio_Controller>();
+        if (radios.Count == 0) return false;
+
+        bool currentHasGlobal = false;
+        bool currentHasLocal = false;
+
+        foreach (var r in radios)
+        {
+            SerializedObject radioSO = new SerializedObject(r);
+            SerializedProperty isGlobalProp = radioSO.FindProperty("isGlobal");
+            if (isGlobalProp != null)
+            {
+                if (isGlobalProp.boolValue) currentHasGlobal = true;
+                else currentHasLocal = true;
+            }
+        }
+
+        bool currentIsMixed = currentHasGlobal && currentHasLocal;
+        bool currentIsGlobal = currentHasGlobal;
+
+        if (currentIsMixed != isMixedMode) return false;
+        if (!currentIsMixed && currentIsGlobal != isGlobalMode) return false;
+
+        return true;
+    }
+
     private void ExecuteChanges()
     {
+        if (!VerifyCurrentState())
+        {
+            Debug.LogWarning("[HoboRadio] ラジオの同期設定が変更されたため、適用を中止しました。");
+            return;
+        }
+
         Undo.SetCurrentGroupName("テープの同期設定を一括更新");
         int undoGroup = Undo.GetCurrentGroup();
         bool hasChanged = false;
