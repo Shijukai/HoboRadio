@@ -35,9 +35,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
     {
         if (!VerifyCurrentState())
         {
-            Debug.LogWarning("[HoboRadio] Undoによりラジオの同期設定が変更されたため、設定ウィンドウを終了しました。");
-            Close();
-            Repaint();
+            Debug.LogWarning("[HoboRadio] Undoによりラジオの同期設定が変更されたため、画面を更新します。");
+            HoboRadio_HierarchyMonitor.CheckSyncState(currentTriggerType);
         }
     }
 
@@ -170,8 +169,16 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("実行 (Apply)", GUILayout.Height(30)))
         {
-            ExecuteChanges();
-            shouldClose = true;
+            if (ExecuteChanges())
+            {
+                shouldClose = true;
+            }
+            else
+            {
+                // 適用が中止された場合は最新のシーン状態で画面を再評価する
+                HoboRadio_HierarchyMonitor.CheckSyncState(currentTriggerType);
+                GUIUtility.ExitGUI();
+            }
         }
         if (GUILayout.Button("キャンセル (Cancel)", GUILayout.Height(30)))
         {
@@ -215,12 +222,12 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         return true;
     }
 
-    private void ExecuteChanges()
+    private bool ExecuteChanges()
     {
         if (!VerifyCurrentState())
         {
             Debug.LogWarning("[HoboRadio] ラジオの同期設定が変更されたため、適用を中止しました。");
-            return;
+            return false;
         }
 
         Undo.SetCurrentGroupName("テープの同期設定を一括更新");
@@ -282,6 +289,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
         {
             Debug.Log("[HoboRadio] テープの同期設定を更新しました。");
         }
+
+        return true;
     }
 }
 #endif
