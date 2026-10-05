@@ -1,6 +1,5 @@
 ﻿using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDKBase;
 using VRC.Udon;
 
@@ -53,7 +52,8 @@ public class HoboTape : UdonSharpBehaviour
 
     private void Start()
     {
-        if (targetTransform == null) targetTransform = transform;
+        if (targetTransform == null && transform.parent != null) targetTransform = transform.parent;
+        else if (targetTransform == null) targetTransform = transform;
 
         if (pickup == null) pickup = (VRC_Pickup)targetTransform.GetComponentInChildren(typeof(VRC_Pickup));
         if (tapeCollider == null) tapeCollider = targetTransform.GetComponentInChildren<Collider>();
@@ -97,12 +97,6 @@ public class HoboTape : UdonSharpBehaviour
         targetTransform.SetParent(originalParent, true);
         targetTransform.localPosition = initialLocalPosition;
         targetTransform.localRotation = initialLocalRotation;
-
-        VRCObjectSync sync = targetTransform.GetComponent<VRCObjectSync>();
-        if (sync != null)
-        {
-            sync.FlagDiscontinuity();
-        }
 
         if (tapeRigidbody != null)
         {
