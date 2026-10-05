@@ -1,7 +1,6 @@
 ﻿using System;
 using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
 using VRC.SDKBase;
@@ -726,7 +725,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 target.SetParent(tapeSlot, true);
                 target.localPosition = isEjecting ? (Vector3.up * 0.05f) : Vector3.zero;
                 target.localRotation = Quaternion.identity;
-                FlagTapeDiscontinuity(target);
             }
             UpdateVisuals();
         }
@@ -860,16 +858,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (shouldPauseDown && !_animPauseDown) { radioAnimator.SetTrigger("HoboRadio_PauseOn"); _animPauseDown = true; }
         else if (!shouldPauseDown && _animPauseDown) { radioAnimator.SetTrigger("HoboRadio_PauseOff"); _animPauseDown = false; }
-    }
-
-    private void FlagTapeDiscontinuity(Transform target)
-    {
-        if (target == null) return;
-        VRCObjectSync sync = target.GetComponent<VRCObjectSync>();
-        if (sync != null)
-        {
-            sync.FlagDiscontinuity();
-        }
     }
 
     private void TakeOwnership()
@@ -1278,7 +1266,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             target.SetParent(tapeSlot, true);
             target.localPosition = Vector3.zero;
             target.localRotation = Quaternion.identity;
-            FlagTapeDiscontinuity(target);
         }
 
         insertedTape.UpdateTapeProgress(0f);
@@ -1485,7 +1472,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 {
                     tapeRoot.SetParent(null, true);
                 }
-                FlagTapeDiscontinuity(tapeRoot);
             }
 
             if (insertedTape.tapeRigidbody != null)
