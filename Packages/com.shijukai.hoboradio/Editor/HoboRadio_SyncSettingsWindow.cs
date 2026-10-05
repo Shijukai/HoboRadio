@@ -21,6 +21,26 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
     private Dictionary<string, List<TapeEntry>> groupedEntries = new Dictionary<string, List<TapeEntry>>();
     private Vector2 scrollPosition;
 
+    private void OnEnable()
+    {
+        Undo.undoRedoPerformed += OnUndoRedo;
+    }
+
+    private void OnDisable()
+    {
+        Undo.undoRedoPerformed -= OnUndoRedo;
+    }
+
+    private void OnUndoRedo()
+    {
+        if (!VerifyCurrentState())
+        {
+            Debug.LogWarning("[HoboRadio] Undoによりラジオの同期設定が変更されたため、設定ウィンドウを終了しました。");
+            Close();
+            Repaint();
+        }
+    }
+
     public static void ShowWindow(bool isGlobal, List<HoboTape> tapes, bool isMixed = false, TriggerType triggerType = TriggerType.Changed)
     {
         HoboRadio_SyncSettingsWindow window = GetWindow<HoboRadio_SyncSettingsWindow>("同期設定の確認 (Hobo Radio)");
@@ -56,8 +76,7 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             string cassetteName;
             if (PrefabUtility.IsPartOfPrefabInstance(tape.gameObject))
             {
-                GameObject prefabRoot = PrefabUtility.GetOutermos
-                tPrefabInstanceRoot(tape.gameObject);
+                GameObject prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(tape.gameObject);
                 cassetteName = prefabRoot.name;
             }
             else
