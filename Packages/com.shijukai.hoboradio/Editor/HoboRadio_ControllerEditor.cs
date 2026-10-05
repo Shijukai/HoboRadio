@@ -284,6 +284,20 @@ public static class HoboRadio_HierarchyMonitor
         return false;
     }
 
+    public static GameObject GetSyncTarget(HoboTape tape)
+    {
+        SerializedObject tapeSO = new SerializedObject(tape);
+        SerializedProperty targetProp = tapeSO.FindProperty("targetTransform");
+
+        if (targetProp != null && targetProp.objectReferenceValue != null)
+        {
+            Transform t = targetProp.objectReferenceValue as Transform;
+            return t.gameObject;
+        }
+
+        return tape.gameObject;
+    }
+
     public static void CheckSyncState(HoboRadio_SyncSettingsWindow.TriggerType triggerType)
     {
         List<HoboRadio_Controller> radios = GetValidObjects<HoboRadio_Controller>();
@@ -325,7 +339,8 @@ public static class HoboRadio_HierarchyMonitor
             bool isGlobal = hasGlobal;
             foreach (var t in tapes)
             {
-                VRC.SDK3.Components.VRCObjectSync syncComp = t.gameObject.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+                GameObject syncTarget = GetSyncTarget(t);
+                VRC.SDK3.Components.VRCObjectSync syncComp = syncTarget.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
 
                 if ((isGlobal && syncComp == null) || (!isGlobal && syncComp != null))
                 {

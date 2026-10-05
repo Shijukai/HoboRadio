@@ -86,8 +86,10 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
             string title = string.IsNullOrEmpty(tape.tapeTitle) ? "(タイトル未設定)" : tape.tapeTitle;
             string displayName = $"{title} ({cassetteName})";
 
+            GameObject syncTarget = HoboRadio_HierarchyMonitor.GetSyncTarget(tape);
+
             // 混在モード以外は一括処理が前提のためデフォルトでチェックをON（true）にする
-            bool selected = isMixed ? tape.GetComponent<VRCObjectSync>() != null : true;
+            bool selected = isMixed ? syncTarget.GetComponent<VRCObjectSync>() != null : true;
 
             var entry = new TapeEntry
             {
@@ -242,7 +244,8 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 
                 if (!isMixedMode && !entry.isSelected) continue;
 
-                VRCObjectSync syncObj = entry.tape.gameObject.GetComponent<VRCObjectSync>();
+                GameObject syncTarget = HoboRadio_HierarchyMonitor.GetSyncTarget(entry.tape);
+                VRCObjectSync syncObj = syncTarget.GetComponent<VRCObjectSync>();
                 bool shouldHaveSync = isMixedMode ? entry.isSelected : isGlobalMode;
 
                 if (shouldHaveSync)
@@ -251,15 +254,15 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
                     {
                         bool reverted = false;
 
-                        if (PrefabUtility.IsPartOfPrefabInstance(entry.tape.gameObject))
+                        if (PrefabUtility.IsPartOfPrefabInstance(syncTarget))
                         {
-                            GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(entry.tape.gameObject);
+                            GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(syncTarget);
                             if (prefabAsset != null)
                             {
                                 VRCObjectSync assetSync = prefabAsset.GetComponent<VRCObjectSync>();
                                 if (assetSync != null)
                                 {
-                                    PrefabUtility.RevertRemovedComponent(entry.tape.gameObject, assetSync, InteractionMode.UserAction);
+                                    PrefabUtility.RevertRemovedComponent(syncTarget, assetSync, InteractionMode.UserAction);
                                     reverted = true;
                                 }
                             }
@@ -267,7 +270,7 @@ public class HoboRadio_SyncSettingsWindow : EditorWindow
 
                         if (!reverted)
                         {
-                            Undo.AddComponent<VRCObjectSync>(entry.tape.gameObject);
+                            Undo.AddComponent<VRCObjectSync>(syncTarget);
                         }
                         hasChanged = true;
                     }
