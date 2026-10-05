@@ -52,7 +52,8 @@ public class HoboTape : UdonSharpBehaviour
 
     private void Start()
     {
-        if (targetTransform == null) targetTransform = transform;
+        if (targetTransform == null && transform.parent != null) targetTransform = transform.parent;
+        else if (targetTransform == null) targetTransform = transform;
 
         if (pickup == null) pickup = (VRC_Pickup)targetTransform.GetComponentInChildren(typeof(VRC_Pickup));
         if (tapeCollider == null) tapeCollider = targetTransform.GetComponentInChildren<Collider>();
