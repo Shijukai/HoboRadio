@@ -11,7 +11,7 @@ using TMPro;
 public class HoboRadio_Controller : UdonSharpBehaviour
 {
     [Header("--- 同期設定 ---")]
-    [Tooltip("チェックを入れるとチャンネル切り替えがグローバルになります(電源、音量は同期しません)")]
+    [Tooltip("チェックを入れるとチャンネルおよび電源の切り替えがグローバルになります(音量は同期しません)")]
     [SerializeField] bool isGlobal = true;
 
     [Header("--- 自動起動設定 ---")]
