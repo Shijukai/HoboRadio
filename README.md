@@ -29,6 +29,12 @@ VRCの制約上Loadingエラーが発生する可能性があるため非推奨�
 パブリック化する際にはウェブサイト上からワールド情報の編集画面を開き、
 VideoPlayerAllowedDomainsの欄に**「shijukairadio.com」「media.shijukairadio.com」**を追加登録してください。
 
+**Unityエディタ上でのテスト実行について**  
+- クライアントを起動せずUnityエディタ上で直接再生した場合、動画ストリーミングの取得が行われないため選局ノイズSEのみが再生されます。
+
+**音声仕様（2Dブレンド）について**  
+- ステレオ音源やバイノーラル音源（ASMR等）のパン表現や定位感を維持するため、`VRC_SpatialAudioSource` を適用した上で `Spatial Blend` を2D設定としています。
+
 ---
 
 # 各種設定の変更方法
@@ -53,6 +59,17 @@ CurrentChannelIndexの数値を0-3の間で変更すると、
 - 以下のマテリアルを編集することでカラー等の変更ができます。  
 `Packages/com.shijukai.hoboradio/Runtime/Material/UI/Shijukai_UI_Background.mat`  
 また、RenderingModeをCutoutに変更して、メインカラーのAlpha（不透明度）を0にすることで透明にすることも可能です。
+
+**音量・減衰距離の変更**
+- デフォルト設定では広範囲に音が届くよう設定（Far: 250）されています。ワールドの環境に合わせて調整してください。
+  1. Hierarchy上で以下の3つのオブジェクトを同時に選択します。
+     - `Radio_Root/Radio_Speaker`
+     - `Radio_Root/AudioSource/Switch_SE`
+     - `Radio_Root/AudioSource/ChannelNoiseSE`
+  2. Inspectorの `VRC Spatial Audio Source` コンポーネントで以下の各項目を調整します。
+     - **Gain**: 音量
+     - **Far**: 音が届く距離
+     - **Near（Advanced Options内）**: 減衰が始まる距離
 
 ---
 
