@@ -1086,7 +1086,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Gain: 40
-  Far: 1000
+  Far: 250
   Near: 5
   VolumetricRadius: 0
   EnableSpatialization: 1
@@ -3621,7 +3621,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Gain: 40
-  Far: 1000
+  Far: 250
   Near: 5
   VolumetricRadius: 0
   EnableSpatialization: 1
@@ -5130,7 +5130,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Gain: 40
-  Far: 1000
+  Far: 250
   Near: 5
   VolumetricRadius: 0
   EnableSpatialization: 1
