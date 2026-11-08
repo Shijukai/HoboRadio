@@ -67,7 +67,7 @@ CurrentChannelIndexの数値を0-3の間で変更すると、
      - `Radio_〇〇/Radio_Root/AudioSource/Switch_SE`
      - `Radio_〇〇/Radio_Root/AudioSource/ChannelNoiseSE`
   2. Inspectorの `VRC Spatial Audio Source` コンポーネントで以下の各項目を調整します。
-     - **Gain**: 音量
+     - **Gain**: 最大音量
      - **Far**: 音が届く距離
      - **Near（Advanced Options内）**: 減衰が始まる距離
 
