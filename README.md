@@ -64,7 +64,7 @@ CurrentChannelIndexの数値を0-3の間で変更すると、
 - デフォルト設定では広範囲に音が届くよう設定（Far: 250）されています。ワールドの環境に合わせて調整してください。
   1. Hierarchy上で以下の3つのオブジェクトを同時に選択します。
      - `Radio_〇〇/Radio_Root/Radio_Speaker`
-     - `Radio_〇〇/Radio_Root/AudioSource/Switch_SE`
+     - `Radio_〇〇/Radio_Root/AudioSource/Switch_SE`（UI版では `InteractSE`）
      - `Radio_〇〇/Radio_Root/AudioSource/ChannelNoiseSE`
   2. Inspectorの `VRC Spatial Audio Source` コンポーネントで以下の各項目を調整します。
      - **Gain**: 最大音量
