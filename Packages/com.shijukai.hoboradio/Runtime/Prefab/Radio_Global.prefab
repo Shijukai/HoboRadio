@@ -96,6 +96,7 @@ MonoBehaviour:
   interactText: Switch channels
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -318,6 +319,7 @@ MonoBehaviour:
   interactText: On / Off
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -822,6 +824,7 @@ MonoBehaviour:
   interactText: Use
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -1096,8 +1099,8 @@ MonoBehaviour:
   m_Script: {fileID: -617992517, guid: 661092b4961be7145bfbe56e1e62337b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Gain: 40
-  Far: 1000
+  Gain: 0
+  Far: 250
   Near: 5
   VolumetricRadius: 0
   EnableSpatialization: 1
@@ -1537,6 +1540,7 @@ MonoBehaviour:
   interactText: Stop / Eject
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -1705,6 +1709,7 @@ MonoBehaviour:
   interactText: Pause
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -1809,6 +1814,7 @@ MonoBehaviour:
   interactText: Fast Forward
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -1913,6 +1919,7 @@ MonoBehaviour:
   interactText: Rewind
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -2562,6 +2569,7 @@ MonoBehaviour:
   interactText: Play
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -3518,6 +3526,7 @@ MonoBehaviour:
   interactText: Use
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -3675,6 +3684,7 @@ MonoBehaviour:
   interactText: Howto/Information
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -3762,6 +3772,7 @@ MonoBehaviour:
   interactText: Volume
   interactTextGO: {fileID: 0}
   proximity: 2
+  OutlineRenderers: []
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
@@ -3965,8 +3976,8 @@ MonoBehaviour:
   m_Script: {fileID: -617992517, guid: 661092b4961be7145bfbe56e1e62337b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Gain: 40
-  Far: 1000
+  Gain: 0
+  Far: 250
   Near: 5
   VolumetricRadius: 0
   EnableSpatialization: 1
@@ -4352,8 +4363,8 @@ MonoBehaviour:
   m_Script: {fileID: -617992517, guid: 661092b4961be7145bfbe56e1e62337b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Gain: 40
-  Far: 1000
+  Gain: 0
+  Far: 250
   Near: 5
   VolumetricRadius: 0
   EnableSpatialization: 1
