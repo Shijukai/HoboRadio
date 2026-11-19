@@ -98,8 +98,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private float videoLoadStartTime;
     private int retryCount = 0;
     private bool isRetryScheduled = false;
+    private float retryScheduledTime = 0f;
     private const int MaxRetryCount = 3;
-    private const float RetryDelay = 5f;
+    private const float RetryDelay = 6f;
     private const float LoadingTimeout = 45f;
     private float lastVideoReadyTime = 0f;
 
@@ -392,6 +393,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isTapePlaying = false;
             isTapeStopped = true;
             waitingPlay = false;
+            isRetryScheduled = false;
 
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
@@ -632,6 +634,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                     {
                         videoPlayer.Stop();
                         waitingPlay = false;
+                        isRetryScheduled = false;
                         CancelPendingNoiseFadeOut();
                         StopChannelNoise();
                     }
@@ -644,6 +647,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                     bool isVideoActive = videoPlayer.gameObject.activeInHierarchy;
                     if (modeChanged || tapeChanged || powerChanged || ((!isVideoActive || !videoPlayer.IsReady) && !waitingPlay && !isRetryScheduled))
                     {
+                        retryCount = 0;
                         isRetryScheduled = false;
                         loadedTapeUrl = currentTapeUrl;
                         if (isVideoActive && videoPlayer.IsPlaying) videoPlayer.Stop();
@@ -822,11 +826,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
-        videoPlayer.LoadURL(channels[currentChannelIndex]);
         waitingPlay = true;
         isRetryScheduled = false;
         videoLoadStartTime = Time.timeSinceLevelLoad;
         SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
+        videoPlayer.LoadURL(channels[currentChannelIndex]);
     }
 
     private void UpdateVisuals()
@@ -973,6 +977,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             retryCount++;
             isRetryScheduled = true;
+            retryScheduledTime = Time.timeSinceLevelLoad;
             Debug.Log($"[HoboRadio] Retrying load in {RetryDelay}s ({retryCount}/{MaxRetryCount})...");
             if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
 
@@ -1011,12 +1016,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void _RetryExecuteTapeLoad()
     {
         if (!isRetryScheduled) return;
+        if (Time.timeSinceLevelLoad - retryScheduledTime < RetryDelay - 0.1f) return;
         _ExecuteTapeLoad();
     }
 
     public void _RetryExecuteLoad()
     {
         if (!isRetryScheduled) return;
+        if (Time.timeSinceLevelLoad - retryScheduledTime < RetryDelay - 0.1f) return;
         _ExecuteLoad();
     }
 
@@ -1302,6 +1309,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         isTapePlaying = false;
         isTapeStopped = true;
         waitingPlay = false;
+        isRetryScheduled = false;
 
         CancelPendingNoiseFadeOut();
         StopChannelNoise();
@@ -1389,11 +1397,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (videoPlayer != null)
         {
             Debug.Log($"[HoboRadio] LoadURL Executed (Tape Attempt {retryCount + 1}): {currentTapeUrl}");
-            videoPlayer.LoadURL(currentTapeUrl);
             waitingPlay = true;
             isRetryScheduled = false;
             videoLoadStartTime = Time.timeSinceLevelLoad;
             SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
+            videoPlayer.LoadURL(currentTapeUrl);
 
             if (channelNoiseSE != null && tapeLoadingSE != null)
             {
