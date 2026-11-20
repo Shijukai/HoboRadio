@@ -260,7 +260,7 @@ public class HoboRadio_Signage : UdonSharpBehaviour
     {
         for (int i = 0; i < SlotCount; i++)
         {
-            _lowResNeedsRefresh[i] = true;
+            _lowResNeedsRefresh[i] = _lowResTextures[i] != null;
             _lowResFailed[i] = false;
         }
         DisposeAllHighRes();
@@ -533,20 +533,29 @@ public class HoboRadio_Signage : UdonSharpBehaviour
 
                 if (resolvedHighUrl != null)
                 {
-                    // 高画質URLが未設定または軽量版と同一URLで既に軽量版取得済みの場合は参照共有
-                    if (lowUrl != null && resolvedHighUrl.Get() == lowUrl.Get() && _lowResTextures[currentSlot] != null)
+                    // 高画質URLが未設定または軽量版と同一URLの場合
+                    if (lowUrl != null && resolvedHighUrl.Get() == lowUrl.Get())
                     {
-                        _highResTextures[currentSlot] = _lowResTextures[currentSlot];
-                        _highResLastUsedTime[currentSlot] = Time.timeSinceLevelLoad;
-                        DisplayCurrentSlide();
+                        if (_lowResTextures[currentSlot] != null && !_lowResNeedsRefresh[currentSlot])
+                        {
+                            _highResTextures[currentSlot] = _lowResTextures[currentSlot];
+                            _highResLastUsedTime[currentSlot] = Time.timeSinceLevelLoad;
+                            DisplayCurrentSlide();
+                            return;
+                        }
+                        // 未取得または定期更新待ちの場合は優先2・3の軽量版取得へ委譲
+                    }
+                    else
+                    {
+                        StartImageDownload(currentSlot, resolvedHighUrl, true);
                         return;
                     }
-
-                    StartImageDownload(currentSlot, resolvedHighUrl, true);
-                    return;
                 }
             }
         }
+
+    }
+}
 
         // 優先2: アクティブスライド内の軽量版を現在表示位置から順に1枚ずつプリロード
         int count = _activeSlots.Length;
