@@ -1,5 +1,6 @@
 ﻿using UdonSharp;
 using UnityEngine;
+using VRC.SDKBase;
 
 public enum RadioButtonType
 {
@@ -11,6 +12,8 @@ public enum RadioButtonType
     FastForward,
     Rewind,
     Debug,
+    SignageInteract,
+    SignageTrigger,
 }
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
@@ -52,6 +55,25 @@ public class HoboRadio_Button : UdonSharpBehaviour
             case RadioButtonType.Debug:
                 targetUdon.SendCustomEvent("InteractButtonDebug");
                 break;
+            case RadioButtonType.SignageInteract:
+                targetUdon.SendCustomEvent("OnSignageInteract");
+                break;
         }
+    }
+
+    public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+    {
+        if (buttonType != RadioButtonType.SignageTrigger || targetUdon == null) return;
+        if (player == null || !player.isLocal) return;
+
+        targetUdon.SendCustomEvent("OnPlayerApproachEnter");
+    }
+
+    public override void OnPlayerTriggerExit(VRCPlayerApi player)
+    {
+        if (buttonType != RadioButtonType.SignageTrigger || targetUdon == null) return;
+        if (player == null || !player.isLocal) return;
+
+        targetUdon.SendCustomEvent("OnPlayerApproachExit");
     }
 }
