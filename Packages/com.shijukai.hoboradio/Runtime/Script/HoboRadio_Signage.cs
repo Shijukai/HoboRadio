@@ -554,9 +554,6 @@ public class HoboRadio_Signage : UdonSharpBehaviour
             }
         }
 
-    }
-}
-
         // 優先2: アクティブスライド内の軽量版を現在表示位置から順に1枚ずつプリロード
         int count = _activeSlots.Length;
         for (int offset = 0; offset < count; offset++)
