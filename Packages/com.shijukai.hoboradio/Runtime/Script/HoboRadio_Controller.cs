@@ -631,6 +631,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (statusText != null) statusText.text = "";
                 waitingPlay = false;
                 isRetryScheduled = false;
+                isLocalLoadError = false;
                 if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
             }
         }
