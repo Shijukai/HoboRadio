@@ -25,6 +25,19 @@ public class HoboRadio_Button : UdonSharpBehaviour
     [SerializeField]
     private RadioButtonType buttonType;
 
+    private void Start()
+    {
+        switch (buttonType)
+        {
+            case RadioButtonType.SignageTrigger:
+                DisableInteractive = true;
+                break;
+            default:
+                DisableInteractive = false;
+                break;
+        }
+    }
+
     public override void Interact()
     {
         if (targetUdon == null) return;
@@ -58,22 +71,36 @@ public class HoboRadio_Button : UdonSharpBehaviour
             case RadioButtonType.SignageInteract:
                 targetUdon.SendCustomEvent("OnSignageInteract");
                 break;
+            case RadioButtonType.SignageTrigger:
+                break;
         }
     }
 
     public override void OnPlayerTriggerEnter(VRCPlayerApi player)
     {
-        if (buttonType != RadioButtonType.SignageTrigger || targetUdon == null) return;
-        if (player == null || !player.isLocal) return;
+        if (targetUdon == null || player == null || !player.isLocal) return;
 
-        targetUdon.SendCustomEvent("OnPlayerApproachEnter");
+        switch (buttonType)
+        {
+            case RadioButtonType.SignageTrigger:
+                targetUdon.SendCustomEvent("OnPlayerApproachEnter");
+                break;
+            default:
+                break;
+        }
     }
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
     {
-        if (buttonType != RadioButtonType.SignageTrigger || targetUdon == null) return;
-        if (player == null || !player.isLocal) return;
+        if (targetUdon == null || player == null || !player.isLocal) return;
 
-        targetUdon.SendCustomEvent("OnPlayerApproachExit");
+        switch (buttonType)
+        {
+            case RadioButtonType.SignageTrigger:
+                targetUdon.SendCustomEvent("OnPlayerApproachExit");
+                break;
+            default:
+                break;
+        }
     }
 }
