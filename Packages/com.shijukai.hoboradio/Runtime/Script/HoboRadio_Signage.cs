@@ -54,6 +54,7 @@ public class HoboRadio_Signage : UdonSharpBehaviour
     private Texture2D[] _lowResTextures = new Texture2D[SlotCount];
     private IVRCImageDownload[] _lowResDownloads = new IVRCImageDownload[SlotCount];
     private bool[] _lowResFailed = new bool[SlotCount];
+    private bool[] _lowResNeedsRefresh = new bool[SlotCount];
 
     private Texture2D[] _highResTextures = new Texture2D[SlotCount];
     private IVRCImageDownload[] _highResDownloads = new IVRCImageDownload[SlotCount];
@@ -72,6 +73,8 @@ public class HoboRadio_Signage : UdonSharpBehaviour
     private float _lastStringRequestTime = -10f;
     private bool _isJsonRequestPending = false;
     private float _jsonScheduledTime = 0f;
+    private int _jsonRetryCount = 0;
+    private int _lastServerHour = -1;
 
     // Slide Rotation State
     private int[] _activeSlots = new int[0];
@@ -126,6 +129,22 @@ public class HoboRadio_Signage : UdonSharpBehaviour
 
     private void Update()
     {
+        // 0. 1時間ごとの定期更新監視（サーバー時刻の正時基準）
+        DateTime serverTime = Networking.GetNetworkDateTime();
+        int currentHr = serverTime.Hour;
+        int currentMin = serverTime.Minute;
+
+        if (_lastServerHour == -1)
+        {
+            _lastServerHour = currentHr;
+        }
+
+        if (currentMin == 0 && _lastServerHour != currentHr)
+        {
+            _lastServerHour = currentHr;
+            ScheduleHourlyRefresh();
+        }
+
         // 1. ラジオ本体状態の監視（電源・モード・チャンネル）
         int currentState = GetCurrentRadioStateIndex();
         if (currentState != _lastRadioStateIndex)
@@ -231,7 +250,28 @@ public class HoboRadio_Signage : UdonSharpBehaviour
         ApplyInspectorPreset(stateIndex);
         if (!_hasFetchedJson && !_isJsonRequestPending)
         {
+            _jsonRetryCount = 0;
             _jsonScheduledTime = Time.timeSinceLevelLoad + jsonFetchDelay;
+            _isJsonRequestPending = true;
+        }
+    }
+
+    private void ScheduleHourlyRefresh()
+    {
+        for (int i = 0; i < SlotCount; i++)
+        {
+            _lowResNeedsRefresh[i] = true;
+            _lowResFailed[i] = false;
+        }
+        DisposeAllHighRes();
+        DisplayCurrentSlide();
+
+        bool hasValidJsonUrl = signageJsonUrl != null && !string.IsNullOrEmpty(signageJsonUrl.Get());
+        if (!useInspectorPreset && hasValidJsonUrl)
+        {
+            // Controller/Fetcherの正時通信（0〜5秒）およびレート制限（5秒）との競合回避
+            _jsonRetryCount = 0;
+            _jsonScheduledTime = Time.timeSinceLevelLoad + UnityEngine.Random.Range(6f, 15f);
             _isJsonRequestPending = true;
         }
     }
@@ -255,6 +295,7 @@ public class HoboRadio_Signage : UdonSharpBehaviour
         if (result == null || string.IsNullOrEmpty(result.Result)) return;
 
         _hasFetchedJson = true;
+        _jsonRetryCount = 0;
         _cachedJsonString = result.Result;
         if (!useInspectorPreset)
         {
@@ -268,6 +309,14 @@ public class HoboRadio_Signage : UdonSharpBehaviour
     public override void OnStringLoadError(IVRCStringDownload result)
     {
         Debug.LogWarning($"[HoboRadio_Signage] JSON Load Error: {(result != null ? result.Error : "Unknown")}");
+
+        bool hasValidJsonUrl = signageJsonUrl != null && !string.IsNullOrEmpty(signageJsonUrl.Get());
+        if (!useInspectorPreset && hasValidJsonUrl && !_isJsonRequestPending && _jsonRetryCount < 3)
+        {
+            _jsonRetryCount++;
+            _jsonScheduledTime = Time.timeSinceLevelLoad + 10.0f;
+            _isJsonRequestPending = true;
+        }
     }
 
     private string GetStateJsonKey(int stateIndex)
@@ -516,6 +565,23 @@ public class HoboRadio_Signage : UdonSharpBehaviour
                 }
             }
         }
+
+        // 優先3: 定期更新対象の既存軽量版画像を順次再取得
+        for (int offset = 0; offset < count; offset++)
+        {
+            int idx = (_currentSlideIndex + offset) % count;
+            int slot = _activeSlots[idx];
+
+            if (_lowResNeedsRefresh[slot] && !_lowResFailed[slot])
+            {
+                VRCUrl lowUrl = GetValidUrl(lowResUrls, slot);
+                if (lowUrl != null)
+                {
+                    StartImageDownload(slot, lowUrl, false);
+                    return;
+                }
+            }
+        }
     }
 
     private VRCUrl GetValidUrl(VRCUrl[] urlArray, int slot)
@@ -531,6 +597,10 @@ public class HoboRadio_Signage : UdonSharpBehaviour
         _lastImageRequestTime = Time.timeSinceLevelLoad;
         _downloadingSlot = slot;
         _downloadingHighRes = isHighRes;
+        if (!isHighRes)
+        {
+            _lowResNeedsRefresh[slot] = false;
+        }
         _activeImageDownload = _imageDownloader.DownloadImage(url, null, (IUdonEventReceiver)this, null);
     }
 
@@ -562,6 +632,10 @@ public class HoboRadio_Signage : UdonSharpBehaviour
         }
         else
         {
+            if (_highResTextures[slot] == _lowResTextures[slot])
+            {
+                _highResTextures[slot] = null;
+            }
             if (_lowResDownloads[slot] != null)
             {
                 _lowResDownloads[slot].Dispose();
