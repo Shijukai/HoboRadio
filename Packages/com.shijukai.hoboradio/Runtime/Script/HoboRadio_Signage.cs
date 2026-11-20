@@ -169,7 +169,7 @@ public class HoboRadio_Signage : UdonSharpBehaviour
         }
     }
 
-    public override void Interact()
+    public void OnSignageInteract()
     {
         if (_activeSlots.Length == 0) return;
 
@@ -180,18 +180,14 @@ public class HoboRadio_Signage : UdonSharpBehaviour
         DisplayCurrentSlide();
     }
 
-    public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+    public void OnPlayerApproachEnter()
     {
-        if (player == null || !player.isLocal) return;
-
         _isPlayerNear = true;
         DisplayCurrentSlide();
     }
 
-    public override void OnPlayerTriggerExit(VRCPlayerApi player)
+    public void OnPlayerApproachExit()
     {
-        if (player == null || !player.isLocal) return;
-
         _isPlayerNear = false;
         _isManualMode = false;
         DisposeAllHighRes();
