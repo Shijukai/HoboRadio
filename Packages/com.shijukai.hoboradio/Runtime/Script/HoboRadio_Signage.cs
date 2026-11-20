@@ -11,7 +11,7 @@ using VRC.Udon.Common.Interfaces;
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class HoboRadio_Signage : UdonSharpBehaviour
 {
-    private const int SlotCount = 12;
+    private const int SlotCount = 16;
     private const int StateCount = 5; // 0..3: CH1..CH4, 4: PowerOff / Tape
     private const int OfflineStateIndex = 4;
 
@@ -22,7 +22,7 @@ public class HoboRadio_Signage : UdonSharpBehaviour
     [Tooltip("0以下の場合は起動時のRectTransform横幅を基準にします")]
     [SerializeField] private float fixedDisplayWidth = 0f;
 
-    [Header("--- 固定URL設定（最大12スロット） ---")]
+    [Header("--- 固定URL設定（最大16スロット） ---")]
     [SerializeField] private VRCUrl[] lowResUrls = new VRCUrl[SlotCount];
     [Tooltip("未設定（空）または軽量版と同一URLの場合は軽量版テクスチャを共有します")]
     [SerializeField] private VRCUrl[] highResUrls = new VRCUrl[SlotCount];
