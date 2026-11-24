@@ -100,6 +100,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool isRetryScheduled = false;
     private float retryScheduledTime = 0f;
     private bool isLocalLoadError = false;
+    if (statusText != null) statusText.text = "";
+
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 6f;
     private const float LoadingTimeout = 45f;
@@ -654,6 +656,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (isTapeStopped || isEjecting)
             {
+                if (statusText != null) statusText.text = "";
+
                 if (videoPlayer != null)
                 {
                     if (waitingPlay || isLocalLoadError || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying))
