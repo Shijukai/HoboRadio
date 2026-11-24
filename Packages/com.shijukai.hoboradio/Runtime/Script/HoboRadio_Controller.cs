@@ -1431,8 +1431,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isRetryScheduled = false;
             videoLoadStartTime = Time.timeSinceLevelLoad;
             SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
-            videoPlayer.LoadURL(currentTapeUrl);
-
             if (channelNoiseSE != null && tapeLoadingSE != null)
             {
                 CancelPendingNoiseFadeOut();
@@ -1441,6 +1439,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (!channelNoiseSE.isPlaying) channelNoiseSE.Play();
                 noiseFadeMode = NoiseFadeNone;
             }
+
+            videoPlayer.LoadURL(currentTapeUrl);
         }
     }
 
