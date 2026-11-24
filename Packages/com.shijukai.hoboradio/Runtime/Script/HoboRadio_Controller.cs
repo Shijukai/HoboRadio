@@ -430,6 +430,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (statusText != null) statusText.text = "";
             retryCount = 0;
             isRetryScheduled = false;
+            if (!isGlobal)
+            {
+                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+                if (insertedTape != null) insertedTape.UpdateTapeProgress(0f);
+            }
             if (videoPlayer != null) videoPlayer.Stop();
             waitingPlay = true;
             SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
