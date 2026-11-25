@@ -98,8 +98,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private float videoLoadStartTime;
     private int retryCount = 0;
     private bool isRetryScheduled = false;
+    private float retryScheduledTime = 0f;
+    private bool isLocalLoadError = false;
+    private bool resetLocalTapeStartOnReady = false;
     private const int MaxRetryCount = 3;
-    private const float RetryDelay = 5f;
+    private const float RetryDelay = 6f;
     private const float LoadingTimeout = 45f;
     private float lastVideoReadyTime = 0f;
 
@@ -149,6 +152,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         pendingInsertTape = null;
         waitingPlay = false;
         isRetryScheduled = false;
+        isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
         isInteractedLocked = false;
         isRestoreLateJoinerScheduled = false;
         isPeriodicApplyScheduled = false;
@@ -246,7 +251,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         // テープとリール・ハブの再生アニメーション
         if (currentMode == 1 && isTapeInserted && insertedTape != null)
         {
-            if (isTapePlaying || waitingPlay)
+            if ((isTapePlaying && !isLocalLoadError) || waitingPlay)
             {
                 Quaternion rotDelta = Quaternion.Euler(reelRotationSpeed * Time.deltaTime);
 
@@ -257,7 +262,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (insertedTape.hubRight != null) insertedTape.hubRight.localRotation = rotDelta * insertedTape.hubRight.localRotation;
             }
 
-            if (videoLoadStartTime > 0f && !isTapeStopped && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
+            if (videoLoadStartTime > 0f && !isTapeStopped && !isLocalLoadError && !waitingPlay && videoPlayer != null && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady)
             {
                 if (videoPlayer.IsPlaying)
                 {
@@ -310,6 +315,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             loadedPowerOn = false;
             waitingPlay = false;
             isRetryScheduled = false;
+            isLocalLoadError = false;
+            resetLocalTapeStartOnReady = false;
 
             // Fetcherに表示クリアを通知
             if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
@@ -321,6 +328,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             loadedPowerOn = true;
             hasSyncedInitial = true;
             isRetryScheduled = false;
+            isLocalLoadError = false;
+            resetLocalTapeStartOnReady = false;
             retryCount = 0;
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             lastDisplayedSecond = -1;
@@ -392,6 +401,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isTapePlaying = false;
             isTapeStopped = true;
             waitingPlay = false;
+            isRetryScheduled = false;
+            isLocalLoadError = false;
+            resetLocalTapeStartOnReady = false;
+            if (statusText != null) statusText.text = "";
 
             CancelPendingNoiseFadeOut();
             StopChannelNoise();
@@ -408,7 +421,33 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
 
-        if (!isTapeStopped) return;
+        if (!isTapeStopped && !isLocalLoadError) return;
+
+        if (isLocalLoadError && !isTapeStopped)
+        {
+            if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
+            {
+                tapeMechanicsAudioSource.PlayOneShot(powerSwitchOnSE);
+            }
+
+            LockInteraction();
+            isLocalLoadError = false;
+            if (statusText != null) statusText.text = "";
+            retryCount = 0;
+            isRetryScheduled = false;
+            if (!isGlobal)
+            {
+                isTapePlaying = false;
+                tapeStartTime = 0;
+                resetLocalTapeStartOnReady = true;
+                if (insertedTape != null) insertedTape.UpdateTapeProgress(0f);
+            }
+            if (videoPlayer != null) videoPlayer.Stop();
+            waitingPlay = true;
+            SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
+            UpdateVisuals();
+            return;
+        }
 
         TakeOwnership();
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
@@ -419,6 +458,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         LockInteraction();
         isTapeStopped = false;
         isTapePlaying = true;
+        isLocalLoadError = false;
         _PlayTape();
         if (isGlobal)
         {
@@ -431,7 +471,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting || _accumulatedSeekTime != 0f) return;
 
-        if (isTapeStopped || waitingPlay) return;
+        if (isTapeStopped || waitingPlay || isLocalLoadError) return;
 
         LockInteraction();
         TakeOwnership();
@@ -466,7 +506,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     {
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
 
-        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
+        if (isTapeStopped || videoPlayer == null || waitingPlay || isLocalLoadError) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -486,7 +526,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (isInteractedLocked || !isTapeInserted || !radioPowerOn || isEjecting) return;
         // 連続入力を可能にするためLockInteraction()は呼ばない
 
-        if (isTapeStopped || videoPlayer == null || waitingPlay) return;
+        if (isTapeStopped || videoPlayer == null || waitingPlay || isLocalLoadError) return;
 
         if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
         {
@@ -604,6 +644,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (statusText != null) statusText.text = "";
                 waitingPlay = false;
                 isRetryScheduled = false;
+                isLocalLoadError = false;
                 if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
             }
         }
@@ -626,12 +667,16 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             if (isTapeStopped || isEjecting)
             {
+                if (statusText != null) statusText.text = "";
+
                 if (videoPlayer != null)
                 {
-                    if (waitingPlay || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying))
+                    if (waitingPlay || isLocalLoadError || (videoLoadStartTime > 0f && videoPlayer.gameObject.activeInHierarchy && videoPlayer.IsReady && videoPlayer.IsPlaying))
                     {
                         videoPlayer.Stop();
                         waitingPlay = false;
+                        isRetryScheduled = false;
+                        isLocalLoadError = false;
                         CancelPendingNoiseFadeOut();
                         StopChannelNoise();
                     }
@@ -642,15 +687,17 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (videoPlayer != null)
                 {
                     bool isVideoActive = videoPlayer.gameObject.activeInHierarchy;
-                    if (modeChanged || tapeChanged || powerChanged || ((!isVideoActive || !videoPlayer.IsReady) && !waitingPlay && !isRetryScheduled))
+                    if (modeChanged || tapeChanged || powerChanged || ((!isVideoActive || !videoPlayer.IsReady) && !waitingPlay && !isRetryScheduled && !isLocalLoadError))
                     {
+                        retryCount = 0;
                         isRetryScheduled = false;
+                        isLocalLoadError = false;
                         loadedTapeUrl = currentTapeUrl;
                         if (isVideoActive && videoPlayer.IsPlaying) videoPlayer.Stop();
                         waitingPlay = true;
                         SendCustomEventDelayedFrames(nameof(_ExecuteTapeLoad), 2);
                     }
-                    else if (videoLoadStartTime > 0f && isVideoActive && videoPlayer.IsReady && !waitingPlay)
+                    else if (videoLoadStartTime > 0f && isVideoActive && videoPlayer.IsReady && !waitingPlay && !isLocalLoadError)
                     {
                         if (isTapePlaying && !videoPlayer.IsPlaying)
                         {
@@ -780,6 +827,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         if (!radioPowerOn) return;
 
+        isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
+
         // Fetcherへの通知（電源ON時は画面を点灯させる）
         if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
 
@@ -822,11 +872,11 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
 
         Debug.Log($"[HoboRadio] LoadURL Executed (Attempt {retryCount + 1}): {channels[currentChannelIndex]}");
-        videoPlayer.LoadURL(channels[currentChannelIndex]);
         waitingPlay = true;
         isRetryScheduled = false;
         videoLoadStartTime = Time.timeSinceLevelLoad;
         SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
+        videoPlayer.LoadURL(channels[currentChannelIndex]);
     }
 
     private void UpdateVisuals()
@@ -850,8 +900,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         else if (!isSlotOpen && _animSlotOpen) { radioAnimator.SetTrigger("HoboRadio_SlotClose"); _animSlotOpen = false; }
 
         // ボタン沈み込み状態の同期
-        bool shouldPlayDown = isTapeInserted && !isTapeStopped && !isEjecting;
-        bool shouldPauseDown = isTapeInserted && !isTapePlaying && !isTapeStopped && !waitingPlay && !isEjecting;
+        bool shouldPlayDown = isTapeInserted && !isTapeStopped && !isEjecting && !isLocalLoadError;
+        bool shouldPauseDown = isTapeInserted && !isTapePlaying && !isTapeStopped && !waitingPlay && !isEjecting && !isLocalLoadError;
 
         if (shouldPlayDown && !_animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOn"); _animPlayDown = true; }
         else if (!shouldPlayDown && _animPlayDown) { radioAnimator.SetTrigger("HoboRadio_PlayOff"); _animPlayDown = false; }
@@ -877,6 +927,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         }
         waitingPlay = false;
         isRetryScheduled = false;
+        isLocalLoadError = false;
+        lastDisplayedSecond = -1;
 
         if (videoPlayer == null) return;
 
@@ -887,7 +939,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (videoAudioSource != null) videoAudioSource.mute = true;
 
             float targetTime;
-            if (!isTapePlaying)
+            if (resetLocalTapeStartOnReady)
+            {
+                resetLocalTapeStartOnReady = false;
+                isTapePlaying = true;
+                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+                targetTime = 0f;
+            }
+            else if (!isTapePlaying)
             {
                 targetTime = (float)Math.Abs(tapeStartTime);
             }
@@ -973,6 +1032,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             retryCount++;
             isRetryScheduled = true;
+            retryScheduledTime = Time.timeSinceLevelLoad;
             Debug.Log($"[HoboRadio] Retrying load in {RetryDelay}s ({retryCount}/{MaxRetryCount})...");
             if (statusText != null) statusText.text = $"RETRY {retryCount}/{MaxRetryCount}";
 
@@ -992,6 +1052,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             Debug.LogError("[HoboRadio] Load Failed: Max retry limit reached.");
             waitingPlay = false;
             isRetryScheduled = false;
+            isLocalLoadError = true;
+            resetLocalTapeStartOnReady = false;
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             NoiseFadeOut();
@@ -999,10 +1061,6 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
             if (currentMode == 1)
             {
-                isTapePlaying = false;
-                isTapeStopped = true;
-                if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
-                if (isGlobal) RequestSerialization();
                 UpdateVisuals();
             }
         }
@@ -1011,12 +1069,14 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     public void _RetryExecuteTapeLoad()
     {
         if (!isRetryScheduled) return;
+        if (Time.timeSinceLevelLoad - retryScheduledTime < RetryDelay - 0.1f) return;
         _ExecuteTapeLoad();
     }
 
     public void _RetryExecuteLoad()
     {
         if (!isRetryScheduled) return;
+        if (Time.timeSinceLevelLoad - retryScheduledTime < RetryDelay - 0.1f) return;
         _ExecuteLoad();
     }
 
@@ -1176,6 +1236,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             isTapePlaying = false;
             isTapeStopped = true;
+            if (statusText != null) statusText.text = "";
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
             if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
             {
@@ -1302,6 +1363,9 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         isTapePlaying = false;
         isTapeStopped = true;
         waitingPlay = false;
+        isRetryScheduled = false;
+        isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
 
         CancelPendingNoiseFadeOut();
         StopChannelNoise();
@@ -1359,6 +1423,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
 
         retryCount = 0;
         isRetryScheduled = false;
+        isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
 
         if (insertedTape != null)
         {
@@ -1389,12 +1455,10 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (videoPlayer != null)
         {
             Debug.Log($"[HoboRadio] LoadURL Executed (Tape Attempt {retryCount + 1}): {currentTapeUrl}");
-            videoPlayer.LoadURL(currentTapeUrl);
             waitingPlay = true;
             isRetryScheduled = false;
             videoLoadStartTime = Time.timeSinceLevelLoad;
             SendCustomEventDelayedSeconds(nameof(_CheckLoadingTimeout), LoadingTimeout);
-
             if (channelNoiseSE != null && tapeLoadingSE != null)
             {
                 CancelPendingNoiseFadeOut();
@@ -1403,6 +1467,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
                 if (!channelNoiseSE.isPlaying) channelNoiseSE.Play();
                 noiseFadeMode = NoiseFadeNone;
             }
+
+            videoPlayer.LoadURL(currentTapeUrl);
         }
     }
 
