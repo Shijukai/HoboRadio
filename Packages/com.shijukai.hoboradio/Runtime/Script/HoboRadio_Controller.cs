@@ -100,6 +100,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
     private bool isRetryScheduled = false;
     private float retryScheduledTime = 0f;
     private bool isLocalLoadError = false;
+    private bool resetLocalTapeStartOnReady = false;
     private const int MaxRetryCount = 3;
     private const float RetryDelay = 6f;
     private const float LoadingTimeout = 45f;
@@ -152,6 +153,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         waitingPlay = false;
         isRetryScheduled = false;
         isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
         isInteractedLocked = false;
         isRestoreLateJoinerScheduled = false;
         isPeriodicApplyScheduled = false;
@@ -314,6 +316,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             waitingPlay = false;
             isRetryScheduled = false;
             isLocalLoadError = false;
+            resetLocalTapeStartOnReady = false;
 
             // Fetcherに表示クリアを通知
             if (infoFetcher != null) infoFetcher.SendCustomEvent("ClearDisplay");
@@ -326,6 +329,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             hasSyncedInitial = true;
             isRetryScheduled = false;
             isLocalLoadError = false;
+            resetLocalTapeStartOnReady = false;
             retryCount = 0;
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_PowerOn");
             lastDisplayedSecond = -1;
@@ -399,6 +403,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             waitingPlay = false;
             isRetryScheduled = false;
             isLocalLoadError = false;
+            resetLocalTapeStartOnReady = false;
             if (statusText != null) statusText.text = "";
 
             CancelPendingNoiseFadeOut();
@@ -432,7 +437,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isRetryScheduled = false;
             if (!isGlobal)
             {
-                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+                isTapePlaying = true;
+                resetLocalTapeStartOnReady = true;
                 if (insertedTape != null) insertedTape.UpdateTapeProgress(0f);
             }
             if (videoPlayer != null) videoPlayer.Stop();
@@ -821,6 +827,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         if (!radioPowerOn) return;
 
         isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
 
         // Fetcherへの通知（電源ON時は画面を点灯させる）
         if (infoFetcher != null) infoFetcher.SendCustomEvent("RequestUpdate");
@@ -930,7 +937,13 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (videoAudioSource != null) videoAudioSource.mute = true;
 
             float targetTime;
-            if (!isTapePlaying)
+            if (resetLocalTapeStartOnReady)
+            {
+                resetLocalTapeStartOnReady = false;
+                tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
+                targetTime = 0f;
+            }
+            else if (!isTapePlaying)
             {
                 targetTime = (float)Math.Abs(tapeStartTime);
             }
@@ -1347,6 +1360,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         waitingPlay = false;
         isRetryScheduled = false;
         isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
 
         CancelPendingNoiseFadeOut();
         StopChannelNoise();
@@ -1405,6 +1419,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         retryCount = 0;
         isRetryScheduled = false;
         isLocalLoadError = false;
+        resetLocalTapeStartOnReady = false;
 
         if (insertedTape != null)
         {
