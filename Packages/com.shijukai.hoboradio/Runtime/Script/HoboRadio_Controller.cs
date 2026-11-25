@@ -1232,6 +1232,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         {
             isTapePlaying = false;
             isTapeStopped = true;
+            if (statusText != null) statusText.text = "";
             if (radioAnimator != null) radioAnimator.SetTrigger("HoboRadio_Stop");
             if (tapeMechanicsAudioSource != null && powerSwitchOnSE != null)
             {
