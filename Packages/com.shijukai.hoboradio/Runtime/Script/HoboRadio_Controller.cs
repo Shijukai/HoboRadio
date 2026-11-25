@@ -437,7 +437,8 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             isRetryScheduled = false;
             if (!isGlobal)
             {
-                isTapePlaying = true;
+                isTapePlaying = false;
+                tapeStartTime = 0;
                 resetLocalTapeStartOnReady = true;
                 if (insertedTape != null) insertedTape.UpdateTapeProgress(0f);
             }
@@ -941,6 +942,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             if (resetLocalTapeStartOnReady)
             {
                 resetLocalTapeStartOnReady = false;
+                isTapePlaying = true;
                 tapeStartTime = Networking.GetNetworkDateTime().TimeOfDay.TotalSeconds;
                 targetTime = 0f;
             }
