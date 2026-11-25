@@ -927,6 +927,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
         waitingPlay = false;
         isRetryScheduled = false;
         isLocalLoadError = false;
+        lastDisplayedSecond = -1;
 
         if (videoPlayer == null) return;
 
@@ -1050,6 +1051,7 @@ public class HoboRadio_Controller : UdonSharpBehaviour
             waitingPlay = false;
             isRetryScheduled = false;
             isLocalLoadError = true;
+            resetLocalTapeStartOnReady = false;
             if (videoPlayer != null) videoPlayer.Stop();
             CancelPendingNoiseFadeOut();
             NoiseFadeOut();
